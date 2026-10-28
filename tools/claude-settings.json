@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/user/one-thumb-parrying-knight/tests/prepublish.sh",
+            "timeout": 900,
+            "statusMessage": "게임 자동 테스트 실행 중..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/user/one-thumb-parrying-knight/tools/postpublish.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,543 @@
+<title>패링 나이트 성장 전략</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Jua&display=swap">
+<style>
+/* Layout: one long field-guide scroll in the game's own night-castle palette — pixel sprites as figures, each section = one question answered */
+:root{
+  --ink:#140f2c; --panel:#1f1844; --panel-2:#2a2160; --line:#3b3277; --edge:#0a0720;
+  --text:#f5f0ff; --muted:#b3aad8; --faint:#7d74a8;
+  --gold:#ffc83a; --gold-2:#e88a00;
+  --ok:#5fd37a; --part:#ffb347; --none:#6d668f;
+  --f-display:'Black Han Sans','Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --f-body:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --f-label:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color-scheme:dark;
+}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--text);font-family:var(--f-body);font-size:16px;line-height:1.7;margin:0}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+canvas.px{image-rendering:pixelated;image-rendering:crisp-edges}
+h1,h2,h3{font-family:var(--f-display);font-weight:normal;text-wrap:balance;letter-spacing:.3px}
+h2{font-size:clamp(26px,4.4vw,36px);line-height:1.2;margin:0 0 10px}
+h3{font-size:20px;margin:0 0 6px;line-height:1.3}
+p{margin:0 0 12px;max-width:68ch}
+.eyebrow{font-family:var(--f-label);font-size:14px;color:var(--gold);letter-spacing:1px}
+.lead{color:var(--muted);font-size:17px}
+section{padding-block:56px 8px;border-top:2px dashed var(--line)}
+section:first-of-type{border-top:0}
+b,strong{color:var(--text)}
+a{color:var(--gold)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.25fr .9fr;gap:28px;align-items:center;padding-block:44px 36px}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.08;margin:8px 0 14px;color:var(--gold);
+  text-shadow:0 3px 0 var(--edge),3px 0 0 var(--edge),-3px 0 0 var(--edge),0 -3px 0 var(--edge),0 6px 0 var(--edge)}
+.stagebox{position:relative;aspect-ratio:4/3;max-width:100%;border-radius:22px;border:4px solid var(--edge);overflow:hidden;box-shadow:0 0 0 3px #5a4fc0,0 8px 0 3px var(--edge)}
+.stagebox canvas{position:absolute;inset:0;width:100%;height:100%}
+.formula{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.formula span{font-family:var(--f-label);font-size:15px;padding:6px 12px;border-radius:999px;background:var(--panel-2);border:2px solid var(--line)}
+.formula i{font-style:normal;color:var(--gold);align-self:center;font-family:var(--f-display)}
+
+/* game cards */
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:20px}
+.game{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.game .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.game .maker{font-size:12px;color:var(--faint);white-space:nowrap}
+.game dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:14px;line-height:1.55}
+.game dt{font-family:var(--f-label);color:var(--muted);white-space:nowrap}
+.game dd{margin:0;min-width:0}
+.game .take{margin-top:4px;padding:9px 11px;border-radius:12px;background:rgba(255,200,58,.1);border:1px solid rgba(255,200,58,.35);font-size:14px}
+.game .take b{color:var(--gold);font-family:var(--f-label);font-weight:normal}
+
+/* layer diagram */
+.diagram{overflow-x:auto;margin-top:18px;background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:12px}
+.diagram svg{display:block;width:100%;min-width:620px;height:auto}
+.legend-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:13px;color:var(--muted)}
+
+/* retention timeline */
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+.tcol{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:14px;min-width:0}
+.tcol .when{font-family:var(--f-display);font-size:22px;color:var(--gold)}
+.tcol .q{font-size:13px;color:var(--muted);margin-bottom:10px}
+.tcol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.tcol li{font-size:14px;line-height:1.45;display:flex;gap:8px;align-items:flex-start}
+.chip{flex:none;font-family:var(--f-label);font-size:11px;padding:1px 7px;border-radius:7px;margin-top:2px;color:var(--edge)}
+.chip.ok{background:var(--ok)}.chip.part{background:var(--part)}.chip.none{background:var(--none);color:var(--text)}
+
+/* matrix */
+.matrix-wrap{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;margin-top:18px;align-items:start}
+.chart{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:10px}
+.chart svg{display:block;width:100%;height:auto}
+.dot{cursor:pointer}
+.dot circle.hit{fill:transparent}
+.dot:hover circle.mark,.dot:focus circle.mark,.dot.on circle.mark{fill:#fff3b0}
+.tip{position:absolute;pointer-events:none;background:var(--edge);border:2px solid var(--gold);border-radius:12px;padding:8px 11px;font-size:13px;line-height:1.45;max-width:240px;opacity:0;transition:opacity .12s;z-index:2}
+.tip b{font-family:var(--f-label);font-weight:normal;color:var(--gold)}
+.picklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;counter-reset:n}
+.picklist li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:7px 10px;border-radius:12px;background:var(--panel);border:2px solid transparent;font-size:14px;cursor:default}
+.picklist li.on{border-color:var(--gold)}
+.picklist .n{width:26px;height:26px;border-radius:50%;background:var(--gold);color:var(--edge);font-family:var(--f-display);display:grid;place-items:center;font-size:14px}
+.picklist .sc{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.note{font-size:13px;color:var(--faint)}
+
+/* proposals with mockups */
+.props{display:flex;flex-direction:column;gap:18px;margin-top:22px}
+.prop{display:grid;grid-template-columns:1fr 300px;gap:20px;background:var(--panel);border:2px solid var(--line);border-radius:22px;padding:20px;align-items:center}
+.prop .num{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--edge);font-family:var(--f-display);margin-right:8px;vertical-align:middle}
+.prop .from{font-size:13px;color:var(--faint);margin-bottom:8px}
+.prop ul{margin:6px 0 0;padding-left:18px;font-size:15px}
+.prop li{margin-bottom:4px}
+.mock{background:linear-gradient(#30276a,#1d1648);border:3px solid var(--edge);border-radius:18px;padding:12px;font-family:var(--f-label);box-shadow:0 5px 0 var(--edge);min-width:0}
+.mock .mt{font-family:var(--f-display);font-size:17px;text-align:center;margin-bottom:8px;color:var(--text)}
+.mrow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;background:rgba(10,7,32,.55);margin-bottom:6px;font-size:13px}
+.mrow .bar{flex:1;height:8px;border-radius:4px;background:#140d2e;overflow:hidden}
+.mrow .bar i{display:block;height:100%;background:linear-gradient(90deg,#fff3a0,var(--gold))}
+.mbtn{font-size:12px;padding:3px 9px;border-radius:8px;border:2px solid var(--edge);background:linear-gradient(#8ff09a,#1f9646);color:var(--edge);white-space:nowrap}
+.mbtn.dim{background:#4a4280;color:var(--muted)}
+.pass{display:grid;grid-template-columns:44px repeat(4,1fr);gap:4px;font-size:11px;text-align:center}
+.pass .lab{display:grid;place-items:center;color:var(--muted)}
+.pass .cell{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;border:2px solid var(--edge);background:#2a2160}
+.pass .cell.got{background:#3f8f5a}
+.pass .cell.gold{background:linear-gradient(#ffd36b,#e07a00)}
+.pass .cell.lock{background:#2a2160;opacity:.6}
+.pass .lvl{color:var(--gold)}
+.village{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.village .b{aspect-ratio:1;border-radius:10px;border:2px solid var(--edge);display:grid;place-items:center;font-size:11px;text-align:center;line-height:1.2;padding:2px;background:#3a3170}
+.village .b.lock{background:#221b4a;color:var(--faint)}
+.village canvas{width:28px;height:28px}
+.rank{font-size:13px}
+.rank .me{background:rgba(255,200,58,.2);border:1px solid var(--gold)}
+.lane{position:relative;height:44px;border-radius:10px;background:rgba(10,7,32,.6);margin:8px 0;overflow:hidden}
+.lane i{position:absolute;top:50%;width:14px;height:14px;transform:translate(-50%,-50%) rotate(45deg);border:2px solid var(--edge)}
+.lane .y{background:var(--gold)}.lane .r{background:#ff4d5e}.lane .bl{background:#4bb6ff;width:44px;transform:translate(0,-50%);border-radius:4px}
+.lane .judge{left:18px;width:22px;height:22px;border-radius:50%;background:transparent;border:3px solid #fff;transform:translate(-50%,-50%)}
+
+/* ad map */
+.flow{display:flex;align-items:stretch;gap:0;overflow-x:auto;margin-top:18px;padding-bottom:6px}
+.step{flex:1 0 120px;min-width:120px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;position:relative;padding:0 6px}
+.step .node{width:58px;height:58px;border-radius:16px;border:3px solid var(--edge);background:var(--panel-2);display:grid;place-items:center}
+.step .node canvas{width:34px;height:34px}
+.step .nm{font-family:var(--f-label);font-size:14px}
+.step .ad{font-size:12px;line-height:1.4;padding:4px 8px;border-radius:10px;background:rgba(255,200,58,.12);border:1px dashed var(--gold);color:var(--text)}
+.step .ad.no{border-color:var(--none);background:transparent;color:var(--faint)}
+.step:not(:last-child)::after{content:"";position:absolute;top:29px;left:calc(50% + 34px);right:calc(-50% + 34px);height:3px;background:var(--line)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.box{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:16px}
+.box ul{margin:6px 0 0;padding-left:18px;font-size:15px}
+.box li{margin-bottom:5px}
+
+/* roadmap */
+.road{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.phase{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:16px;position:relative}
+.phase .tag{font-family:var(--f-label);font-size:13px;color:var(--edge);background:var(--gold);padding:2px 10px;border-radius:8px;display:inline-block;margin-bottom:8px}
+.phase ul{margin:6px 0 0;padding-left:18px;font-size:15px}
+.phase li{margin-bottom:5px}
+.phase .goal{font-size:13px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
+.traps{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+.trap{background:var(--panel);border-left:0;border:2px solid #6b2a44;border-radius:16px;padding:14px}
+.trap h3{font-size:17px;color:#ffb3c0}
+.trap p{font-size:14px;margin:0}
+.sources{font-size:13px;color:var(--muted)}
+.sources li{margin-bottom:4px}
+
+@media (max-width:760px){
+  .hero,.matrix-wrap,.prop,.split{grid-template-columns:1fr}
+  .timeline{grid-template-columns:1fr 1fr}
+  .road,.traps{grid-template-columns:1fr}
+  .prop .mock{max-width:340px}
+}
+@media (max-width:440px){.timeline{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <div class="eyebrow">원썸 패링 나이트 · 기획 메모</div>
+    <h1>오래 하는 게임은<br>세 겹으로 쌓는다</h1>
+    <p class="lead">잘 되는 모바일 게임을 뜯어보면 공식이 비슷해요. <b>3분 한 판의 손맛</b> 위에 <b>끝나지 않는 성장</b>을 얹고, 그 위에 <b>매일 들어올 이유</b>와 <b>함께할 사람</b>을 겹쳐요. 우리 게임은 첫 번째 층이 이미 강해요. 이제 위의 층들을 채울 차례예요.</p>
+    <div class="formula"><span>패링 손맛</span><i>+</i><span>방패 성장</span><i>+</i><span>매일의 이유</span><i>+</i><span>사람</span></div>
+  </div>
+  <div class="stagebox"><canvas class="px" id="heroCv" width="128" height="96" aria-label="나무 방패를 든 기사가 슬라임과 마주한 픽셀 그림"></canvas></div>
+</header>
+
+<section id="games">
+  <div class="eyebrow">1 · 무엇이 잘 되고 있나</div>
+  <h2>인기 게임 6개 해부</h2>
+  <p class="lead">장르가 가깝거나, 오래 붙잡는 장치가 뛰어난 게임만 골랐어요. 각 카드 맨 아래가 우리 게임에 가져올 한 가지예요.</p>
+  <div class="games">
+    <article class="game">
+      <div class="top"><h3>탕탕특공대</h3><span class="maker">Habby · 서바이버 액션</span></div>
+      <dl><dt>핵심 재미</dt><dd>한 판 안에서 레벨업할 때마다 3장 중 1장을 골라 스킬을 조합</dd>
+      <dt>오래 붙잡기</dt><dd>장비 6부위, 같은 장비를 합쳐 등급 올리기, 챕터 진행, 시즌 패스</dd>
+      <dt>수익</dt><dd>보상형 광고, 패스, 보석과 장비 상자</dd></dl>
+      <div class="take"><b>가져올 것</b> 등급 합성처럼 오래 걸리는 성장 축. 각인을 같은 것끼리 합치면 강해지게.</div>
+    </article>
+    <article class="game">
+      <div class="top"><h3>궁수의 전설</h3><span class="maker">Habby · 로그라이트</span></div>
+      <dl><dt>핵심 재미</dt><dd>"멈추면 쏜다" 하나의 규칙. 방을 하나씩 지나며 능력 3택1</dd>
+      <dt>오래 붙잡기</dt><dd>장비, 재능 트리, 챕터와 영웅 수집</dd>
+      <dt>수익</dt><dd>광고 부활과 능력 다시 뽑기, 에너지, 장비 상자</dd></dl>
+      <div class="take"><b>가져올 것</b> "막아야 때린다" 한 줄 규칙을 끝까지 지키기. 원정 구조가 이미 같은 방향이에요.</div>
+    </article>
+    <article class="game">
+      <div class="top"><h3>카피바라 GO!</h3><span class="maker">Habby · 텍스트 로그라이트</span></div>
+      <dl><dt>핵심 재미</dt><dd>거의 자동으로 진행되고, 중간중간 이벤트 선택지로 운명을 바꿈</dd>
+      <dt>오래 붙잡기</dt><dd>귀여운 주인공과 밈 같은 사건들, 짧은 세션</dd>
+      <dt>수익</dt><dd>패스, 광고, 꾸미기</dd></dl>
+      <div class="take"><b>가져올 것</b> 갈림길과 샘에 웃긴 사건을 섞기. 싸구려 용사의 처량함이 그대로 콘텐츠가 돼요.</div>
+    </article>
+    <article class="game">
+      <div class="top"><h3>브롤스타즈</h3><span class="maker">Supercell · 실시간 대전</span></div>
+      <dl><dt>핵심 재미</dt><dd>2~3분짜리 짧은 판, 캐릭터마다 다른 손맛</dd>
+      <dt>오래 붙잡기</dt><dd>캐릭터 수집, 시즌 패스, 친구·클럽, 이벤트 로테이션</dd>
+      <dt>수익</dt><dd>시즌 패스와 스킨이 중심, 능력치 판매는 적음</dd></dl>
+      <div class="take"><b>가져올 것</b> 패스와 스킨 중심의 과금. 강해지는 걸 파는 비중을 낮게 유지.</div>
+    </article>
+    <article class="game">
+      <div class="top"><h3>로얄 매치</h3><span class="maker">Dream Games · 퍼즐</span></div>
+      <dl><dt>핵심 재미</dt><dd>짧고 빠른 레벨, 성을 꾸미는 메타 목표</dd>
+      <dt>오래 붙잡기</dt><dd>연승할수록 커지는 보너스, 팀 이벤트, 시즌 이벤트</dd>
+      <dt>수익</dt><dd>이어하기와 아이템, 이벤트 패키지</dd></dl>
+      <div class="take"><b>가져올 것</b> 연승 보너스. 원정에 연속으로 성공하면 시작 카드가 늘어나게.</div>
+    </article>
+    <article class="game">
+      <div class="top"><h3>쿠키런: 킹덤</h3><span class="maker">데브시스터즈 · RPG+경영</span></div>
+      <dl><dt>핵심 재미</dt><dd>캐릭터와 세계관, 전투와 왕국 경영을 같이</dd>
+      <dt>오래 붙잡기</dt><dd>왕국 꾸미기, 캐릭터 스토리, 길드</dd>
+      <dt>수익</dt><dd>캐릭터 뽑기, 패키지, 꾸미기</dd></dl>
+      <div class="take"><b>가져올 것</b> 용사 구출 마을. 구한 용사들이 마을을 채우고 각자 사연을 들려줘요.</div>
+    </article>
+  </div>
+  <p class="note" style="margin-top:12px">카드 내용은 각 게임의 공개된 시스템을 요약한 거예요. 매출이나 지표 수치는 넣지 않았어요.</p>
+</section>
+
+<section id="layers">
+  <div class="eyebrow">2 · 공통 공식</div>
+  <h2>성공한 게임은 네 겹의 고리를 돌린다</h2>
+  <p class="lead">안쪽 고리일수록 자주, 바깥 고리일수록 길게 돌아요. 안쪽이 재미없으면 바깥을 아무리 쌓아도 소용없고, 바깥이 없으면 재미있어도 일주일 안에 떠나요.</p>
+  <div class="diagram" role="img" aria-label="네 겹의 동심원 그림. 안쪽부터 한 판, 성장, 매일과 매주, 시즌과 사람. 각 고리에 우리 게임의 요소와 상태가 적혀 있다.">
+    <svg viewBox="0 0 760 470" xmlns="http://www.w3.org/2000/svg">
+      <g font-family="Jua, sans-serif">
+        <circle cx="250" cy="235" r="218" fill="#241c50" stroke="#3b3277" stroke-width="2"/>
+        <circle cx="250" cy="235" r="165" fill="#2c2361" stroke="#3b3277" stroke-width="2"/>
+        <circle cx="250" cy="235" r="112" fill="#362b75" stroke="#4a3fa0" stroke-width="2"/>
+        <circle cx="250" cy="235" r="60" fill="#ffc83a" stroke="#0a0720" stroke-width="3"/>
+        <text x="250" y="230" text-anchor="middle" font-size="17" fill="#0a0720">한 판</text>
+        <text x="250" y="251" text-anchor="middle" font-size="13" fill="#0a0720">3~5분</text>
+        <text x="250" y="152" text-anchor="middle" font-size="16" fill="#f5f0ff">성장</text>
+        <text x="250" y="98" text-anchor="middle" font-size="16" fill="#f5f0ff">매일 · 매주</text>
+        <text x="250" y="44" text-anchor="middle" font-size="16" fill="#f5f0ff">시즌 · 사람</text>
+        <path d="M250 235 m-0 -60 a60 60 0 1 1 -0.1 0" fill="none"/>
+        <!-- connectors -->
+        <g stroke="#7d74a8" stroke-width="1.5" stroke-dasharray="4 4" fill="none">
+          <line x1="310" y1="235" x2="470" y2="80"/>
+          <line x1="362" y1="235" x2="470" y2="185"/>
+          <line x1="415" y1="235" x2="470" y2="290"/>
+          <line x1="468" y1="235" x2="470" y2="395"/>
+        </g>
+        <!-- right side notes -->
+        <g font-size="14">
+          <rect x="470" y="48" width="280" height="70" rx="12" fill="#1f1844" stroke="#ffc83a" stroke-width="2"/>
+          <text x="484" y="72" fill="#ffc83a" font-size="15">한 판 — 패링 · 연속 패링 · 원정 카드</text>
+          <text x="484" y="96" fill="#5fd37a">● 있음</text><text x="540" y="96" fill="#b3aad8">손맛과 리듬이 이미 강점</text>
+          <rect x="470" y="150" width="280" height="70" rx="12" fill="#1f1844" stroke="#3b3277" stroke-width="2"/>
+          <text x="484" y="174" fill="#f5f0ff" font-size="15">성장 — 방패 진화 · 각인 9종</text>
+          <text x="484" y="198" fill="#ffb347">● 일부</text><text x="540" y="198" fill="#b3aad8">40레벨에서 끝남, 더 긴 축 필요</text>
+          <rect x="470" y="255" width="280" height="70" rx="12" fill="#1f1844" stroke="#3b3277" stroke-width="2"/>
+          <text x="484" y="279" fill="#f5f0ff" font-size="15">매일 · 매주 — 출석, 광고 상자</text>
+          <text x="484" y="303" fill="#ffb347">● 일부</text><text x="540" y="303" fill="#b3aad8">미션·주간 목표가 없음</text>
+          <rect x="470" y="360" width="280" height="70" rx="12" fill="#1f1844" stroke="#3b3277" stroke-width="2"/>
+          <text x="484" y="384" fill="#f5f0ff" font-size="15">시즌 · 사람 — 패스, 랭킹, 길드</text>
+          <text x="484" y="408" fill="#9a93c0">● 없음</text><text x="540" y="408" fill="#b3aad8">가장 크게 비어 있는 층</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<section id="timeline">
+  <div class="eyebrow">3 · 언제 떠나는가</div>
+  <h2>시점마다 붙잡는 장치가 다르다</h2>
+  <p class="lead">유저는 정해진 시점에 떠나요. 첫 10분에 재미를 못 느끼면 바로, 일주일 안에 목표가 없으면 그다음에. 각 시점에 우리 게임이 무엇을 가졌는지 표시했어요.</p>
+  <div class="timeline">
+    <div class="tcol"><div class="when">첫 10분</div><div class="q">"이 게임 재밌나?"</div><ul>
+      <li><span class="chip ok">있음</span>오프닝 스토리와 타이틀</li>
+      <li><span class="chip ok">있음</span>쉬운 슬라임, 박자 신호음</li>
+      <li><span class="chip none">없음</span>보스를 미리 맛보는 프롤로그 전투</li>
+      <li><span class="chip part">일부</span>첫 퍼펙트 패링의 쾌감 연출</li></ul></div>
+    <div class="tcol"><div class="when">1일차</div><div class="q">"내일 또 할 이유가 있나?"</div><ul>
+      <li><span class="chip ok">있음</span>출석, 광고 상자</li>
+      <li><span class="chip none">없음</span>일일 미션 3개</li>
+      <li><span class="chip none">없음</span>오프라인 보상</li>
+      <li><span class="chip part">일부</span>다음 목표 표시 (각인 획득 칩)</li></ul></div>
+    <div class="tcol"><div class="when">7일차</div><div class="q">"성장이 계속 느껴지나?"</div><ul>
+      <li><span class="chip ok">있음</span>방패 진화 4단계</li>
+      <li><span class="chip ok">있음</span>원정마다 다른 카드 조합</li>
+      <li><span class="chip none">없음</span>주간 목표와 보상 상자</li>
+      <li><span class="chip none">없음</span>연승 보너스</li></ul></div>
+    <div class="tcol"><div class="when">30일차</div><div class="q">"여기서 계속 살아도 되나?"</div><ul>
+      <li><span class="chip part">일부</span>10지역 이후 반복 원정</li>
+      <li><span class="chip none">없음</span>시즌 패스</li>
+      <li><span class="chip none">없음</span>무한의 탑·랭킹</li>
+      <li><span class="chip none">없음</span>용사 마을·길드</li></ul></div>
+  </div>
+</section>
+
+<section id="matrix">
+  <div class="eyebrow">4 · 무엇부터 할까</div>
+  <h2>효과는 크고 만들기 쉬운 것부터</h2>
+  <p class="lead">추천 기능 10개를 기대 효과와 개발 난이도로 놓았어요. 왼쪽 위에 있을수록 먼저 할 만해요. 점 위에 손가락이나 마우스를 올리면 이유가 나와요.</p>
+  <div class="matrix-wrap">
+    <div class="chart" id="chart">
+      <svg id="mx" viewBox="0 0 600 430" role="img" aria-label="기대 효과와 개발 난이도 산점도. 오른쪽 목록과 같은 내용."></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+    <ol class="picklist" id="pick"></ol>
+  </div>
+  <p class="note" style="margin-top:10px">점수(1~5)는 지금 프로토타입 코드와 1인 개발 기준으로 제가 추정한 값이에요. 실제 지표가 쌓이면 다시 매겨야 해요.</p>
+</section>
+
+<section id="proposals">
+  <div class="eyebrow">5 · 이렇게 생기면 좋겠다</div>
+  <h2>먼저 넣을 다섯 가지, 화면으로 보기</h2>
+  <p class="lead">위 표의 왼쪽 위 기능들을 실제 게임 화면 느낌으로 그려 봤어요.</p>
+  <div class="props">
+
+    <div class="prop">
+      <div><h3><span class="num">1</span>마왕 프롤로그</h3>
+        <div class="from">참고: 많은 액션 RPG의 "강한 상태로 시작했다가 잃는" 튜토리얼</div>
+        <p>오프닝 마지막 장면에서 바로 마왕과 싸워요. 패링 3번은 무조건 성공하게 만들고, 4번째에 마왕의 일격에 날아가며 나무 방패만 남아요. 처음부터 "언젠가 저걸 이긴다"는 목표와, 퍼펙트 패링의 쾌감을 같이 심어요.</p>
+        <ul><li>첫 10분 이탈을 줄이는 가장 큰 손잡이</li><li>기존 전투 코드를 그대로 써서 만들기 쉬움</li></ul></div>
+      <div class="mock"><div class="mt">PROLOGUE</div><canvas class="px" id="mockPro" width="96" height="60" style="width:100%;border-radius:10px;border:2px solid #0a0720"></canvas>
+        <div class="mrow" style="margin-top:8px;justify-content:center;color:#fff36b">퍼펙트 패링! ×3</div></div>
+    </div>
+
+    <div class="prop">
+      <div><h3><span class="num">2</span>일일 미션과 주간 상자</h3>
+        <div class="from">참고: 탕탕특공대, 브롤스타즈의 미션 · 출석</div>
+        <p>매일 3개, 5분이면 끝나는 미션을 줘요. 미션 점수가 쌓이면 주간 상자가 열려요. 미션 내용이 패링 실력과 연결되도록 짜는 게 핵심이에요.</p>
+        <ul><li>예: 퍼펙트 패링 20회, 원정 1회 완료, PERFECT CHAIN 1회</li><li>주간 상자에서 각인 재료나 보석</li></ul></div>
+      <div class="mock"><div class="mt">오늘의 미션</div>
+        <div class="mrow">퍼펙트 패링 20회<div class="bar"><i style="width:65%"></i></div>13/20</div>
+        <div class="mrow">원정 1회 완료<div class="bar"><i style="width:100%"></i></div><span class="mbtn">받기</span></div>
+        <div class="mrow">PERFECT CHAIN<div class="bar"><i style="width:0%"></i></div><span class="mbtn dim">0/1</span></div>
+        <div class="mrow" style="justify-content:space-between"><span>주간 상자</span><span style="color:var(--gold)">★ 240 / 400</span></div></div>
+    </div>
+
+    <div class="prop">
+      <div><h3><span class="num">3</span>패링 패스 (시즌)</h3>
+        <div class="from">참고: 브롤스타즈, 탕탕특공대의 시즌 패스</div>
+        <p>4주짜리 시즌마다 무료 줄과 유료 줄이 있는 보상 트랙을 열어요. 유료 줄은 능력치보다 방패 스킨, 기사 옷, 특수 이펙트 위주로 채워요. 강해지는 걸 팔지 않아서 무과금 유저도 떠나지 않아요.</p>
+        <ul><li>미션과 원정에서 패스 경험치를 얻음</li><li>매출의 중심이 될 상품</li></ul></div>
+      <div class="mock"><div class="mt">시즌 1 · 나무의 기억</div>
+        <div class="pass">
+          <div></div><div class="lvl">1</div><div class="lvl">2</div><div class="lvl">3</div><div class="lvl">4</div>
+          <div class="lab">무료</div><div class="cell got"><canvas class="px ico" data-ico="coin" width="8" height="8" style="width:20px"></canvas></div><div class="cell got"><canvas class="px ico" data-ico="potHp" width="8" height="10" style="width:16px"></canvas></div><div class="cell"><canvas class="px ico" data-ico="gem" width="8" height="7" style="width:20px"></canvas></div><div class="cell lock"><canvas class="px ico" data-ico="coin" width="8" height="8" style="width:20px"></canvas></div>
+          <div class="lab" style="color:var(--gold)">패스</div><div class="cell gold"><canvas class="px ico" data-ico="shield3" width="10" height="11" style="width:22px"></canvas></div><div class="cell gold"><canvas class="px ico" data-ico="gem" width="8" height="7" style="width:20px"></canvas></div><div class="cell gold"><canvas class="px ico" data-ico="crown" width="9" height="6" style="width:22px"></canvas></div><div class="cell gold" style="opacity:.6"><canvas class="px ico" data-ico="shield2" width="10" height="11" style="width:22px"></canvas></div>
+        </div></div>
+    </div>
+
+    <div class="prop">
+      <div><h3><span class="num">4</span>용사 구출 마을</h3>
+        <div class="from">참고: 쿠키런: 킹덤의 왕국, 로얄 매치의 꾸미기 메타</div>
+        <p>원정 중 구한 용사들이 마을에 자리를 잡아요. 용사마다 건물 하나를 열어 주고, 짧은 사연 대사가 있어요. "128명 중 몇 명을 구했나"가 장기 수집 목표가 되고, 오프라인 골드도 여기서 나와요.</p>
+        <ul><li>대장장이 출신 → 강화 할인, 마법사 → 포션 제작</li><li>스토리 몰입과 장기 목표를 같이 해결</li></ul></div>
+      <div class="mock"><div class="mt">용사 마을 · 7/128명</div>
+        <div class="village">
+          <div class="b"><canvas class="px ico" data-ico="anvil" width="12" height="12"></canvas>대장간</div>
+          <div class="b"><canvas class="px ico" data-ico="potHp" width="8" height="10"></canvas>포션집</div>
+          <div class="b"><canvas class="px ico" data-ico="coin" width="8" height="8"></canvas>금고</div>
+          <div class="b"><canvas class="px ico" data-ico="book" width="12" height="11"></canvas>도서관</div>
+          <div class="b lock">?</div><div class="b lock">?</div><div class="b lock">?</div><div class="b lock">?</div>
+        </div>
+        <div class="mrow" style="margin-top:8px">오프라인 골드<div class="bar"><i style="width:70%"></i></div>350G</div></div>
+    </div>
+
+    <div class="prop">
+      <div><h3><span class="num">5</span>리듬 챌린지와 주간 랭킹</h3>
+        <div class="from">우리만의 무기: 음악 박자에 맞춘 연속 패링</div>
+        <p>연속 패링 패턴만 모은 2분짜리 도전 모드예요. 퍼펙트와 체인으로 점수를 내고, 매주 순위를 매겨요. 다른 게임에 없는 "방패로 하는 리듬 게임"이라 광고 영상과 입소문에도 쓰기 좋아요.</p>
+        <ul><li>곡마다 노트 배치가 고정이라 연습할수록 점수가 오름</li><li>상위권 보상은 칭호와 스킨</li></ul></div>
+      <div class="mock"><div class="mt">리듬 챌린지 · 보스 테마</div>
+        <div class="lane"><i class="judge"></i><i class="y" style="left:60px"></i><i class="y" style="left:100px"></i><i class="r" style="left:150px"></i><i class="bl" style="left:185px"></i><i class="y" style="left:250px"></i></div>
+        <div class="rank">
+          <div class="mrow"><span style="color:var(--gold)">1</span> 패링의신 <span style="margin-left:auto">98,420</span></div>
+          <div class="mrow me"><span>14</span> 방패왕 (나) <span style="margin-left:auto">61,200</span></div></div></div>
+    </div>
+
+  </div>
+</section>
+
+<section id="money">
+  <div class="eyebrow">6 · 돈은 어디서 버나</div>
+  <h2>광고는 "고르는 순간"에만 넣는다</h2>
+  <p class="lead">하이브리드 캐주얼 게임 수익의 큰 축은 보상형 광고예요. 유저가 스스로 원할 때만 보이게 하면 싫어하지 않아요. 원정 흐름 위에 광고 자리를 표시했어요.</p>
+  <div class="flow" role="list" aria-label="원정 흐름과 광고 위치">
+    <div class="step" role="listitem"><div class="node"><canvas class="px ico" data-ico="bolt" width="7" height="8"></canvas></div><div class="nm">원정 시작</div><div class="ad">에너지 부족 시<br>광고로 충전</div></div>
+    <div class="step" role="listitem"><div class="node"><canvas class="px ico" data-ico="swords" width="12" height="12"></canvas></div><div class="nm">전투</div><div class="ad no">광고 없음<br>(손맛을 끊지 않기)</div></div>
+    <div class="step" role="listitem"><div class="node"><canvas class="px ico" data-ico="book" width="12" height="11"></canvas></div><div class="nm">카드 선택</div><div class="ad">다시 뽑기</div></div>
+    <div class="step" role="listitem"><div class="node"><canvas class="px ico" data-ico="heart" width="7" height="7"></canvas></div><div class="nm">쓰러짐</div><div class="ad">부활 (원정당 1회)</div></div>
+    <div class="step" role="listitem"><div class="node"><canvas class="px ico" data-ico="chest" width="12" height="9"></canvas></div><div class="nm">보물상자</div><div class="ad">보상 2배</div></div>
+    <div class="step" role="listitem"><div class="node"><canvas class="px ico" data-ico="gift" width="10" height="10"></canvas></div><div class="nm">마을 복귀</div><div class="ad">오프라인 보상 2배<br>광고 상자</div></div>
+  </div>
+  <div class="split">
+    <div class="box"><h3>인앱 결제 구성 (추천)</h3><ul>
+      <li><b>광고 제거 패스</b>: 보상은 그대로 받고 광고만 건너뜀</li>
+      <li><b>시즌 패스</b>: 스킨과 꾸미기 중심</li>
+      <li><b>스타터 팩</b>: 첫 3일 한정, 방패 레벨과 포션</li>
+      <li><b>보석 팩</b>: 부활, 에너지, 카드 다시 뽑기</li></ul></div>
+    <div class="box"><h3>지킬 선</h3><ul>
+      <li>전투 도중에는 어떤 광고도 띄우지 않기</li>
+      <li>전면 광고는 첫 날에는 아예 빼고, 이후에도 원정 2~3회에 1번 이하</li>
+      <li>유료 랜덤 상자를 넣으면 한국 확률 공개 의무(2024년 3월 시행) 준수</li>
+      <li>패링 판정 자체를 돈으로 팔지 않기. 실력 게임이라는 믿음이 최대 자산</li></ul></div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="eyebrow">7 · 순서</div>
+  <h2>세 단계 로드맵</h2>
+  <div class="road">
+    <div class="phase"><span class="tag">1단계 · 출시 전</span><h3>첫 10분과 첫 주</h3><ul>
+      <li>마왕 프롤로그</li><li>일일 미션·주간 상자</li><li>오프라인 보상</li><li>연승 보너스</li><li>앱 포장 (Capacitor), 광고·결제·클라우드 저장</li></ul>
+      <div class="goal">목표: 비공개 테스트에서 다음 날 재접속률을 재고, 어느 지역에서 그만두는지 확인</div></div>
+    <div class="phase"><span class="tag">2단계 · 출시</span><h3>매출의 뼈대</h3><ul>
+      <li>패링 패스 시즌 1</li><li>방패 스킨 6종</li><li>리듬 챌린지와 주간 랭킹</li><li>지역 11~20 (챕터 2)</li></ul>
+      <div class="goal">목표: 패스 구매율과 광고 시청 횟수로 수익 구조 검증</div></div>
+    <div class="phase"><span class="tag">3단계 · 운영</span><h3>사람과 세계</h3><ul>
+      <li>용사 구출 마을과 128명 도감</li><li>무한의 탑</li><li>길드와 레이드 보스 (모두 함께 마왕 체력 깎기)</li><li>월 1회 이벤트</li></ul>
+      <div class="goal">목표: 한 달 뒤에도 남아 있는 유저층 만들기</div></div>
+  </div>
+</section>
+
+<section id="traps">
+  <div class="eyebrow">8 · 조심할 것</div>
+  <h2>많이들 빠지는 함정</h2>
+  <div class="traps">
+    <div class="trap"><h3>성장이 실력을 덮어버림</h3><p>방패 레벨만 올리면 판정이 넓어져서 패링 연습이 필요 없어지면 이 게임의 정체성이 사라져요. 판정 보너스에 상한을 두고, 성장은 각인과 카드처럼 "플레이 방식이 바뀌는" 쪽으로 키우세요.</p></div>
+    <div class="trap"><h3>에너지가 너무 빡빡함</h3><p>재미를 느낀 순간에 "에너지 부족"이 뜨면 그대로 떠나요. 초반 며칠은 넉넉하게 주고, 막는 건 나중에 데이터를 보고 정하세요.</p></div>
+    <div class="trap"><h3>시스템만 늘고 이유가 없음</h3><p>미션, 패스, 마을을 한꺼번에 넣으면 메뉴만 복잡해져요. 기능마다 "이게 다음 원정을 하고 싶게 만드나?"를 물어보고 하나씩 넣으세요.</p></div>
+    <div class="trap"><h3>지표 없이 감으로 조정</h3><p>출시 전에 분석 도구를 꼭 넣으세요. 어느 방에서 많이 죽는지, 어느 카드가 안 뽑히는지 알아야 밸런스를 잡을 수 있어요.</p></div>
+  </div>
+</section>
+
+<section id="sources">
+  <div class="eyebrow">참고</div>
+  <h2 style="font-size:22px">시장 흐름 출처</h2>
+  <p class="sources">하이브리드 캐주얼이 캐주얼 장르 중 성장하는 쪽이고, 순수 하이퍼캐주얼보다 장기 잔존과 유저당 매출이 높다는 흐름을 아래 자료에서 확인했어요. 대부분 업계 블로그와 보고서 요약이라 숫자는 방향만 참고하세요.</p>
+  <ul class="sources">
+    <li><a href="https://app.cinevva.com/guides/casual-games-trends-2026">Casual Games Trends in 2026 — Cinevva</a></li>
+    <li><a href="https://gameindustrylibrary.com/documents/mobile-casual-benchmarks-report-2025/read">Mobile Casual Benchmarks Report — Appodeal (2026년 3월 갱신)</a></li>
+    <li><a href="https://studiokrew.com/blog/hybrid-casual-games-vs-traditional-mobile-games/">Hybrid casual vs traditional mobile games 2026 — StudioKrew</a></li>
+    <li><a href="https://www.pocketgamer.biz/mobile-accounts-for-55-of-total-games-revenue-in-2025-as-studios-shift-towards-retention">Mobile accounts for 55% of total games revenue in 2025 — PocketGamer.biz</a></li>
+    <li><a href="https://blog.playio.co/hybrid-casual-games-monetization">Hybrid casual games monetization — Playio</a></li>
+  </ul>
+</section>
+
+</div>
+
+<script>
+'use strict';
+/* ---------- pixel sprites borrowed from the game ---------- */
+const K='#22172e';
+const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
+function fromMap(rows,pal){const h=rows.length,w=Math.max(...rows.map(r=>r.length));const c=mk(w,h),g=c.getContext('2d');
+  rows.forEach((r,y)=>{for(let x=0;x<r.length;x++){const k=r[x];if(k!=='.'&&pal[k]){g.fillStyle=pal[k];g.fillRect(x,y,1,1)}}});return c}
+const KNIGHT=["....PPP.....","...PP.......","..KKKKKKK...",".KHHHHHHHK..","KHHHHHHHHHK.","KHhSSSSSSSK.","KHSSSESSSEK.","KHSsSSSSsSK.",".KKSSSSSSK..","..KAAAAAAK..",".KAAaAAaAAK.",".KAAAAAAAAK.","..KaKKKKaK..","..KBK..KBK..","..KKK..KKK.."];
+const KPAL={K,H:'#c3ccd8',h:'#8995a6',P:'#ff4d5e',S:'#ffd2a8',s:'#ff9e9e',E:K,B:'#6b4423',A:'#d8c49a',a:'#a8936a'};
+const PSH=["KKKKKK","KabbaK","KbccbK","KbccbK","KabbaK",".KbbK.","..KK.."];
+const SHP=[{K,a:'#7a4a22',b:'#b8793a',c:'#8a5528'},{K,a:'#5d6773',b:'#aab4bf',c:'#7d8794'},{K,a:'#e0a526',b:'#2f5fbf',c:'#ffd23f'},{K,a:'#ffe27a',b:'#f4f7ff',c:'#5ad0ff'}];
+const SLIME=["......KKKK......","....KKGGGGKK....","...KGGggGGGGK...","..KGGggGGGGGGK..","..KGGGGGGGGGGK..",".KGGGGGGEGGEGGK.",".KGGGGGGEGGEGGK.",".KGGGGGGGGGGGGK.","KGGGGGGGGGmmGGGK","KdGGGGGGGGGGGGdK","KddddddddddddddK",".KKKKKKKKKKKKKK."];
+const SPAL={K:'#173d22',G:'#72e06a',g:'#c6ffad',d:'#3ca64a',E:'#173d22',m:'#173d22'};
+const ICONS={
+  coin:[["..KKKK..",".KYYYYK.","KYyYYYYK","KYyYYYYK","KYyYYYYK","KYYYYYoK",".KYYYoK.","..KKKK.."],{K:'#7a4a00',Y:'#ffd23f',y:'#fff2a8',o:'#e8a10f'}],
+  gem:[["..KKKK..",".KcCCcK.","KcCCCCcK","KCCCCCCK",".KCCCCK.","..KCCK..","...KK..."],{K:'#123a6b',c:'#c9f1ff',C:'#3fb8ff'}],
+  bolt:[["...KKK.","..KYYK.",".KYYK..","KYYYYYK","KKKYYK.","..KYK..",".KYK...",".KK...."],{K:'#5a3a00',Y:'#ffe14d'}],
+  heart:[[".KK.KK.","KRRKRwK","KRRRRRK","KRRRRRK",".KRRRK.","..KRK..","...K..."],{K,R:'#ff4d5e',w:'#ffd0d6'}],
+  chest:[[".KKKKKKKKKK.","KbbbbbbbbbbK","KbBBBBBBBBbK","KKKKKYYKKKKK","KbbbbYYbbbbK","KbBBBKKBBBbK","KbBBBBBBBBbK","KbBBBBBBBBbK","KKKKKKKKKKKK"],{K,b:'#e0923a',B:'#9a5520',Y:'#ffd23f'}],
+  book:[["KKKKKKKKKK..","KRRRRRRRRKK.","KRrRRRRRRKwK","KRrRYYYRRKwK","KRrRRRRRRKwK","KRrRYYYRRKwK","KRrRRRRRRKwK","KRRRRRRRRKwK","KKKKKKKKKKwK",".KwwwwwwwwwK","..KKKKKKKKKK"],{K,R:'#4a7bd9',r:'#2f57a8',Y:'#ffd23f',w:'#f3e2b8'}],
+  swords:[["KK........KK","KwK......KwK",".KwK....KwK.","..KwK..KwK..","...KwKKwK...","....KwwK....","....KwwK....","...KYKKYK...","..KYK..KYK..",".KbK....KbK.","KbK......KbK","KK........KK"],{K,w:'#e8eef6',Y:'#ffd23f',b:'#7a4a22'}],
+  anvil:[["..KKKK......",".KggggK.....","..KbbK......","..KbbK......","KKKKKKKKKK..","KggggggggKKK","KGGGGGGGGGGK",".KKGGGGGKKK.","...KGGGK....","..KGGGGGK...",".KGGGGGGGK..",".KKKKKKKKK.."],{K,g:'#cfd8e3',G:'#7b8796',b:'#7a4a22'}],
+  gift:[["..KK..KK..",".KRRKKRRK.","KKKKKKKKKK","KrrrYYrrrK","KKKKYYKKKK",".KrrYYrrK.",".KRRYYRRK.",".KRRYYRRK.",".KRRYYRRK.",".KKKKKKKKK"],{K,R:'#ff5b6e',r:'#ff8a96',Y:'#ffd23f'}],
+  potHp:[["..KKKK..","..KwwK..","...KK...","..KccK..",".KcCCcK.","KcwCCCcK","KcwCCCCK","KcCCCCCK",".KcCCcK.","..KKKK.."],{K,w:'#ffffff',c:'#ff9a9a',C:'#e8384f'}],
+  crown:[["K.K..K.K.","KYK.KYKYK","KYYKYYYYK","KYYYYYYYK","KYRYYYRYK","KKKKKKKKK"],{K,Y:'#ffd23f',R:'#ff4d6d'}],
+};
+const SHIELD_ICON=["KKKKKKKKKK","KaaaaaaaaK","KabbbbbbaK","KabbccbbaK","KabccccbaK","KabbccbbaK","KabbbbbbaK",".KabbbbaK.",".KKabbaKK.","..KKaaKK..","....KK...."];
+SHP.forEach((p,i)=>ICONS['shield'+i]=[SHIELD_ICON,p]);
+document.querySelectorAll('canvas.ico').forEach(cv=>{const d=ICONS[cv.dataset.ico];if(!d)return;const s=fromMap(...d);cv.width=s.width;cv.height=s.height;
+  const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(s,0,0);if(!cv.style.width&&!cv.closest('.village')&&!cv.closest('.node'))cv.style.width=(s.width*2.4)+'px'});
+
+/* ---------- small pixel scene renderer ---------- */
+function scene(cv,o){
+  const g=cv.getContext('2d');g.imageSmoothingEnabled=false;const W=cv.width,H=cv.height,gy=H-14;
+  const sky=o.night?['#170920','#250d2b','#3d1233','#5e1a3a']:['#8fd3ff','#a5dcff','#bde6ff','#d6f0ff'];
+  const bh=Math.ceil(gy/sky.length);sky.forEach((c,i)=>{g.fillStyle=c;g.fillRect(0,i*bh,W,bh+1)});
+  g.fillStyle=o.night?'#ff6b5a':'#fff3b0';const sx=W*.8|0,sy=gy*.25|0,r=7;for(let y=-r;y<=r;y++){const w=Math.sqrt(r*r-y*y)|0;g.fillRect(sx-w,sy+y,w*2,1)}
+  g.fillStyle=o.night?'#140814':'#6d7aa6';const cx=W*.6|0,base=gy-10;g.fillRect(cx-14,base-6,28,30);[[-14,10],[-5,16],[4,13],[11,9]].forEach(([dx,h])=>{g.fillRect(cx+dx,base-h,4,h);g.fillRect(cx+dx+2,base-h-4,1,4)});
+  if(!o.night){g.fillStyle='#5fae5b';for(let x=0;x<W;x++){const y=(gy-8-Math.sin(x/9+1)*4)|0;g.fillRect(x,y,1,gy-y)}}
+  g.fillStyle=o.night?'#2a1d2e':'#a0673a';g.fillRect(0,gy,W,H-gy);g.fillStyle=o.night?'#4d3a57':'#5cc254';g.fillRect(0,gy,W,2);
+  const kn=fromMap(KNIGHT,KPAL);g.save();g.translate(W*.3|0,gy);g.scale(2,2);g.drawImage(kn,-6,-15);g.drawImage(fromMap(PSH,SHP[0]),3,-11);g.restore();
+  if(o.slime){const sl=fromMap(SLIME,SPAL);g.save();g.translate(W*.72|0,gy);g.scale(-2,2);g.drawImage(sl,-8,-12);g.restore();
+    g.fillStyle='#ffe14d';g.fillRect(W*.72|0,gy-34,2,6);g.fillRect(W*.72|0,gy-26,2,2)}
+  if(o.spark){g.fillStyle='#fff36b';const px0=(W*.3|0)+14,py0=gy-18;[[0,-7],[5,-5],[7,0],[5,5],[0,7],[-4,4],[9,-9],[10,8]].forEach(([dx,dy])=>g.fillRect(px0+dx,py0+dy,2,2));
+    g.fillStyle='#fff';g.fillRect(px0-1,py0-1,4,4)}
+  if(o.demon){g.fillStyle='#2b1036';g.fillRect(W*.66|0,gy-40,22,40);g.fillStyle='#8a4bb0';g.fillRect(W*.66+4|0,gy-48,14,12);g.fillStyle='#ffdd33';g.fillRect(W*.66+8|0,gy-44,2,2);g.fillRect(W*.66+13|0,gy-44,2,2);
+    g.fillStyle='#f2e6c9';g.fillRect(W*.66+3|0,gy-53,2,5);g.fillRect(W*.66+17|0,gy-53,2,5)}
+}
+scene(document.getElementById('heroCv'),{slime:true,spark:true});
+scene(document.getElementById('mockPro'),{night:true,demon:true,spark:true});
+
+/* ---------- priority matrix (scores are estimates) ---------- */
+const ITEMS=[
+  {n:1,name:'마왕 프롤로그',imp:4.5,eff:2,why:'첫 10분 이탈을 줄이는 장치. 기존 전투 코드 재사용'},
+  {n:2,name:'일일 미션 · 주간 상자',imp:4,eff:1.5,why:'매일 들어올 이유. UI와 카운터만 있으면 됨'},
+  {n:3,name:'패링 패스 (시즌)',imp:4.5,eff:3,why:'매출의 중심. 보상 아트와 시즌 운영이 필요'},
+  {n:4,name:'연승 보너스',imp:3,eff:1,why:'원정 연속 성공 시 시작 카드 +1. 코드 몇 줄'},
+  {n:5,name:'용사 구출 마을',imp:4,eff:4,why:'장기 수집 목표와 스토리. 건물·대사 콘텐츠가 많음'},
+  {n:6,name:'무한의 탑 · 랭킹',imp:3.5,eff:3,why:'최상위 유저용 콘텐츠. 서버 랭킹이 필요'},
+  {n:7,name:'방패 · 기사 스킨',imp:3,eff:2.5,why:'과금 상품. 도트 아트 작업량이 관건'},
+  {n:8,name:'오프라인 보상',imp:3.5,eff:1.5,why:'다시 접속할 이유. 시간 계산만 하면 됨'},
+  {n:9,name:'길드 레이드 보스',imp:4,eff:5,why:'사람이 붙잡는 층. 서버와 운영 부담이 가장 큼'},
+  {n:10,name:'리듬 챌린지 모드',imp:3.5,eff:2.5,why:'우리만의 차별점. 연속 패링 시스템을 재활용'},
+];
+const svgNS='http://www.w3.org/2000/svg',mx=document.getElementById('mx');
+const X0=70,X1=570,Y0=370,Y1=30,sx=v=>X0+(v-.5)/5*(X1-X0),sy=v=>Y0-(v-.5)/5*(Y0-Y1);
+function el(tag,attrs,parent=mx){const e=document.createElementNS(svgNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e}
+// quadrant tint for the "do first" area
+el('rect',{x:X0,y:Y1,width:(sx(3)-X0),height:(sy(3)-Y1),fill:'rgba(255,200,58,.07)'});
+el('text',{x:X0+10,y:Y1+20,'font-family':'Jua, sans-serif','font-size':14,fill:'#ffc83a'}).textContent='먼저 할 것';
+el('text',{x:X1-10,y:Y1+20,'text-anchor':'end','font-family':'Jua, sans-serif','font-size':14,fill:'#7d74a8'}).textContent='크게 투자할 것';
+el('text',{x:X0+10,y:Y0-10,'font-family':'Jua, sans-serif','font-size':14,fill:'#7d74a8'}).textContent='틈틈이';
+for(let v=1;v<=5;v++){
+  el('line',{x1:X0,x2:X1,y1:sy(v),y2:sy(v),stroke:'#3b3277','stroke-width':1});
+  el('line',{y1:Y1,y2:Y0,x1:sx(v),x2:sx(v),stroke:'#3b3277','stroke-width':1});
+  el('text',{x:X0-10,y:sy(v)+4,'text-anchor':'end','font-size':12,fill:'#b3aad8','font-family':'IBM Plex Sans KR, sans-serif'}).textContent=v;
+  el('text',{x:sx(v),y:Y0+18,'text-anchor':'middle','font-size':12,fill:'#b3aad8','font-family':'IBM Plex Sans KR, sans-serif'}).textContent=v;
+}
+el('line',{x1:sx(3),x2:sx(3),y1:Y1,y2:Y0,stroke:'#7d74a8','stroke-width':1.5,'stroke-dasharray':'5 5'});
+el('line',{x1:X0,x2:X1,y1:sy(3),y2:sy(3),stroke:'#7d74a8','stroke-width':1.5,'stroke-dasharray':'5 5'});
+el('text',{x:(X0+X1)/2,y:Y0+44,'text-anchor':'middle','font-size':14,fill:'#f5f0ff','font-family':'Jua, sans-serif'}).textContent='개발 난이도 →';
+const yl=el('text',{x:18,y:(Y0+Y1)/2,'text-anchor':'middle','font-size':14,fill:'#f5f0ff','font-family':'Jua, sans-serif',transform:`rotate(-90 18 ${(Y0+Y1)/2})`});yl.textContent='기대 효과 →';
+const tip=document.getElementById('tip'),chart=document.getElementById('chart'),pick=document.getElementById('pick');
+ITEMS.forEach(it=>{
+  const li=document.createElement('li');li.dataset.n=it.n;li.innerHTML=`<span class="n">${it.n}</span><span>${it.name}</span><span class="sc">효과 ${it.imp} · 난이도 ${it.eff}</span>`;pick.appendChild(li);
+  const g=el('g',{class:'dot',tabindex:0,'data-n':it.n,role:'img','aria-label':`${it.name}: 효과 ${it.imp}, 난이도 ${it.eff}`});
+  el('circle',{class:'hit',cx:sx(it.eff),cy:sy(it.imp),r:22},g);
+  el('circle',{class:'mark',cx:sx(it.eff),cy:sy(it.imp),r:14,fill:'#ffc83a',stroke:'#1f1844','stroke-width':2},g);
+  const tx=el('text',{x:sx(it.eff),y:sy(it.imp)+5,'text-anchor':'middle','font-size':14,fill:'#0a0720','font-family':'Black Han Sans, sans-serif','pointer-events':'none'},g);tx.textContent=it.n;
+  const show=()=>{const r=chart.getBoundingClientRect(),s=r.width/600*(mx.getBoundingClientRect().width/r.width);
+    const cx=sx(it.eff)*mx.getBoundingClientRect().width/600+10,cy=sy(it.imp)*mx.getBoundingClientRect().height/430+10;
+    tip.innerHTML=`<b>${it.n}. ${it.name}</b><br>효과 ${it.imp} · 난이도 ${it.eff}<br>${it.why}`;tip.style.opacity=1;
+    const tw=240;tip.style.left=Math.min(cx+12,r.width-tw-8)+'px';tip.style.top=Math.max(4,cy-70)+'px';
+    document.querySelectorAll('.dot,.picklist li').forEach(e=>e.classList.toggle('on',+e.dataset.n===it.n))};
+  const hide=()=>{tip.style.opacity=0;document.querySelectorAll('.dot,.picklist li').forEach(e=>e.classList.remove('on'))};
+  g.addEventListener('mouseenter',show);g.addEventListener('focus',show);g.addEventListener('mouseleave',hide);g.addEventListener('blur',hide);
+  g.addEventListener('touchstart',show,{passive:true});
+  li.addEventListener('mouseenter',show);li.addEventListener('mouseleave',hide);
+});
+</script>
