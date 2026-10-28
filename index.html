@@ -764,6 +764,29 @@ Object.assign(PATMAKE,{
   storm:MP('chain',[[0,'t'],[.5,'t'],[1,'t'],[1.5,'t'],[2,'t'],[3,'t'],[3.25,'t'],[3.5,'t'],[3.75,'t'],[4,'t']]),
   pincer:MP('chain',[[0,'t'],[.5,'t'],[1.5,'s'],[2.5,'h',1],[4,'t'],[4.25,'t']]),
 });
+/* hard patterns */
+function chaosPat(n,swipes){let o=0,lastS=-9;const notes=[];
+  for(let i=0;i<n;i++){if(i)o+=[.5,.75,1,1.5,.5,.75][Math.floor(Math.random()*6)];
+    let c=Math.random()<.18&&i>0?'g':'t';if(swipes&&o-lastS>=2.6&&i>0&&Math.random()<.35){c='s';lastS=o}
+    notes.push({o,type:c==='s'?'swipe':'tap',ghost:c==='g'})}
+  return{kind:'chain',notes}}
+Object.assign(PATMAKE,{
+  poly:MP('chain',[[0,'t'],[.67,'t'],[1.33,'t'],[2,'t'],[2.5,'t'],[3,'t'],[3.5,'t'],[4,'t']]),
+  quad:MP('chain',[[0,'t'],[.33,'t'],[.67,'t'],[1,'t'],[2,'t'],[2.25,'t'],[2.5,'t'],[2.75,'t']]),
+  swing:MP('chain',[[0,'t'],[.67,'t'],[1,'t'],[1.67,'t'],[2,'t'],[2.67,'g'],[3,'t']]),
+  holdbreak:MP('chain',[[0,'h',1.5],[2,'s'],[2.75,'t'],[3,'t'],[3.5,'g']]),
+  gauntlet:MP('chain',[[0,'t'],[.5,'t'],[1,'t'],[2,'s'],[3,'t'],[3.33,'t'],[3.67,'t'],[4.5,'h',1],[6,'t'],[6.5,'g'],[7,'s'],[8,'t'],[8.25,'t'],[8.5,'t'],[8.75,'t']]),
+  chaos:()=>chaosPat(7,false),
+  chaosS:()=>chaosPat(9,true),
+  ramp12:MP('chain',[[0,'t'],[1,'t'],[1.9,'t'],[2.7,'t'],[3.4,'t'],[4,'t'],[4.5,'t'],[4.95,'t'],[5.35,'t'],[5.7,'t'],[6.03,'t'],[6.36,'t']]),
+  dfeint:MP('feint',[[0,'t'],[1.75,'g'],[2.25,'t']],1.7),
+  blind5:MP('chain',[[0,'t'],[.75,'g'],[1.5,'g'],[2,'g'],[3,'g']]),
+  offsync:MP('chain',[[0,'t'],[.6,'t'],[1.45,'t'],[1.85,'t'],[2.9,'t'],[3.3,'g'],[3.7,'t']]),
+  orb8:()=>({kind:'orb',lead:1.1,notes:[0,1.75,3.25,4.5,5.5,6.25,6.875,7.375].map(o=>({o,type:'tap'}))}),
+  snap:()=>({kind:'single',notes:[{o:0,type:'tap'}],lead:.55}),
+  snapchain:()=>({kind:'chain',notes:[0,.5,.75,1.25].map(o=>({o,type:'tap'})),lead:.6}),
+  mirror:MP('chain',[[0,'t'],[.5,'t'],[1.5,'t'],[2.5,'g'],[3.5,'t'],[4,'g'],[4.5,'t']]),
+});
 PATMAKE.fury=()=>({kind:'fury',notes:[0,1,1.75,2.5,3].map(o=>({o,type:'tap'})),lead:1.5});
 PATMAKE.desp=()=>({kind:'desp',notes:[0,1,1.75,2.5,3].map(o=>({o,type:'tap'})),lead:1.6});
 PATMAKE.barrage=()=>({kind:'barrage',notes:[0,1.5,3,4.5].map(o=>({o,type:'swipe'})),lead:1.2});
@@ -771,16 +794,16 @@ PATMAKE.smash=()=>({kind:'smash',notes:[{o:0,type:'swipe'}],lead:1.75});
 const PAT_NAMES={chain:'연속 공격',rally:'저주 구슬 랠리',hold:'난타',feint:'',single:'',heavy:''};
 /* which patterns each monster uses (weights). p2 = boss phase 2 (HP under 50%) */
 const POOLS=[
-  {base:[['single',.45],['chain2s',.2],['echo',.15],['decel',.1],['fury',.06]],p2:[['echo',.2],['stutter',.2],['decel',.2],['slow',.15],['chain2',.15],['fury',.15]]},
-  {base:[['single',.3],['chain2s',.15],['chain2',.15],['stutter',.15],['feintchain',.15],['fury',.08]],p2:[['feintchain',.2],['syncopa',.2],['ghost3',.15],['echo',.15],['stairs',.15],['fury',.2]]},
-  {base:[['single',.15],['chain3',.15],['heavy',.1],['feint',.1],['sync',.1],['mix',.1],['heavyfake',.15],['stairs',.1],['fury',.1]],p2:[['zigzag',.2],['heavyfake',.15],['feintheavy',.15],['ghost3',.15],['tapguard',.15],['fury',.2]]},
-  {base:[['single',.1],['chain3f',.15],['heavy',.1],['dodgeparry',.15],['syncopa',.15],['accel',.15],['tapguard',.1],['fury',.1]],p2:[['dodgeparry',.2],['accel8',.15],['ghostrun',.15],['slowfast',.15],['orb4',.15],['fury',.2]]},
-  {base:[['single',.08],['chain4',.12],['sync',.12],['heavy',.12],['zigzag',.12],['accel',.12],['stairs',.12],['slowfast',.1],['fury',.12]],p2:[['chain6',.12],['riff',.12],['storm',.12],['feintchain',.12],['ghostrun',.12],['orb5',.2],['fury',.2]]},
-  {base:[['single',.08],['heavy',.12],['feint',.12],['pincer',.15],['mix',.12],['holdswipe',.12],['feintheavy',.12],['fury',.12]],p2:[['pincer',.2],['zigzag',.15],['riff',.15],['heavyfake',.15],['longhold',.15],['fury',.2]]},
-  {base:[['single',.08],['cascade',.15],['hold',.1],['heavy',.1],['longhold',.15],['holdswipe',.12],['tapguard',.15],['fury',.12]],p2:[['cascade',.2],['riff2',.15],['pincer',.15],['accel8',.15],['longhold',.15],['fury',.2]]},
-  {base:[['single',.08],['orb5',.2],['rally',.12],['ghostrun',.12],['syncopa',.12],['chain3f',.1],['mix',.1],['fury',.12]],p2:[['orb6',.25],['rally4',.15],['ghostrun',.15],['triplet',.12],['feintheavy',.12],['fury',.2]]},
-  {base:[['single',.05],['chain5',.12],['zigzag',.12],['feintchain',.12],['heavy',.1],['accel8',.12],['dodgeparry',.12],['ghost3',.1],['fury',.12]],p2:[['rush',.15],['storm',.15],['feintheavy',.12],['zigzag',.12],['riff',.12],['triplet',.12],['fury',.2]]},
-  {base:[['single',.05],['riff',.12],['chain5',.08],['cascade',.1],['heavy',.08],['feintchain',.1],['orb6',.12],['accel8',.1],['triplet',.08],['ghostrun',.08],['fury',.12]],p2:[['riff',.12],['riff2',.12],['storm',.12],['rush',.12],['zigzag',.1],['triplet',.1],['orb7',.15],['fury',.2]]},
+  {base:[['single',.2],['chain2',.12],['chain3',.15],['echo',.1],['stutter',.1],['feint',.1],['sync',.08],['fury',.1]],p2:[['chain3',.15],['sync',.15],['feintchain',.15],['decel',.15],['snap',.15],['fury',.2]]},
+  {base:[['single',.1],['chain3',.12],['sync',.12],['feintchain',.12],['zigzag',.1],['stairs',.12],['snap',.1],['heavyfake',.1],['fury',.12]],p2:[['chain4',.12],['riff',.12],['ghostrun',.15],['dodgeparry',.15],['snapchain',.12],['chaos',.12],['fury',.2]]},
+  {base:[['single',.06],['chain4',.1],['riff',.12],['zigzag',.12],['heavyfake',.1],['syncopa',.12],['snap',.1],['cascade',.1],['fury',.12]],p2:[['storm',.12],['chaos',.15],['swing',.15],['holdbreak',.13],['dfeint',.13],['riff2',.1],['fury',.2]]},
+  {base:[['accel8',.12],['dodgeparry',.12],['ghostrun',.12],['triplet',.12],['chaos',.12],['snapchain',.12],['cascade',.1],['fury',.12],['single',.06]],p2:[['poly',.14],['chaosS',.15],['blind5',.12],['ramp12',.12],['orb8',.15],['swing',.12],['fury',.2]]},
+  {base:[['storm',.12],['chaos',.12],['riff',.12],['snapchain',.12],['zigzag',.1],['poly',.1],['orb5',.1],['mirror',.1],['fury',.12]],p2:[['gauntlet',.13],['quad',.13],['chaosS',.15],['blind5',.12],['orb8',.15],['rush',.12],['fury',.2]]},
+  {base:[['pincer',.12],['holdbreak',.12],['chaos',.12],['swing',.12],['feintheavy',.1],['dfeint',.12],['snapchain',.1],['fury',.12],['mirror',.08]],p2:[['gauntlet',.14],['chaosS',.15],['offsync',.13],['quad',.13],['blind5',.12],['ramp12',.13],['fury',.2]]},
+  {base:[['cascade',.12],['longhold',.1],['holdbreak',.12],['poly',.12],['chaos',.12],['offsync',.1],['snapchain',.1],['fury',.12],['tapguard',.1]],p2:[['gauntlet',.15],['quad',.13],['chaosS',.15],['ramp12',.13],['blind5',.12],['orb8',.12],['fury',.2]]},
+  {base:[['orb8',.15],['rally4',.1],['ghostrun',.1],['blind5',.12],['swing',.12],['chaos',.12],['offsync',.1],['fury',.12],['snap',.07]],p2:[['orb8',.2],['gauntlet',.13],['chaosS',.15],['blind5',.12],['quad',.12],['dfeint',.1],['fury',.2]]},
+  {base:[['storm',.12],['quad',.12],['chaosS',.12],['dfeint',.12],['ramp12',.12],['offsync',.1],['mirror',.1],['fury',.12],['snapchain',.08]],p2:[['gauntlet',.16],['quad',.14],['chaosS',.16],['blind5',.12],['ramp12',.12],['rush',.1],['fury',.2]]},
+  {base:[['gauntlet',.12],['quad',.12],['chaosS',.12],['orb8',.12],['blind5',.1],['ramp12',.1],['offsync',.1],['storm',.1],['fury',.12]],p2:[['gauntlet',.16],['quad',.14],['chaosS',.16],['blind5',.12],['offsync',.1],['orb8',.12],['fury',.2]]},
 ];
 const pickW=list=>{let r=Math.random()*list.reduce((a,b)=>a+b[1],0);for(const[n,w]of list){if((r-=w)<=0)return n}return list[0][0]};
 const PARRY_TUNE=[
@@ -1558,6 +1581,8 @@ function sizeArena(){const r=arena.getBoundingClientRect();B.W=128;B.H=Math.max(
   bctx=bcv.getContext('2d');bctx.imageSmoothingEnabled=false;B.gy=B.H-16;B.kx0=Math.round(B.W*.27);B.ex0=Math.round(B.W*.65);
   if(B.st)B.bg=buildBg(B.W,B.H,B.st.theme,B.idx,B.gy);B.css=r.width/B.W}
 const BOSS_HP_MUL=1.3;   // per phase: phase 2 refills the whole bar
+const MINION_EXTRA=[[],[['chain3',.15],['snap',.1]],[['zigzag',.1],['snap',.1],['chaos',.08]],[['chaos',.1],['snapchain',.1],['ghostrun',.1]],[['chaos',.12],['snapchain',.1],['swing',.1]],
+  [['chaos',.12],['swing',.1],['dfeint',.1]],[['chaosS',.12],['poly',.1],['blind5',.06]],[['chaosS',.12],['poly',.1],['blind5',.08]],[['chaosS',.14],['quad',.08],['offsync',.1]],[['chaosS',.15],['quad',.1],['offsync',.1]]];
 const MINION_POOLS={
   slimeB:[['single',.45],['echo',.25],['stutter',.2],['decel',.1]],
   slimeP:[['single',.4],['chain2s',.2],['echo',.2],['decel',.2]],
@@ -1584,7 +1609,7 @@ function roomCfg(idx,type){
     stunMult:st.stunMult*1.05,gold:st.gold*.32*(type==='danger'?2:1),theme:st.theme,boss:false,music:'battle',pool:{base:(MINION_POOLS[kind]||[]).concat(POOLS[idx].base)},tune:T,line:'',label:type==='danger'?'위험':'정예'}}
   const[kind,name]=rg.min[k%rg.min.length];
   return{kind,name,scale:EN[kind].scale,hp:Math.max(18,st.hp*.22),atk:st.atk*(idx>=3?.75:.65)*ATK_MUL[idx],windup:st.windup*1.08,stunMult:st.stunMult*1.15,gold:st.gold*.18,theme:st.theme,boss:false,music:'battle',
-    pool:{base:MINION_POOLS[kind]||[['single',1]]},tune:Object.assign({},T,{win:T.win+20,late:T.late+10,ne:T.ne+10,nl:T.nl+8}),line:k===0?st.line:'',taunt:'',label:'졸개'};
+    pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(idx,MINION_EXTRA.length-1)])},tune:Object.assign({},T,{win:T.win+20,late:T.late+10,ne:T.ne+10,nl:T.nl+8}),line:k===0?st.line:'',taunt:'',label:'졸개'};
 }
 function startRun(idx){
   R={idx,room:0,rooms:ROOMS.slice(),maxHp:hpMax(),hp:hpMax(),cards:{},gold:0,revived:false,parries:0,perfects:0,maxCombo:0,rescued:null,streakGold:streakGold()};
@@ -1592,7 +1617,9 @@ function startRun(idx){
   if(n){toast(`${S.streak}연승 보너스: 시작 카드 ${n}장`);pickCards(n,()=>startFight(roomCfg(idx,'min'),false))}
   else startFight(roomCfg(idx,'min'),false);
 }
+const STUN_GAIN=.6;
 function startFight(cfg,walkIn){
+  if(cfg.label!=='시험'&&cfg.label!=='금고')cfg=Object.assign({},cfg,{stunMult:(cfg.stunMult||0)*STUN_GAIN});
   B.fx=EFX();B.perfStreak=0;
   if($('#coach'))$('#coach').hidden=true;B.tutFreeze=false;B.tutWait=null;B.tutStep=undefined;
   B.finalBlow=false;
@@ -1679,6 +1706,7 @@ function update(dt){
   if(R&&R.v2){if(B.guard)B.psh=Math.max(0,B.psh-dt*.008*(B.pshMax/100));if(B.state==='IDLE'&&t-B.v2PostT>1500)B.stun=Math.max(0,B.stun-dt*.006)}
   let kt=B.kx0+(B.disarm?B.disarm.side*B.disarm.steps*6:0);if(B.state==='GROGGY'||B.state==='EXEC'||(B.state==='OPEN'&&B.open.hits>0))kt=EX()-Math.round(B.E.scale*7)-14;
   pushTick(dt,t);
+  if(!(R&&(R.v2||R.vault||R.rhythm||R.prologue))&&(B.state==='IDLE'||B.state==='WINDUP')&&B.stun>0&&t-B.lastParryT>2000)B.stun=Math.max(0,B.stun-dt*.006);
   B.kx=lerp(B.kx,kt,Math.min(1,dt*.012));
   switch(B.state){
     case 'WALK':B.kx+=dt*.07;if(t-B.stT>900){B.active=false;cancelAnimationFrame(B.raf);advanceRoom()}return;
@@ -1773,7 +1801,7 @@ function finishPattern(defended){
   if(n>1&&a.chainOk)track('chain');
   if(R&&R.vault&&n>1&&a.chainOk){B.vStats.chain++;vCoin(n*2*vMul(),B.ex,B.gy-B.E.scale*14,true)}
   if(n>1&&a.chainOk){
-    const bonus=Math.round((a.kind==='rally'?40:20+n*4)*(1+cardN('chain'))*(1+(B.fx.chainPct||0)/100));B.stun=Math.min(100,B.stun+bonus);
+    const bonus=Math.round((a.kind==='rally'?40:20+n*4)*STUN_GAIN*(1+cardN('chain'))*(1+(B.fx.chainPct||0)/100));B.stun=Math.min(100,B.stun+bonus);
     banner(a.kind==='rally'?'랠리 성공!':'PERFECT CHAIN!',`${n}연속 패링 · 피로도 +${bonus}`);sfx('combo');sfx('clang',true);
     flash('#ffffff',.6,300);zoom(1.12);domShake(2);vib([20,30,20,30,80]);chip(B.wp.groggyTapDamage*n*(1+cardN('chain')),'반격');pushAdd(2);
     B.hitstop=Math.max(B.hitstop,120);
@@ -1789,7 +1817,7 @@ function holdUpdate(n,t){
   if(t>=end&&!n.res){n.res=true;
     if(R&&R.rhythm){if(a.holdOk)rScore(300,'ok');else B.rStats.miss++}
     if(R&&R.prologue&&B.tutStep===4){B.tutStep=5;coachHide();if(!a.holdOk)toast('다음엔 끝까지 꾹 눌러 봐요')}
-    if(a.holdOk){const b=12;B.stun=Math.min(100,B.stun+b);ftAt('버텼다! 피로도 +'+b,B.kx+10,B.gy-46,'info');sfx('combo');vig('rgba(120,200,255,.9)',400)}else a.chainOk=false;
+    if(a.holdOk){const b=7;B.stun=Math.min(100,B.stun+b);ftAt('버텼다! 피로도 +'+b,B.kx+10,B.gy-46,'info');sfx('combo');vig('rgba(120,200,255,.9)',400)}else a.chainOk=false;
     advanceNote(a.holdOk)}
 }
 function holdHit(){
@@ -1920,14 +1948,15 @@ function enterGroggy(){
   track('groggy');
   if(B.fx.groggyShield){B.psh=B.pshMax;ftAt('실드 회복',B.kx,B.gy-36,'info')}
   if(R&&R.prologue&&B.tutStep===6)setTimeout(()=>{if(B.active&&B.state==='GROGGY')coachShow(6)},350);
-  setState('GROGGY');B.groggyDur=3500+B.wp.stunBonus*1000;B.groggyEnd=B.time+B.groggyDur;B.guard=false;
+  setState('GROGGY');B.groggyDur=2200+B.wp.stunBonus*600;B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?.08:B.st.label==='정예'||B.st.label==='위험'?.22:.35);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
   if(R&&R.vault){B.groggyDur=2600+B.wp.stunBonus*500;B.groggyEnd=B.time+B.groggyDur}
   banner(R&&R.vault?'털어라!':'기절!',R&&R.vault?'연타로 금화 주머니 흔들기!!':'연타 공격!!');sfx('groggy');flash('#ffffff',.55,300);zoom(1.12);vib([30,40,30]);domShake(2);Music.hype=true;
 }
 function milestone(){if([10,25,50,75,100,150].includes(B.combo)){ftAt(B.combo+' COMBO!',B.W/2,B.H*.36,'combo');sfx('combo');vig('rgba(255,210,80,.85)',500)}}
 function groggyHit(){
+  {const now=performance.now();if(now-(B.lastBashT||-1e9)<90)return;B.lastBashT=now}
   const crit=Math.random()<B.wp.critRate;const d=Math.max(1,Math.round(B.wp.groggyTapDamage*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
-  B.ehp-=d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
+  B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
   if(B.st.label==='보스'&&B.phase2&&!B.despUsed&&B.ehp<=B.emax*.1&&!(R&&(R.rhythm||R.prologue||R.vault||R.trial))){B.ehp=Math.max(1,B.ehp);B.stun=0;Music.hype=false;setState('IDLE');B.idleDur=450;ftAt(String(d),B.ex,B.gy-30,'dmg');flash('#ff2b3b',.4,300);return}
   {const now=performance.now();if(now>=(B.hsReady||0)){B.hitstop=crit?80:30;B.hsReady=now+(crit?220:140)}}B.shake=crit?4.5:1.8;zoom(crit?1.09:1.025);
   const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10,wi=S.shStage;
@@ -1939,7 +1968,8 @@ function groggyHit(){
   if(crit){sfx('crit',wi);flash('#ffb04a',.32,170);domShake(1);vib([30])}else{sfx('hit',wi,B.combo);vib(8)}
   B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);comboPop();milestone();
   if(R&&R.vault){B.ehp=Math.max(1,B.ehp);if(B.time-(B.vShakeT||-1e9)>=120){B.vShakeT=B.time;B.vStats.shake++;vCoin(1,hx,hy)}return}
-  if(B.ehp<=0){B.ehp=0;victory()}
+  if(B.ehp<=0){B.ehp=0;victory();return}
+  if(!(R&&(R.vault||R.rhythm||R.prologue))&&B.groggyCap&&B.groggyDmg>=B.groggyCap){ftAt('정신을 차렸다!',B.ex,B.gy-B.E.scale*20,'warn');sfx('warn');endGroggy()}
 }
 function endGroggy(){
   B.stun=0;Music.hype=false;if(B.push)B.pushBack=true;
