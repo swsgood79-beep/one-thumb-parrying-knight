@@ -17,7 +17,7 @@ const FILE = 'file://' + path.resolve(__dirname, '..', opt('file', 'index.html')
 // virtual clock: rAF, timers and performance.now all advance only when __tick() is called
 const CLOCK = `(()=>{
   let now=0,id=0;const raf=new Map(),timers=new Map();
-  window.__errors=[];addEventListener('error',e=>__errors.push(String(e.message||e.error)));
+  window.__noTips=true;window.__errors=[];addEventListener('error',e=>__errors.push(String(e.message||e.error)));
   const ce=console.error.bind(console);console.error=(...a)=>{__errors.push('console.error: '+a.map(String).join(' '));ce(...a)};
   addEventListener('unhandledrejection',e=>__errors.push('promise: '+e.reason));
   performance.now=()=>now;
@@ -370,6 +370,21 @@ const BOT = `(()=>{
       S.shLv = 4; S.shStage = 0; const n0 = need(0); S.shLv = 40; S.shStage = 3; const n9 = need(9); S.shLv = 1; S.shStage = 0;
       if (n0 < 5 || n9 < 9 || n9 <= n0) return `perfect parries to stun: stage 1 = ${n0}, stage 10 = ${n9} (expected ~6 → ~11+)`;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '새 패턴 첫 만남 안내 · 패턴 도감', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; window.__noTips = false; S.seenPat = {};
+      startRun(4); startFight(roomCfg(4, 'min'), false); B.ehp = B.emax = 1e6; B.st.pool = { base: [['gallop', 1]] }; B.firstAtk = false;
+      let vt = 0; while (vt < 8000 && document.querySelector('#modal').hidden) { __tick(16); vt += 16; }
+      const h = (document.querySelector('#mbox h2') || {}).textContent; if (h !== '새 패턴!') { window.__noTips = true; return 'no first-encounter tip (got ' + h + ')'; }
+      if (!document.querySelector('#mbox svg')) { window.__noTips = true; return 'tip has no drawing'; }
+      document.querySelector('[data-m="go"]').click(); vt = 0; while (vt < 4000 && !(B.state === 'WINDUP' && B.atk.name === 'gallop')) { __tick(16); vt += 16; }
+      if (!(B.state === 'WINDUP' && B.atk.name === 'gallop')) { window.__noTips = true; return 'the explained pattern did not follow the tip'; }
+      for (let i = 0; i < 300; i++) { __tick(16); if (!document.querySelector('#modal').hidden) break; }
+      const again = (document.querySelector('#mbox h2') || {}).textContent === '새 패턴!' && document.querySelector('#modal').hidden === false;
+      window.__noTips = true; closeModal(); if (again) return 'the same pattern was explained twice';
+      endBattle(); helpModal(); document.querySelector('[data-m="book"]').click();
+      for (const [k] of PAT_CATS) { document.querySelector(`[data-m="c_${k}"]`).click(); if (!document.querySelectorAll('#mbox .pbrow').length) return 'empty pattern book tab ' + k; }
+      const named = Object.keys(PATMAKE).filter(k => !PAT_INFO[k]); if (named.length) return 'patterns missing from the book: ' + named.join(',');
+      closeModal(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }

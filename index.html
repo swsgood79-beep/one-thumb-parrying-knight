@@ -402,6 +402,10 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .newbest{color:var(--gold);font-family:var(--f-display);font-size:15px;margin:2px 0}
 .dots i{position:relative}.dots i b{position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);font-weight:400;font-size:8px;letter-spacing:-1px;color:#ffd23f;white-space:nowrap}
 .ststars{font-size:20px;color:#ffd23f;letter-spacing:2px;text-shadow:0 2px 0 #8a5a00}.ststars .e{color:#3a3170;text-shadow:none}
+.pbtabs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.pbtabs .btn{font-size:11px;padding:4px 8px;border-radius:9px}
+.pblist{max-height:52vh;overflow:auto;text-align:left;display:flex;flex-direction:column;gap:6px;padding-right:2px}
+.pbrow{background:rgba(8,5,25,.45);border-radius:10px;padding:6px 8px}.pbrow p{font-size:12px;margin:3px 0 0;color:#e6dcff}
+.pbh{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}.pbh b{font-family:var(--f-display);font-weight:400;font-size:14px}.pbh small{font-size:10px;color:var(--muted)}
 .rrank{font-family:var(--f-display);font-size:68px;color:var(--gold);line-height:1;margin:4px 0}
 .skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
 .skins .frame{width:100%;height:auto;aspect-ratio:1}
@@ -1429,7 +1433,7 @@ function musStep(s,i,t,sp){
 }
 
 /* ===================== save ===================== */
-const DEF={gold:0,gems:10,energy:30,enT:0,sel:0,cleared:0,shLv:1,shStage:0,eng:{},engrEq:[],engAd:'',pot:{hp:1,sp:1},intro:false,exp:0,adFree:false,snd:true,bgm:true,vib:true,assist:false,mvol:1,prologue:false,streak:0,skins:[],skin:'',plume:'',pass:{season:1,xp:0,prem:false,cf:[],cp:[]},dm:null,wk:null,lastSeen:0,rBest:0,starter:false,daily:'',adBox:'',adBoxN:0,ending:false,vault:null,stars:{}};
+const DEF={gold:0,gems:10,energy:30,enT:0,sel:0,cleared:0,shLv:1,shStage:0,eng:{},engrEq:[],engAd:'',pot:{hp:1,sp:1},intro:false,exp:0,adFree:false,snd:true,bgm:true,vib:true,assist:false,mvol:1,prologue:false,streak:0,skins:[],skin:'',plume:'',pass:{season:1,xp:0,prem:false,cf:[],cp:[]},dm:null,wk:null,lastSeen:0,rBest:0,starter:false,daily:'',adBox:'',adBoxN:0,ending:false,vault:null,stars:{},seenPat:{}};
 let S;
 function load(){let d={};try{d=JSON.parse(localStorage.getItem('otpk-save-v1')||'{}')||{}}catch(e){}
   if(d.owned&&d.shLv==null){const st=Math.min(3,Math.max(0,...(d.owned.s||[0])));d.shStage=st;d.shLv=st*10+1;let r=0;
@@ -1650,15 +1654,75 @@ function simulateAd(cb,label='보상'){
   let n=3;modal(`<h2>광고 시청 중</h2><div class="adscreen" id="adN">3</div><p>체험용 광고예요. ${n}초 뒤 ${label}이(가) 지급됩니다.</p>`,{});
   const iv=setInterval(()=>{n--;const el=$('#adN');if(el)el.textContent=n;if(n<=0){clearInterval(iv);closeModal();cb()}},1000);
 }
+/* ===================== pattern book: names, how to beat them, drawings ===================== */
+const PAT_CATS=[['basic','기본'],['chain','연타'],['rhythm','리듬'],['feint','페이크'],['hidden','숨은 노트'],['dodge','회피 섞기'],['hold','버티기'],['orb','마법 구체'],['hard','고난도'],['special','특수']];
+const PAT_INFO={
+  single:['단발','basic','박자에 맞춰 한 번 내려쳐요. 박에 딱 맞춰 탭!'],heavy:['붉은 강공격','dodge','막을 수 없어요. 붉게 빛나면 좌우 스와이프로 회피!'],
+  feint:['페이크','feint','들어오다 멈칫해요. 속지 말고 끝까지 보고 탭.'],hold:['난타','hold','파란 긴 노트. 끝날 때까지 꾹 눌러 버텨요.'],
+  chain2s:['느린 2연타','chain','한 박 반 간격 2연타.'],chain2:['2연타','chain','한 박 간격 2연타.'],chain3:['3연타','chain','한 박 간격 3연타.'],chain3f:['빠른 3연타','chain','3/4박 간격 3연타.'],
+  chain4:['4연타','chain','한 박 간격 4연타.'],chain5:['빠른 5연타','chain','3/4박 간격 5연타.'],chain6:['6연타','chain','반 박 간격 6연타.'],
+  sync:['싱코페이션','rhythm','하나, 둘, 앤, 셋, 넷 — 엇박이 섞인 5연타.'],accel:['가속 5연타','chain','간격이 점점 좁아져요.'],accel8:['가속 8연타','chain','간격이 점점 좁아지는 8연타.'],
+  stutter:['엇박 3연타','rhythm','하나, 쉬고, 따닥.'],echo:['메아리','rhythm','따닥 · 쉬고 · 따닥.'],slowfast:['느-느-빠-빠','rhythm','느리게 둘, 빠르게 셋, 다시 느리게.'],
+  syncopa:['엇박 6연타','rhythm','박자 사이사이를 치는 리듬.'],triplet:['셋잇단','rhythm','따다닥 · 따다닥 (한 박에 세 번).'],decel:['감속 5연타','rhythm','점점 느려져요. 서두르지 말 것.'],
+  stairs:['계단','rhythm','2연타씩, 묶음마다 박자가 달라져요.'],swing:['스윙','rhythm','바운스 리듬. 마지막 즈음 숨은 노트가 있어요.'],
+  stream8:['8비트 스트림','rhythm','반 박 간격으로 8번 쭉.'],stream16:['16비트 스트림','rhythm','반의반 박 간격 8연타. 손목을 가볍게!'],gallop:['갤럽','rhythm','말발굽처럼 따다닥 ×3.'],
+  dotted:['점음표','rhythm','따~단 따~단 (길게-짧게).'],clave:['클라베','rhythm','3-2 손 클라베 리듬.'],tresillo:['트레실로','rhythm','3+3+2 라틴 리듬.'],jack:['잭','rhythm','같은 박에 4연타 두 번.'],
+  trip8:['셋잇단 스트림','rhythm','셋잇단으로 7번 쭉.'],shuffle:['셔플','rhythm','통통 튀는 바운스 8연타.'],offbeat:['엇박','rhythm','전부 박과 박 사이(앤드)에 와요.'],
+  poly34:['폴리리듬 3:4','rhythm','네 박 위에 세 박 묶음이 겹쳐요.'],callresp:['주고받기','rhythm','3번 · 3번 · 4번으로 대답해요.'],stopgo:['스톱앤고','rhythm','셋 치고 쉬었다가 몰아쳐요.'],
+  feintheavy:['멈칫 강공격','feint','멈췄다 들어오는 붉은 공격. 일찍 피하면 맞아요.'],slow:['긴 정적','feint','평소의 두 배쯤 뜸 들이다 일격.'],feintchain:['페이크 3연타','feint','멈칫한 뒤 3연타.'],
+  dfeint:['이중 페이크','feint','두 번 멈칫하고, 마지막은 숨은 노트.'],snap:['기습','feint','평소의 절반 시간에 들어와요.'],snapchain:['기습 4연타','feint','기습으로 시작하는 4연타.'],
+  ghost3:['숨은 마지막 타','hidden','세 번째 노트는 직전까지 안 보여요. 소리로 맞춰요.'],ghostrun:['숨은 러시','hidden','5연타 중 2개가 숨어 있어요.'],heavyfake:['가짜 강공격','hidden','붉은 공격을 피한 뒤 숨은 탭이 와요.'],
+  blind5:['블라인드 5','hidden','첫 타 이후 전부 직전까지 숨겨져요.'],mirror:['거울','hidden','대칭 리듬에 숨은 노트가 섞여요.'],
+  mix:['섞기','dodge','탭 · 회피 · 탭.'],zigzag:['지그재그','dodge','탭·회피·탭·탭·회피·탭.'],dodgeparry:['회피-패링','dodge','회피 → 2연타 → 회피 → 탭.'],pincer:['집게','dodge','2연타 → 회피 → 버티기 → 2연타.'],
+  measure:['마디','dodge','탭·탭·탭·회피를 두 마디 반복.'],
+  holdswipe:['버티다 회피','hold','꾹 버틴 직후 회피, 그리고 탭.'],tapguard:['탭-버티기-탭','hold','입력 종류가 빠르게 바뀌어요.'],cascade:['캐스케이드','hold','3연타 → 꾹 → 3연타.'],
+  longhold:['긴 버티기','hold','3박 버티고 바로 2연타.'],longnote:['롱노트','hold','한 박 꾹, 이어서 3연타.'],holdchain:['롱노트 체인','hold','꾹 · 탭 · 꾹 · 탭탭.'],
+  rally:['구슬 랠리','orb','마녀의 저주 구슬. 점점 빨라지는 3연타.'],rally4:['구슬 랠리 4','orb','4연속 구슬.'],
+  orb4:['구체 4랠리','orb','받아칠수록 빨라지는 마법 구체. 다 받으면 반사 폭발!'],orb5:['구체 5랠리','orb','받아칠수록 빨라져요. 끝까지 받으면 반사 폭발!'],
+  orb6:['구체 6랠리','orb','6번 주고받기.'],orb7:['구체 7랠리','orb','7번 주고받기.'],orb8:['구체 8랠리','orb','마지막엔 반 박 간격까지 빨라져요.'],
+  riff:['리프','hard','탭3 · 회피 · 탭3의 프레이즈.'],riff2:['리프 II','hard','빠른 탭3 · 버티기 · 탭 · 회피 · 탭.'],rush:['8연속 러시','hard','반 박 간격 8연타.'],storm:['폭풍 10연타','hard','5연타 + 빠른 5연타.'],
+  poly:['폴리리듬','hard','3박 묶음과 2박 묶음이 겹쳐요.'],quad:['쿼드','hard','셋잇단 4연타 두 묶음.'],holdbreak:['버티다 회피 II','hard','버티기 직후 회피, 2연타, 숨은 탭.'],
+  gauntlet:['건틀릿','hard','연타·회피·셋잇단·버티기·숨은 노트가 섞인 15연타.'],chaos:['카오스','hard','매번 박자가 무작위라 외울 수 없어요.'],chaosS:['카오스+회피','hard','무작위 9연타에 회피까지.'],
+  ramp12:['12연 가속','hard','1박 간격에서 시작해 점점 빨라져요.'],offsync:['엇박자','hard','음악 박자와 일부러 어긋나요. 노트를 보고!'],
+  fury:['분노의 5연타','special','붉은 오라. 5타를 전부 막으면 큰 빈틈!'],desp:['최후의 발악','special','2페이즈 체력 15% 이하. 전부 막으면 즉시 격파!'],
+  barrage:['탄막','special','방패를 놓쳤을 때. 방패 쪽으로 회피해서 주워요.'],smash:['내려찍기','special','(전투 2.0 시험판) 위로 스와이프해서 밀치기.'],chart:['리듬 챌린지','special','도전 메뉴의 리듬 챌린지 전용 악보.'],
+};
+/* timeline drawing of a pattern: yellow = tap, red = dodge, blue bar = hold, dashed = hidden until late */
+function patSvg(name,w=260){
+  const P=PATMAKE[name]();const ns=P.notes;const end=Math.max(1,...ns.map(n=>n.o+(n.len||0)))+(P.off||0),bw=Math.min(36,(w-24)/Math.max(2,end+.5)),H=34,y=18,x0=12;
+  let g=`<svg viewBox="0 0 ${w} ${H}" width="100%" height="${H}" style="display:block"><rect x="0" y="6" width="${w}" height="24" rx="6" fill="#140d2e"/>`;
+  for(let b=0;b<=Math.ceil(end);b++){const x=x0+b*bw;g+=`<line x1="${x}" y1="9" x2="${x}" y2="27" stroke="${b%4?'#3b3277':'#6b5fc0'}" stroke-width="${b%4?1:2}"/>`}
+  for(const n of ns){const x=x0+(n.o+(P.off||0))*bw;
+    if(n.type==='hold')g+=`<rect x="${x-4}" y="${y-5}" width="${Math.max(8,(n.len||1)*bw+8)}" height="10" rx="5" fill="#4bb6ff" stroke="#bfe6ff"/>`;
+    else if(n.type==='swipe')g+=`<path d="M${x-7} ${y} l5 -6 v4 h4 v-4 l5 6 l-5 6 v-4 h-4 v4z" fill="#ff4d5e" stroke="#ffd0d6" stroke-width=".8"/>`;
+    else g+=`<rect x="${x-5}" y="${y-5}" width="10" height="10" transform="rotate(45 ${x} ${y})" fill="${n.ghost?'none':'#ffd23f'}" stroke="${n.ghost?'#c9a6ff':'#fff3a0'}" ${n.ghost?'stroke-dasharray="2 2" stroke-width="1.5"':''}/>`}
+  return g+`</svg>`}
+function patternBook(onBack,cat){
+  cat=cat||'basic';const names=Object.keys(PAT_INFO).filter(k=>PAT_INFO[k][1]===cat&&PATMAKE[k]),seen=S.seenPat||{};
+  modal(`<h2>패턴 도감</h2><div class="pbtabs">${PAT_CATS.map(([k,l])=>`<button class="btn ${k===cat?'y':'d'}" data-m="c_${k}">${l}</button>`).join('')}</div>
+    <p style="font-size:11px;color:var(--muted);margin:2px 0 6px"><b style="color:#ffd23f">◆</b> 탭 · <b style="color:#ff4d5e">◀▶</b> 회피 · <b style="color:#4bb6ff">━</b> 꾹 · <b style="color:#c9a6ff">◇</b> 숨은 노트 · 세로줄 = 박 (굵은 줄 = 마디)</p>
+    <div class="pblist">${names.map(k=>`<div class="pbrow"><div class="pbh"><b>${PAT_INFO[k][0]}</b>${seen[k]?'':'<small>미발견</small>'}</div>${patSvg(k)}<p>${PAT_INFO[k][2]}</p></div>`).join('')}</div>
+    <div class="btns"><button class="btn g" data-m="back">닫기</button></div>`,
+  Object.assign({back:()=>{closeModal();onBack&&onBack()}},Object.fromEntries(PAT_CATS.map(([k])=>['c_'+k,()=>patternBook(onBack,k)]))));
+}
+/* first time a pattern shows up in a real fight: pause and show how to read it */
+const tipsOn=()=>!window.__noTips&&R&&!(R.rhythm||R.prologue||R.vault||R.trial);
+function patTip(name,go){
+  S.seenPat=S.seenPat||{};S.seenPat[name]=1;save();B.paused=true;sfx('ui');
+  modal(`<h2>새 패턴!</h2><p style="font-size:20px;margin:2px 0;color:var(--gold);font-family:var(--f-display)">${PAT_INFO[name][0]}</p>${patSvg(name)}<p>${PAT_INFO[name][2]}</p>
+    <p style="font-size:11px;color:var(--muted)">음악 박자에 맞춰 노트가 판정 원에 닿을 때! · 조작법 → 패턴 도감에서 다시 볼 수 있어요</p>
+    <div class="btns"><button class="btn y" data-m="go">해보자!</button></div>`,{go:()=>{closeModal();B.paused=false;lastTs=0;go()}});
+}
 function helpModal(onClose){
   modal(`<h2>조작법</h2>
-  <div class="ctl"><div class="k btn y">탭</div><p><b>저스트 패링</b> — 틱-틱-틱 소리 다음 박자, 링이 <b style="color:#ffe14d">노란 구역</b>에 들어왔을 때 탭! 살짝 빗나가도 <b>막기</b>로 피해는 막아요.</p></div>
+  <div class="ctl"><div class="k btn y">탭</div><p><b>패링</b> — 모든 공격은 <b>음악 박자</b>에 떨어져요. 아래 레인의 노트가 판정 원에 닿는 박에 탭! 박에 딱 맞으면 <b style="color:#ffe14d">퍼펙트</b>, 살짝 빗나가면 <b>막기</b>(실드 소모). 공격이 없을 때 누르면 헛스윙 경직.</p></div>
   <div class="ctl"><div class="k btn b">꾹</div><p><b>가드</b> — 누르고 있으면 방패로 막아요. 피해는 줄지만 실드 게이지가 닳아요.</p></div>
   <div class="ctl"><div class="k btn r">◀ ▶</div><p><b>회피</b> — <span style="color:#ff8a8a">붉게 빛나는 강공격</span>은 막을 수 없어요. 좌우로 스와이프해서 구르기!</p></div>
-  <div class="ctl"><div class="k btn y" style="background:linear-gradient(#fff,#ff9b2f 50%,#e0283f)">연타</div><p><b>그로기</b> — 피로도 100%면 적이 기절! 방패로 마구 내려치세요.</p></div>
+  <div class="ctl"><div class="k btn y" style="background:linear-gradient(#fff,#ff9b2f 50%,#e0283f)">연타</div><p><b>기절</b> — 피로도가 가득 차면 「지금 공격!!」 마구 연타! 게이지는 시간과 피해 여유만큼 줄어요.</p></div>
+  <div class="ctl"><div class="k btn y" style="background:conic-gradient(#ff3b5c,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c)">FEVER</div><p><b>피버</b> — 맞지 않고 8연속 패링(콤보 아래 8칸)! 8초 동안 패링하면 자동 반격, 빈 틈에 탭하면 강타.</p></div>
   <div class="ctl"><div class="k btn y">♪</div><p><b>특수 패턴</b> — 바닥의 노트를 보세요. <b style="color:#ffe14d">노랑</b>=탭, <b style="color:#ff8a8a">빨강</b>=스와이프, <b style="color:#9ad8ff">파랑</b>=꾹. 연속 패링을 전부 성공하면 <b>PERFECT CHAIN</b>! 보라색 <b>?</b>는 페이크.</p></div>
   <p style="font-size:12px">키보드: 스페이스(탭·꾹) · ← → (회피)</p>
-  <div class="btns"><button class="btn g" data-m="ok">알겠어!</button></div>`,{ok:()=>{closeModal();onClose&&onClose()}});
+  <div class="btns"><button class="btn b" data-m="book">♪ 패턴 도감 (${Object.keys(PAT_INFO).length}종)</button><button class="btn g" data-m="ok">알겠어!</button></div>`,{ok:()=>{closeModal();onClose&&onClose()},book:()=>patternBook(()=>helpModal(onClose))});
 }
 
 /* ===================== actions ===================== */
@@ -1913,6 +1977,8 @@ function beginAttack(){
   if(R&&R.prologue&&B.tutStep>=7){name='heavy';B.finalBlow=true;coachSoft('...!? 이 공격은 <b class="r">무언가 다르다</b>...');setTimeout(()=>{if(B.active)ftAt('막을 수 없는 일격이 온다...!',B.kx+10,B.gy-50,'warn')},100)}
   if(!B.disarm&&despReady()){B.despUsed=true;name='desp'}
   if(B.disarm&&!B.disarm.started){B.disarm.started=true;name='barrage'}
+  if(B.forcePat){name=B.forcePat;B.forcePat=null}
+  else if(tipsOn()&&PAT_INFO[name]&&name!=='single'&&!(S.seenPat||{})[name]&&!B.disarm){const nm=name;patTip(nm,()=>{if(B.active&&B.state==='IDLE'){B.forcePat=nm;B.idleDur=350;B.stT=B.time}});setState('IDLE');B.idleDur=1e9;return}
   let ambush=false;if(R&&R.v2){ambush=B.v2Ambush;B.v2Ambush=false;name=ambush?'single':v2Pick()}
   const P=PATMAKE[name](),beat=beatMs();
   let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?.88:1);if(ambush)lead=520;

@@ -13,3 +13,4 @@
 - `tools/showcase.js` — 업데이트 화면 설명 이미지 생성
 - `tools/postpublish.sh`, `tools/claude-settings.json` — 훅 설정 (`~/.claude/settings.json`에 복사해 사용)
 - `showcase/` — 버전별 업데이트 화면
+- `docs/pattern-book.html` — 패턴 도감 (모든 공격 패턴 악보). 패턴을 바꾼 뒤 `node tools/pattern-book/dump.js && python3 tools/pattern-book/build.py`로 다시 생성
