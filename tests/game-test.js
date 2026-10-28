@@ -355,6 +355,21 @@ const BOT = `(()=>{
       for (let k = 0; k < 6; k++) { B.lastBashT = -1e9; groggyHit(); __tick(16); } lastHud = ''; updHud(); const w1 = parseFloat(hud.eStun.style.width);
       if (!(w1 < w0 - 5)) return `stun gauge did not shrink with damage (${w0} → ${w1})`;
       __bot.sig = undefined; endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '피버가 다음 전투로 안 넘어감 · 스테이지 음악 20곡 · 스테이지별 피로도', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
+      startRun(2); startFight(roomCfg(2, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); B.fever = B.time + 8000; for (let i = 0; i < 20; i++) __tick(16);
+      if (!document.querySelector('#battle').classList.contains('fever')) return 'fever UI did not turn on';
+      B.ehp = 0; B.pendingKO = true; for (let i = 0; i < 160; i++) __tick(16); closeModal();
+      startFight(roomCfg(2, 'min'), true); for (let i = 0; i < 10; i++) __tick(16);
+      if (document.querySelector('#battle').classList.contains('fever') || document.querySelector('#fever').classList.contains('on')) return 'fever UI leaked into the next fight';
+      if (document.querySelectorAll('#fvMeter i.on').length) return 'fever meter leaked into the next fight';
+      for (let i = 0; i < 10; i++) for (const k of ['st' + i, 'bs' + i]) { const sg = SONGS[k]; if (!sg || !sg._m.length || !sg._b.length) return 'song ' + k + ' missing';
+        for (const n of sg._m.concat(sg._b)) if (n !== '.' && n !== '-' && !isFinite(nf(n))) return `song ${k} has a bad note ${n}`; }
+      if (roomCfg(4, 'boss').music !== 'bs4' || roomCfg(4, 'min').music !== 'st4') return 'stage music not wired';
+      const need = idx => { startRun(idx); const c = roomCfg(idx, 'boss'); startFight(c, false); const g = B.sh.stunDamage * B.st.stunMult * 1.3; endBattle(); return Math.ceil(100 / g); };
+      S.shLv = 4; S.shStage = 0; const n0 = need(0); S.shLv = 40; S.shStage = 3; const n9 = need(9); S.shLv = 1; S.shStage = 0;
+      if (n0 < 5 || n9 < 9 || n9 <= n0) return `perfect parries to stun: stage 1 = ${n0}, stage 10 = ${n9} (expected ~6 → ~11+)`;
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
