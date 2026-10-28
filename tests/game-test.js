@@ -344,6 +344,11 @@ const BOT = `(()=>{
       if (!feverOn()) return 'fever never started after clean parries (streak ' + B.fvStreak + ')';
       if (!document.querySelector('#fever').classList.contains('on')) return 'fever HUD not shown';
       B.stun = 50; B.lastParryT = B.time - 9000; const s0 = B.stun; for (let i = 0; i < 60; i++) __tick(16); if (B.stun < s0) return 'stagger drained during fever';
+      while (B.state !== 'IDLE') { __tick(16); if (document.querySelector('#modal').hidden) __botStep(); }
+      const e0 = B.ehp; B.fvBashT = 0; onTap(); for (let i = 0; i < 12; i++) __tick(16);
+      if (!(B.ehp < e0)) return 'fever tap on an idle enemy did not bash'; if (B.stiffUntil > B.time) return 'fever bash caused stiffness';
+      const e1 = B.ehp; B.fever = B.time + 4000; let vt2 = 0; const p0 = B.parries; while (vt2 < 8000 && B.parries === p0) { __tick(16); vt2 += 16; if (document.querySelector('#modal').hidden) __botStep(); }
+      if (!(B.ehp < e1)) return 'fever parry did not counter-attack';
       B.fever = 0; for (let i = 0; i < 20; i++) __tick(16); B.fvStreak = 5; hurt(5, null, false); if (B.fvStreak !== 0) return 'getting hit did not break the fever streak';
       endBattle(); startRun(3); startFight(roomCfg(3, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); B.ehp = B.emax = B.wp.groggyTapDamage * 60; B.stun = 100; for (let i = 0; i < 3; i++) __tick(16);
       if (B.state !== 'GROGGY') return 'no stun'; updHud(); const w0 = parseFloat(hud.eStun.style.width);
