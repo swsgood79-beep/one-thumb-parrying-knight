@@ -235,7 +235,7 @@ const BOT = `(()=>{
       startRun(1); R.room = 4; startFight(roomCfg(1, 'boss'), false); B.st.pool = { base: [['single', 1]] }; B.st.stunMult = 0; const g0 = R.gold;
       let vt = 0; while (vt < 40000 && B.pStreak < 7) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (!(R.gold > g0)) return 'parry streak dropped no gold (streak ' + B.pStreak + ')';
-      B.push = 0; B.ehp = Math.round(B.emax * .12); vt = 0; let sawDesp = false;
+      B.phase2 = true; B.transformed = true; B.push = 0; B.ehp = Math.round(B.emax * .12); vt = 0; let sawDesp = false;
       while (vt < 40000 && B.state !== 'VICTORY') { __tick(16); vt += 16; if (B.atk && B.atk.kind === 'desp') sawDesp = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (!sawDesp) return 'boss never used the desperation 5-hit'; if (B.state !== 'VICTORY') return 'perfect desperation did not finish the boss (' + B.state + ')';
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
@@ -249,17 +249,32 @@ const BOT = `(()=>{
       __bot.skill = 1; __bot.sig = 8; for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
       startRun(3); R.room = 4; startFight(roomCfg(3, 'boss'), false); for (let i = 0; i < 20; i++) __tick(16);
       if (document.querySelector('#eBars').hidden || document.querySelector('#eBars').textContent !== 'x20') return 'boss bar counter not x20: ' + document.querySelector('#eBars').textContent;
-      if (document.querySelector('#ePhase').textContent !== 'PHASE 1') return 'phase label missing';
-      const sc0 = B.E.scale; B.ehp = Math.round(B.emax * .49); let vt = 0, sawT = false;
+      if (!document.querySelector('#ePhase').textContent.startsWith('PHASE 1')) return 'phase label missing';
+      const sc0 = B.E.scale; B.ehp = 1; chip(5, 'x'); let vt = 0, sawT = false;
       while (vt < 20000 && !(B.transformed && B.state !== 'TRANSFORM')) { __tick(16); vt += 16; if (B.state === 'TRANSFORM') sawT = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (!sawT || !B.transformed) return 'boss never transformed in phase 2'; if (!(B.E.scale > sc0)) return 'boss did not grow';
-      if (document.querySelector('#eBars').textContent !== 'x10') return 'bar counter at 49% should be x10, got ' + document.querySelector('#eBars').textContent;
+      if (B.ehp !== B.emax || document.querySelector('#eBars').textContent !== 'x20') return 'phase 2 did not refill the bars: ' + document.querySelector('#eBars').textContent + ' ' + B.ehp + '/' + B.emax;
+      if (B.state === 'VICTORY') return 'phase 1 KO ended the fight';
       if (!document.querySelector('#ePhase').textContent.startsWith('PHASE 2')) return 'phase 2 label missing';
       B.st.pool = { base: [['fury', 1]], p2: [['fury', 1]] }; B.st.stunMult = 0; B.stun = 0; B.ehp = B.emax * .4; vt = 0; let furyDone = false, st0 = 0;
       while (vt < 20000 && !furyDone) { __tick(16); vt += 16; if (B.atk && B.atk.kind === 'fury' && B.state === 'WINDUP') st0 = 1; if (st0 && B.state !== 'WINDUP') furyDone = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (!furyDone) return 'fury pattern never ran'; if (!(B.stun >= 35 || B.state === 'GROGGY')) return 'fully parried fury gave no stun (' + B.stun + ')';
       __bot.sig = undefined;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '배경·벽은 흔들림/줌에도 고정', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
+      const keepK = drawKnight, keepE = drawEnemy; drawKnight = () => {}; drawEnemy = () => ({ top: 0, w: 0 });
+      let bad = null;
+      for (const idx of [0, 1, 3, 6, 8]) {
+        B.wallHitT = 99999; startRun(idx); startFight(roomCfg(idx, 'min'), false); if (B.wallHitT !== null) return 'wall slam timer leaked into the next fight'; for (let i = 0; i < 60; i++) __tick(16);
+        B.push = pushMax() * .6; B.parts = []; B.fxs = []; B.shake = 0; B.zoom = 1; B.atk = null; setState('IDLE'); B.idleDur = 1e9; draw();
+        const g = bcv.getContext('2d'), W = B.W, H = B.H, ref = g.getImageData(0, 0, W, H).data;
+        B.shake = 6; B.zoom = 1.18; B.parts = []; B.fxs = []; draw(); const now = g.getImageData(0, 0, W, H).data; let diff = 0;
+        let x0 = 999, x1 = -1, y0 = 999, y1 = -1;
+        for (let i = 0; i < ref.length; i += 4) if (ref[i] !== now[i] || ref[i + 1] !== now[i + 1] || ref[i + 2] !== now[i + 2]) { diff++; const k = i / 4, x = k % W, y = Math.floor(k / W); x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+        if (diff) { bad = `region ${idx + 1}: ${diff} background pixels moved under shake/zoom (x ${x0}-${x1}, y ${y0}-${y1}, gy ${B.gy}, guard ${B.guard}, state ${B.state})`; break; }
+        endBattle(); }
+      drawKnight = keepK; drawEnemy = keepE; return bad || (__errors.length ? 'error: ' + __errors[0] : null); } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
