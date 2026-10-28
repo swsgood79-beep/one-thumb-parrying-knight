@@ -1,3 +1,4 @@
 tests/.prepublish.log
 node_modules/
 .old*.html
+backup-*.zip
