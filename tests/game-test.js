@@ -275,6 +275,19 @@ const BOT = `(()=>{
         if (diff) { bad = `region ${idx + 1}: ${diff} background pixels moved under shake/zoom (x ${x0}-${x1}, y ${y0}-${y1}, gy ${B.gy}, guard ${B.guard}, state ${B.state})`; break; }
         endBattle(); }
       drawKnight = keepK; drawEnemy = keepE; return bad || (__errors.length ? 'error: ' + __errors[0] : null); } },
+    { name: '스테이지 별 평가 (★1~★3) · 보석 보상 · 로비 표시', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.stars = {}; const g0 = S.gems;
+      const finish = (hp, perf, rev) => { startRun(2); B.active = false; R.hp = Math.round(R.maxHp * hp); R.tapN = 100; R.perfects = Math.round(perf * 100); R.revived = rev; runComplete();
+        const n = document.querySelectorAll('#mbox .runstars i.on').length; document.querySelector('[data-m="take"]').click(); for (let i = 0; i < 60; i++) __tick(16); closeModal(); return n; };
+      let n = finish(.2, .1, false); if (n !== 1 || S.stars[2] !== 1) return 'low hp + low perfect should be 1 star, got ' + n;
+      n = finish(.8, .1, false); if (n !== 2 || S.stars[2] !== 2) return 'high hp only should be 2 stars, got ' + n;
+      n = finish(.8, .6, true); if (n !== 1 || S.stars[2] !== 2) return 'revived run should be 1 star and keep best 2, got ' + n + '/' + S.stars[2];
+      n = finish(.8, .6, false); if (n !== 3 || S.stars[2] !== 3) return 'great run should be 3 stars, got ' + n;
+      if (S.gems - g0 < 15) return 'star gems not granted (' + (S.gems - g0) + ')';
+      S.sel = 2; tab = 'battle'; showShell(); for (let i = 0; i < 30; i++) __tick(16);
+      if (!document.querySelector('#chRibbon').textContent.includes('★')) return 'lobby star total missing';
+      if (!document.querySelector('#dots i:nth-child(3) b')) return 'stage dot stars missing';
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }

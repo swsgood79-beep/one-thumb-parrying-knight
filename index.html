@@ -95,7 +95,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 9px;border-radius:999px;background:rgba(8,5,25,.6);border:1px solid rgba(255,255,255,.1)}
 .chip img{width:14px;height:14px}
 .chip.warn{color:#ffb3b3;border-color:rgba(255,91,91,.5)}
-.dots{display:flex;gap:5px;align-items:center;margin-top:10px}
+.dots{display:flex;gap:5px;align-items:center;margin-top:10px;padding-bottom:10px}
 .dots i{width:18px;height:18px;border-radius:50%;background:#3a3170;border:2px solid var(--edge);font-style:normal;font-family:var(--f-display);font-size:10px;display:grid;place-items:center;color:#b3aad8}
 .dots i.done{color:#3a2a00}.dots i.cur{color:#140f2c;transform:scale(1.25)}
 .dots i.done{background:var(--gold)}
@@ -351,6 +351,15 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .wkbar b{position:absolute;top:-20px;transform:translateX(-50%);font-size:11px;font-weight:normal;white-space:nowrap}
 .wkrow{display:flex;gap:6px}
 .wkrow .btn{flex:1;font-size:12px;padding:6px 4px;border-radius:10px}
+.runstars{display:flex;justify-content:center;gap:6px;margin:2px 0 4px}
+.runstars i{font-style:normal;font-size:46px;line-height:1;color:#3a3170;text-shadow:0 3px 0 #140f2c}
+.runstars i.on{color:#ffd23f;text-shadow:0 0 14px rgba(255,210,63,.8),0 3px 0 #8a5a00;animation:starpop .5s both}
+@keyframes starpop{0%{transform:scale(0) rotate(-40deg);opacity:0}70%{transform:scale(1.35)}100%{transform:scale(1);opacity:1}}
+.starcond{display:flex;flex-direction:column;gap:3px;font-size:12px;text-align:left;margin:4px auto 6px;width:fit-content;color:var(--muted)}
+.starcond .ok{color:#9cff8a}
+.newbest{color:var(--gold);font-family:var(--f-display);font-size:15px;margin:2px 0}
+.dots i{position:relative}.dots i b{position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);font-weight:400;font-size:8px;letter-spacing:-1px;color:#ffd23f;white-space:nowrap}
+.ststars{font-size:20px;color:#ffd23f;letter-spacing:2px;text-shadow:0 2px 0 #8a5a00}.ststars .e{color:#3a3170;text-shadow:none}
 .rrank{font-family:var(--f-display);font-size:68px;color:var(--gold);line-height:1;margin:4px 0}
 .skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
 .skins .frame{width:100%;height:auto;aspect-ratio:1}
@@ -638,7 +647,7 @@ const ENGRAVINGS=[
   {id:'leaf',r:0,name:'잎사귀 각인',short:'체력 +8',glyph:'leaf',col:'#7fe08a',fx:{hpAdd:8}},
   {id:'feather',r:0,name:'깃털 각인',short:'판정 +5ms',glyph:'wing',col:'#e8eef7',fx:{winMs:5}},
   {id:'flint',r:0,name:'부싯돌 각인',short:'치명타 +2%',glyph:'star',col:'#ffb070',fx:{critAdd:2}},
-  {id:'moss',r:0,name:'이끼 각인',short:'방 클리어 회복',glyph:'leaf',col:'#5fae5b',fx:{roomHealPct:3}},
+  {id:'moss',r:0,name:'이끼 각인',short:'관문 돌파 회복',glyph:'leaf',col:'#5fae5b',fx:{roomHealPct:3}},
   {id:'clay',r:0,name:'진흙 각인',short:'피로도 +5%',glyph:'swirl',col:'#c4a07a',fx:{stunPct:5}},
   {id:'string',r:0,name:'끈 각인',short:'가드 소모 -8%',glyph:'shield',col:'#d8c49a',fx:{guardDrain:8}},
   {id:'bell',r:0,name:'방울 각인',short:'포션 +10%',glyph:'bell',col:'#ffe14d',fx:{potionPct:10}},
@@ -659,7 +668,7 @@ const ENGRAVINGS=[
   {id:'hawk',r:2,name:'매 각인',short:'치명타 +6%',glyph:'eye',col:'#ffb070',fx:{critAdd:6}},
   {id:'rock',r:2,name:'바위 심장 각인',short:'체력 +20',glyph:'heart',col:'#c4a07a',fx:{hpAdd:20}},
   {id:'echo',r:2,name:'메아리 각인',short:'퍼펙트 3연속 보너스',glyph:'swirl',col:'#c9a6ff',fx:{perfStreakStun:15}},
-  {id:'lantern',r:2,name:'등불 각인',short:'방 클리어 회복 8%',glyph:'flame',col:'#ffe14d',fx:{roomHealPct:8}},
+  {id:'lantern',r:2,name:'등불 각인',short:'관문 돌파 회복 8%',glyph:'flame',col:'#ffe14d',fx:{roomHealPct:8}},
   {id:'rage',r:2,name:'분노 각인',short:'위기 시 강타 +40%',glyph:'flame',col:'#ff4d5e',fx:{lowHpBash:40}},
   // 영웅
   {id:'phoenix',r:3,name:'불사조 각인',short:'쓰러질 때 1번 버팀',glyph:'flame',col:'#ff9b2f',fx:{phoenix:20}},
@@ -1310,7 +1319,7 @@ function musStep(s,i,t,sp){
 }
 
 /* ===================== save ===================== */
-const DEF={gold:0,gems:10,energy:30,enT:0,sel:0,cleared:0,shLv:1,shStage:0,eng:{},engrEq:[],engAd:'',pot:{hp:1,sp:1},intro:false,exp:0,adFree:false,snd:true,bgm:true,vib:true,assist:false,mvol:1,prologue:false,streak:0,skins:[],skin:'',plume:'',pass:{season:1,xp:0,prem:false,cf:[],cp:[]},dm:null,wk:null,lastSeen:0,rBest:0,starter:false,daily:'',adBox:'',adBoxN:0,ending:false,vault:null};
+const DEF={gold:0,gems:10,energy:30,enT:0,sel:0,cleared:0,shLv:1,shStage:0,eng:{},engrEq:[],engAd:'',pot:{hp:1,sp:1},intro:false,exp:0,adFree:false,snd:true,bgm:true,vib:true,assist:false,mvol:1,prologue:false,streak:0,skins:[],skin:'',plume:'',pass:{season:1,xp:0,prem:false,cf:[],cp:[]},dm:null,wk:null,lastSeen:0,rBest:0,starter:false,daily:'',adBox:'',adBoxN:0,ending:false,vault:null,stars:{}};
 let S;
 function load(){let d={};try{d=JSON.parse(localStorage.getItem('otpk-save-v1')||'{}')||{}}catch(e){}
   if(d.owned&&d.shLv==null){const st=Math.min(3,Math.max(0,...(d.owned.s||[0])));d.shStage=st;d.shLv=st*10+1;let r=0;
@@ -1319,6 +1328,7 @@ function load(){let d={};try{d=JSON.parse(localStorage.getItem('otpk-save-v1')||
   S=Object.assign(JSON.parse(JSON.stringify(DEF)),d);if(!S.enT)S.enT=Date.now();
   if(Array.isArray(d.engr)){S.eng=S.eng||{};d.engr.forEach(id=>{if(ENGR[id]&&!S.eng[id])S.eng[id]={star:1,shards:0}})}delete S.engr;
   if(!S.eng||typeof S.eng!=='object')S.eng={};
+  if(!S.stars||typeof S.stars!=='object')S.stars={};for(let i=0;i<S.cleared;i++)if(!S.stars[i])S.stars[i]=1;
   ENGRAVINGS.forEach(e=>{if(e.boss&&S.cleared>e.from&&!S.eng[e.id])S.eng[e.id]={star:1,shards:0}});
   S.engrEq=S.engrEq.filter(id=>ownE(id)).slice(0,shieldStats().slots);
   if(d.migrated!=null)S.engrEq=Object.keys(S.eng).slice(-shieldStats().slots)}
@@ -1348,12 +1358,13 @@ const STAGE_COL={field:'#7be05a',cave:'#c9a2ff',swamp:'#4fd8b8',castle:'#ff5b7a'
 const stageColor=i=>STAGE_COL[STAGES[i].theme]||'#ffc83a';
 function renderLobby(){
   const i=S.sel,st=STAGES[i],ch=chapterOf(i);
-  $('#chRibbon').innerHTML=`STAGE <b>${i+1}</b> / ${STAGES.length} · CHAPTER ${ch+1}`;$('#chTitle').textContent=REGIONS[i].name;
+  $('#chRibbon').innerHTML=`STAGE <b>${i+1}</b> / ${STAGES.length} · ★ ${totalStars()}/${STAGES.length*3}`;$('#chTitle').textContent=REGIONS[i].name;
   document.documentElement.style.setProperty('--stc',stageColor(i));
-  $('#stNum').textContent=`${CHAPTERS[ch].title} · 보스 ${st.name}`;$('#stName').textContent=`방 5개 원정 · 2페이즈 보스`;
+  $('#stNum').textContent=`${CHAPTERS[ch].title} · 보스 ${st.name}`;{const sn=S.stars[i]||0;$('#stName').innerHTML=`<span class="ststars">${'★'.repeat(sn)}<span class="e">${'★'.repeat(3-sn)}</span></span><br>관문 5개 원정 · 2페이즈 보스${i<S.cleared&&sn<3?' · <b style="color:var(--gold)">별 3개에 도전!</b>':''}`}
   $('#bossTag').hidden=!st.boss;$('#clearTag').hidden=!(i<S.cleared);
   $('#stPrev').disabled=i<=0;$('#stNext').disabled=i>=Math.min(S.cleared,STAGES.length-1);
   const chips=[`<span class="chip">${ic('heart')} 체력 ${fmt(st.hp)}</span>`,`<span class="chip">공격 ${st.atk}</span>`,`<span class="chip">${ic('coin')} ${fmt(st.gold)}</span>`];
+  chips.push(`<span class="chip" style="color:#ffe58a">★3 조건: 체력 ${Math.round(STAR_HP*100)}%↑ · 퍼펙트 ${Math.round(STAR_PERF*100)}%↑</span>`);
   const PT=PARRY_TUNE[i];chips.splice(2,0,`<span class="chip" style="color:#ffe58a">패링 ${'★'.repeat(PT.stars)}${'☆'.repeat(5-PT.stars)}${S.assist?' (도우미)':''}</span>`);
   const pn=new Set(POOLS[i].base.map(x=>x[0]));
   if(pn.has('heavy'))chips.push(`<span class="chip warn">붉은 강공격</span>`);
@@ -1365,7 +1376,7 @@ function renderLobby(){
   if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승 · 시작 카드 ${streakCards()}${streakGold()?' · 골드 +'+Math.round(streakGold()*100)+'%':''}</span>`);
   const eg=ENGRAVINGS.find(e=>e.boss&&e.from===i);if(eg&&!ownE(eg.id))chips.push(`<span class="chip" style="color:#e3c8ff">${ic('eng_'+eg.id)} ${eg.name} 획득</span>`);
   $('#stChips').innerHTML=chips.join('');
-  $('#dots').innerHTML=STAGES.map((s,k)=>`<i class="${[k<S.cleared?'done':'',k===i?'cur':'',s.boss?'boss':''].join(' ')}">${k+1}</i>`).join('');
+  $('#dots').innerHTML=STAGES.map((s,k)=>`<i class="${[k<S.cleared?'done':'',k===i?'cur':'',s.boss?'boss':''].join(' ')}">${k+1}${S.stars[k]?`<b>${'★'.repeat(S.stars[k])}</b>`:''}</i>`).join('');
   const left=HEROES_LEFT[S.cleared];
   const msgs=[];const R=mulberry(S.cleared*31+3);
   for(let k=0;k<4;k++){const n=HERO_NAMES[Math.floor(R()*HERO_NAMES.length)];const s=Math.min(10,S.cleared+1+Math.floor(R()*3));
@@ -1653,7 +1664,7 @@ function startFight(cfg,walkIn){
     php:R.hp,pmax:R.maxHp,psh:sh.maxShield,pshMax:sh.maxShield,guard:false,evadeUntil:-1,evadeCd:-1,evadeT:-9999,evadeDir:-1,
     parryLock:-1,atk:null,combo:0,maxCombo:0,hitstop:0,shake:0,parts:[],fxs:[],kFlash:0,kFlashCol:null,eFlash:0,kx:0,ex:0,swing:false,swingT:-9999,
     revived:R.revived,paused:false,idleDur:900,groggyEnd:0,parries:0,perfects:0,kPose:'idle',kPoseT:-9999,recoilFrom:0,deadT:0,orb:null,lastLabelT:{},
-    tune:cfg.tune,firstAtk:true,wallHitT:null,transformed:false,tfDone:false,lastBar:null,pStreak:0,stiffUntil:0,disarm:null,cutChain:false,despUsed:false,streakG:0,push:0,pushT:0,pushBack:false,slam:false,slams:0,orbFinal:null,orbBooms:0,lastParryT:-1e9,phase2:false,zoom:1,slowUntil:0,slowF:1,eHitT:-9999,pendingKO:false,walkT:-1});
+    tune:cfg.tune,firstAtk:true,wallHitT:null,tapN:0,transformed:false,tfDone:false,lastBar:null,pStreak:0,stiffUntil:0,disarm:null,cutChain:false,despUsed:false,streakG:0,push:0,pushT:0,pushBack:false,slam:false,slams:0,orbFinal:null,orbBooms:0,lastParryT:-1e9,phase2:false,zoom:1,slowUntil:0,slowF:1,eHitT:-9999,pendingKO:false,walkT:-1});
   $('#shell').hidden=true;$('#title').hidden=true;$('#battle').hidden=false;fx.innerHTML='';
   sizeArena();B.kx=B.kx0-34;B.ex=B.ex0+44;
   const roomNo=R.room+1;
@@ -1662,7 +1673,7 @@ function startFight(cfg,walkIn){
   $('#pShIc').src=iconURL['shield'+S.shStage];
   renderRunMap();updPots();
   if(walkIn)flash('#000000',1,600);
-  banner(cfg.label==='보스'?`STAGE ${idx+1} BOSS`:`STAGE ${idx+1}-${roomNo}`,`${REGIONS[idx].name} · ${cfg.name}`);
+  banner(cfg.label==='보스'?`STAGE ${idx+1} BOSS`:`STAGE ${idx+1}-${roomNo}`,`${REGIONS[idx].name} · ${cfg.label==='보스'?'최종 관문':'관문 '+roomNo+'/5'} · ${cfg.name}`);
   if(cfg.line)setTimeout(()=>{if(B.active&&B.state==='INTRO')bubble(cfg.line,false)},250);
   if(cfg.taunt)setTimeout(()=>{if(B.active&&B.state==='INTRO')bubble(cfg.taunt,true)},1300);
   B.introDur=cfg.taunt?2600:cfg.line?1700:1100;
@@ -1884,7 +1895,7 @@ function stiffen(){if(R&&(R.rhythm||R.prologue))return;const t=B.time;B.stiffUnt
 function missPenalty(f){if(R&&(R.rhythm||R.prologue||R.v2))return;const had=B.psh>0,d=B.pshMax*f;B.psh=Math.max(0,B.psh-d);B.guard=B.guard&&B.psh>0;
   barShake('#pShBar');ftThrottle('실드 -'+Math.round(d),B.kx-8,B.gy-24,'hurt');if(had&&B.psh<=0)guardBreak()}
 function parryBlock(){
-  const a=B.atk;curNote().res=true;a.chainOk=false;B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.35*(1+cardN('parry2')));if(!midChain())B.hitstop=40;B.shake=2;B.eFlash=80;
+  const a=B.atk;curNote().res=true;a.chainOk=false;B.tapN++;B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.35*(1+cardN('parry2')));if(!midChain())B.hitstop=40;B.shake=2;B.eFlash=80;
   const[sx,sy]=shieldPos();burstParts(sx+2,sy,8,['#bfe6ff','#ffffff'],.08,.0002,.3);addFx('pow',sx+3,sy,{r:6,dur:110});
   sfx('guard',S.shStage);vib([25]);vig('rgba(140,200,255,.7)',300);ripple('#8fd0ff');domShake(1);
   if(B.fx.blockShield)B.psh=Math.min(B.pshMax,B.psh+B.pshMax*B.fx.blockShield/100);if(B.fx.blockStun)B.stun=Math.min(100,B.stun+B.fx.blockStun);
@@ -1896,7 +1907,7 @@ function parryBlock(){
   pushAdd(.5);B.pStreak=0;ftAt(lbl,sx,sy-18,'info');rScore(50,'block');tutParried('block');advanceNote(true);
 }
 function parrySuccess(early,win){
-  const a=B.atk;curNote().res=true;a.parried++;const light=midChain();
+  const a=B.atk;curNote().res=true;a.parried++;B.tapN++;const light=midChain();
   const perfect=Math.abs(early-15)<=Math.max(35,win*.22);
   track('parry');if(perfect)track('perfect');tutParried('parry');rScore(perfect?300:200,perfect?'perfect':'just');
   const gain=B.sh.stunDamage*B.st.stunMult*(perfect?1.3:1);
@@ -1950,7 +1961,7 @@ function guardBreak(){
 function witchBonus(){if(B.fx.evadeStun){const v=Math.round(B.fx.evadeStun);B.stun=Math.min(100,B.stun+v);ftAt('피로도 +'+v,B.ex,B.gy-40,'info')}if(cardN('roll'))chip(B.wp.groggyTapDamage*2*cardN('roll'),'구르기 반격')}
 function resolveImpact(){
   if(B.finalBlow){prologueKO();return}
-  const a=B.atk,n=curNote();n.res=true;const t=B.time,atk=B.st.atk*(a.kind==='desp'||a.kind==='fury'?.7:1),red=1-B.ar.dmgReduce;let ok=false;
+  const a=B.atk,n=curNote();n.res=true;if(n.type==='tap')B.tapN++;const t=B.time,atk=B.st.atk*(a.kind==='desp'||a.kind==='fury'?.7:1),red=1-B.ar.dmgReduce;let ok=false;
   if(t<B.evadeUntil){ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok){B.tutStep=6;B.stun=100;coachHide()}}
   else if(n.type==='swipe'&&a.kind==='barrage')hurt(atk*.35*red,'피격!');
   else if(n.type==='swipe'){if(B.guard){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 붕괴!')}else hurt(atk*1.4*red)}
@@ -2238,7 +2249,7 @@ function roomCleared(){
   if(!B.active||!R)return;
   const g=Math.round(B.st.gold*(1+.3*cardN('greed')+(R.streakGold||0))*(1+(B.fx.goldPct||0)/100));R.gold+=g;R.hp=Math.max(1,Math.round(B.php));
   if(B.fx.roomHealPct&&R.rooms[R.room]!=='boss'){R.hp=Math.min(R.maxHp,R.hp+Math.round(R.maxHp*B.fx.roomHealPct/100))}
-  R.parries+=B.parries;R.perfects+=B.perfects;R.maxCombo=Math.max(R.maxCombo,B.maxCombo);
+  R.parries+=B.parries;R.perfects+=B.perfects;R.tapN=(R.tapN||0)+(B.tapN||0);R.maxCombo=Math.max(R.maxCombo,B.maxCombo);
   ftAt(`+${g} 골드`,B.kx,B.gy-40,'clang');
   if(R.rooms[R.room]==='boss'){B.paused=true;return runComplete()}
   B.paused=true;
@@ -2283,16 +2294,28 @@ function pickCards(times,done){
   };
   render();
 }
+const STAR_HP=.5,STAR_PERF=.45,STAR_GEMS=[0,0,5,10];
+function runStars(){
+  const hp=R.hp/R.maxHp,perf=R.perfects/Math.max(1,R.tapN||0),okHp=hp>=STAR_HP,okPerf=perf>=STAR_PERF;
+  return{n:R.revived?1:1+(okHp?1:0)+(okPerf?1:0),hp,perf,okHp,okPerf,revived:!!R.revived}}
+const starStr=(n,max=3)=>'★'.repeat(n)+'☆'.repeat(max-n);
+const totalStars=()=>Object.values(S.stars||{}).reduce((a,b)=>a+b,0);
 function runComplete(){
   const first=R.idx>=S.cleared,st=STAGES[R.idx];
   const newE=ENGRAVINGS.find(e=>e.boss&&e.from===R.idx&&!ownE(e.id));
   const fxR=EFX(),gemsX=Math.round(fxR.gemBonus||0);
-  const bonus=first?Math.round(st.gold*.5):0,gold=R.gold+bonus,gems=(first?(st.boss?20:3):0)+gemsX,exp=30+R.idx*10;
+  const SR=runStars(),prevStars=S.stars[R.idx]||0;let starGems=0;for(let k=prevStars+1;k<=SR.n;k++)starGems+=STAR_GEMS[k];
+  const bonus=first?Math.round(st.gold*.5):0,gold=R.gold+bonus,gems=(first?(st.boss?20:3):0)+gemsX+starGems,exp=30+R.idx*10;
+  if(SR.n>prevStars)S.stars[R.idx]=SR.n;
   modal(`<h2>원정 성공!</h2><canvas id="vChest" width="12" height="9" style="width:96px;height:72px"></canvas>
     <p>${REGIONS[R.idx].name}의 주인 <b>${st.name}</b>을(를) 쓰러뜨렸다!${first?'<br><span style="color:var(--gold)">첫 클리어 보너스 +'+fmt(bonus)+'</span>':''}</p>
     <div class="rew"><div>${ic('coin')}+${fmt(gold)}</div>${gems?`<div>${ic('gem')}+${gems}</div>`:''}</div>
     ${newE?`<div class="card row" style="text-align:left;margin:8px 0"><div class="frame f3">${ic('eng_'+newE.id)}</div><div class="info"><div class="nm" style="color:var(--gold)">새 각인 획득! ${newE.name}</div><div class="ds">${newE.desc}</div></div></div>`:''}
     <p style="font-size:13px;margin:4px 0">${newE?'':'보물상자에서 각인 1개를 얻어요'}</p>
+    <div class="runstars">${[0,1,2].map(k=>`<i class="${k<SR.n?'on':''}" style="animation-delay:${.25+k*.35}s">★</i>`).join('')}</div>
+    ${SR.n>prevStars&&prevStars?`<p class="newbest">최고 기록 갱신! ${starStr(prevStars)} → ${starStr(SR.n)}${starGems?` · 보석 +${starGems}`:''}</p>`:starGems?`<p class="newbest">별 보상 · 보석 +${starGems}</p>`:''}
+    <div class="starcond"><span class="ok">✔ 스테이지 클리어</span><span class="${SR.okHp&&!SR.revived?'ok':''}">${SR.okHp&&!SR.revived?'✔':'✘'} 체력 ${Math.round(STAR_HP*100)}% 이상 남기기 (${Math.round(SR.hp*100)}%)</span>
+      <span class="${SR.okPerf&&!SR.revived?'ok':''}">${SR.okPerf&&!SR.revived?'✔':'✘'} 퍼펙트 ${Math.round(STAR_PERF*100)}% 이상 (${Math.round(SR.perf*100)}%)</span>${SR.revived?'<span>부활하면 별 1개</span>':''}</div>
     <div class="mini"><span>패링 ${R.parries}회</span><span>퍼펙트 ${R.perfects}회</span><span>최대 콤보 ${R.maxCombo}</span></div>
     <div class="btns"><button class="btn y" data-m="ad">▶ 광고 보고 2배 받기 (${fmt(gold*2)})</button><button class="btn g" data-m="take">받기</button></div>`,
   {ad:()=>{closeModal();simulateAd(()=>claim(2),'2배 보상')},take:()=>{closeModal();claim(1)}});
@@ -2311,7 +2334,7 @@ function runComplete(){
 }
 function showDefeat(){
   B.paused=true;const st=B.st;
-  modal(`<h2 class="bad">쓰러졌다...</h2><p>${REGIONS[R.idx].name} · 방 ${R.room+1}/5<br>"아직... 공주님을 구하지 못했는데..."</p>
+  modal(`<h2 class="bad">쓰러졌다...</h2><p>${REGIONS[R.idx].name} · 관문 ${R.room+1}/5<br>"아직... 공주님을 구하지 못했는데..."</p>
     <div class="rew"><div>${ic('coin')}+${fmt(R.gold)}</div></div><p style="font-size:13px">원정에서 모은 골드는 가져가요</p>
     <div class="btns">${!R.revived?`<button class="btn y" data-m="ad">▶ 광고 보고 부활 (원정당 1회)</button><button class="btn b" data-m="gem" ${S.gems<30?'disabled':''}>${ic('gem')} 30 으로 부활</button>`:''}
     <button class="btn r" data-m="quit">마을로 돌아가기</button></div>
@@ -2412,7 +2435,7 @@ const MISSIONS=[
   {id:'perfect',name:'퍼펙트 패링',goal:15,evt:'perfect'},
   {id:'parry',name:'패링 성공',goal:40,evt:'parry'},
   {id:'chain',name:'PERFECT CHAIN 달성',goal:1,evt:'chain'},
-  {id:'room',name:'원정 방 돌파',goal:6,evt:'room'},
+  {id:'room',name:'원정 관문 돌파',goal:6,evt:'room'},
   {id:'run',name:'원정 완료',goal:1,evt:'run'},
   {id:'groggy',name:'적 기절시키기',goal:4,evt:'groggy'},
   {id:'card',name:'카드 고르기',goal:4,evt:'card'},
