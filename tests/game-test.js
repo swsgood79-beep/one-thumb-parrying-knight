@@ -299,6 +299,19 @@ const BOT = `(()=>{
       while (vt < 20000 && !(B.state === 'WINDUP' && B.atk.idx === 1)) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); }
       B.stun = 100; __tick(16); __tick(16); if (B.state !== 'GROGGY') return 'full stagger mid-chain did not stun at once (' + B.state + ')';
       __bot.sig = undefined; return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '퍼펙트 게이지 카드: 게이지가 차야만 관문 사이에서 카드', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; __bot.skill = 1; __bot.sig = 8;
+      startRun(1); startFight(roomCfg(1, 'min'), false); R.cg = 0; cgDraw(); if (document.querySelector('#cGauge').hidden) return 'card gauge not shown';
+      B.ehp = 1; chip(5, 'x'); let vt = 0, sawCard = false;
+      while (vt < 6000) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden && h.startsWith('카드')) sawCard = true; if (B.state === 'WALK' || B.state === 'INTRO') break; }
+      if (sawCard) return 'a card was offered with an empty gauge';
+      cgAdd(cgNeed() + 1); if (R.cgReady !== 1) return 'full gauge did not make a card ready';
+      B.ehp = 1; chip(5, 'x'); vt = 0;
+      while (vt < 6000 && !sawCard) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden && h.startsWith('카드')) sawCard = true; }
+      if (!sawCard) return 'ready card was not offered between gates'; document.querySelector('[data-m="c0"]').click();
+      if (R.cgReady !== 0 || R.cgGot !== 1) return 'card count not consumed'; if (cgNeed() !== CG_BASE + CG_STEP) return 'next card should need more';
+      __bot.sig = undefined; for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
