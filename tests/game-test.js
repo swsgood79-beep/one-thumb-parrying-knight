@@ -337,6 +337,19 @@ const BOT = `(()=>{
         while (B.state === 'WAKE' && !B.atk.resolved) { if (mash && B.time < until) onTap(); if (!done && B.atk.impact - B.time <= 200) { done = true; humanDodge(); } __tick(16); }
         if (B.php < hp0) return `stage ${idx + 1}${mash ? ' (after mashing)' : ''}: dodged wake shockwave still hurt`; endBattle(); }
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '피버 타임 · 기절 게이지가 피해만큼 줄어듦', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; __bot.skill = 1; __bot.sig = 8;
+      startRun(3); startFight(roomCfg(3, 'min'), false); B.ehp = B.emax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [['single', 1]] };
+      let vt = 0; while (vt < 60000 && !feverOn()) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
+      if (!feverOn()) return 'fever never started after clean parries (streak ' + B.fvStreak + ')';
+      if (!document.querySelector('#fever').classList.contains('on')) return 'fever HUD not shown';
+      B.stun = 50; B.lastParryT = B.time - 9000; const s0 = B.stun; for (let i = 0; i < 60; i++) __tick(16); if (B.stun < s0) return 'stagger drained during fever';
+      B.fever = 0; for (let i = 0; i < 20; i++) __tick(16); B.fvStreak = 5; hurt(5, null, false); if (B.fvStreak !== 0) return 'getting hit did not break the fever streak';
+      endBattle(); startRun(3); startFight(roomCfg(3, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); B.ehp = B.emax = B.wp.groggyTapDamage * 60; B.stun = 100; for (let i = 0; i < 3; i++) __tick(16);
+      if (B.state !== 'GROGGY') return 'no stun'; updHud(); const w0 = parseFloat(hud.eStun.style.width);
+      for (let k = 0; k < 6; k++) { B.lastBashT = -1e9; groggyHit(); __tick(16); } lastHud = ''; updHud(); const w1 = parseFloat(hud.eStun.style.width);
+      if (!(w1 < w0 - 5)) return `stun gauge did not shrink with damage (${w0} → ${w1})`;
+      __bot.sig = undefined; endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
