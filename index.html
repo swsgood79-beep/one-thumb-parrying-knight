@@ -75,7 +75,8 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .sbtn span{font-size:12px}
 .sbtn .dot{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:var(--red);border:2px solid var(--edge)}
 .chapter{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding-top:4px}
-.ch-ribbon{font-family:var(--f-display);font-size:13px;letter-spacing:2px;color:var(--gold);}
+.ch-ribbon{font-family:var(--f-display);font-size:13px;letter-spacing:1px;color:#fff;background:rgba(10,6,30,.7);box-shadow:inset 0 0 0 2px var(--stc,var(--gold));padding:3px 14px;border-radius:10px;border:2px solid var(--edge)}
+.ch-ribbon b{font-weight:400;font-size:20px;color:var(--stc,var(--gold))}
 .ch-title{font-family:var(--f-display);font-size:30px;font-weight:normal;margin:2px 0 10px;text-wrap:balance;text-align:center}
 .stagecard{position:relative;flex:1;min-height:120px;width:100%;max-width:330px;border-radius:22px;border:4px solid var(--edge);overflow:hidden;
   box-shadow:0 0 0 3px #6b5fd6,0 0 40px rgba(140,110,255,.45),0 6px 0 3px var(--edge)}
@@ -95,10 +96,11 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .chip img{width:14px;height:14px}
 .chip.warn{color:#ffb3b3;border-color:rgba(255,91,91,.5)}
 .dots{display:flex;gap:5px;align-items:center;margin-top:10px}
-.dots i{width:10px;height:10px;border-radius:50%;background:#3a3170;border:2px solid var(--edge)}
+.dots i{width:18px;height:18px;border-radius:50%;background:#3a3170;border:2px solid var(--edge);font-style:normal;font-family:var(--f-display);font-size:10px;display:grid;place-items:center;color:#b3aad8}
+.dots i.done{color:#3a2a00}.dots i.cur{color:#140f2c;transform:scale(1.25)}
 .dots i.done{background:var(--gold)}
 .dots i.cur{background:#fff;box-shadow:0 0 8px #fff}
-.dots i.boss{width:14px;height:14px;border-radius:4px;transform:rotate(45deg)}
+.dots i.boss{border-radius:5px}
 .startrow{display:flex;justify-content:center;padding-top:12px;padding-bottom:10px}
 .start{width:min(270px,100%);height:64px;font-size:26px;border-radius:20px;flex-direction:column;gap:0;line-height:1.05}
 .start small{display:flex;align-items:center;gap:3px;font-family:var(--f-body);font-size:13px;color:var(--edge)}
@@ -208,7 +210,10 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .bhud{position:absolute;left:0;right:0;top:0;padding-top:8px;display:flex;flex-direction:column;gap:5px;pointer-events:none}
 .bh-row{display:flex;align-items:center;gap:8px}
-.bh-stage{font-family:var(--f-display);font-size:15px;padding:2px 10px;border-radius:10px;background:rgba(10,6,30,.65)}
+.bh-stage{font-family:var(--f-display);font-size:15px;padding:3px 10px 3px 8px;border-radius:10px;background:rgba(10,6,30,.75);border:2px solid var(--stc,#5a4fc0);display:flex;flex-direction:column;line-height:1.05;min-width:74px}
+.bh-stage b{font-weight:400;font-size:17px;color:var(--stc,#fff)}.bh-stage small{font-size:10px;color:#e6dcff;font-family:var(--f-body,inherit);white-space:nowrap}
+.st-badge{position:absolute;left:8px;top:8px;z-index:2;font-family:var(--f-display);text-align:center;padding:4px 10px;border-radius:12px;background:rgba(10,6,30,.8);border:3px solid var(--stc,#5a4fc0);line-height:1}
+.st-badge small{display:block;font-size:10px;letter-spacing:2px;color:var(--stc,#fff)}.st-badge b{font-weight:400;font-size:28px}
 .bh-row .sp{flex:1}
 .pausebtn{pointer-events:auto;width:38px;height:38px;border-radius:11px;border:3px solid var(--edge);background:linear-gradient(#6f63d9,#3d3394);display:flex;gap:5px;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--edge)}
 .pausebtn i{width:5px;height:15px;border-radius:2px;background:#fff}
@@ -220,6 +225,17 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000,0 -1px 0 #000;font-variant-numeric:tabular-nums}
 .bar.hp i{background:linear-gradient(#ff8a8a,#e0283f)}
 .bar.stun{height:13px}
+.arena #cine{position:absolute;inset:0;pointer-events:none;z-index:7}
+#cine .lb{position:absolute;left:0;right:0;height:0;background:#000;transition:height .45s ease}
+#cine .lb.t{top:0}#cine .lb.b{bottom:0}#cine.on .lb{height:13%}
+#cine .ct{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;opacity:0;transition:opacity .25s}
+#cine .ct.show{opacity:1}
+#cine .ct small{display:block;font-family:var(--f-display);font-size:14px;letter-spacing:4px;color:#ffd0d6}
+#cine .ct b{display:block;font-family:var(--f-display);font-weight:400;font-size:54px;line-height:1.05;color:#ff3b5c;text-shadow:0 0 18px rgba(255,40,80,.8),0 4px 0 #3a0010}
+#cine .ct.show b{animation:cinepop .5s cubic-bezier(.2,1.6,.4,1)}
+#cine .ct span{display:block;font-family:var(--f-display);font-size:20px;color:#fff;margin-top:4px}
+#cine .ct em{display:block;font-style:normal;font-size:14px;color:#ffe0e6;margin-top:8px;padding:0 24px}
+@keyframes cinepop{0%{transform:scale(2.4);opacity:0}100%{transform:scale(1);opacity:1}}
 .en-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .phase{font-family:var(--f-display);font-size:11px;padding:1px 8px;border-radius:7px;background:#3a3f7a;border:2px solid var(--edge);white-space:nowrap}
 .phase.p2{background:linear-gradient(#ff5b6b,#a3123a);animation:flash .6s infinite}
@@ -533,6 +549,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
     <div class="arena" id="arena">
       <canvas id="bcv"></canvas>
       <div id="fx"></div>
+      <div id="cine"><i class="lb t"></i><i class="lb b"></i><div class="ct" id="cineText"></div></div>
       <div class="bhud gut">
         <div class="bh-row"><div class="bh-stage ol" id="bStage">1-1</div><div class="runmap" id="runMap"></div><button class="pausebtn" id="pauseBtn" aria-label="일시정지"><i></i><i></i></button></div>
         <div class="ebar">
@@ -1327,10 +1344,13 @@ function setTab(t){tab=t;document.querySelectorAll('#tabbar button').forEach(b=>
 
 /* lobby */
 function chapterOf(i){let ch=0;CHAPTERS.forEach((c,k)=>{if(i>=c.from)ch=k});return ch}
+const STAGE_COL={field:'#7be05a',cave:'#c9a2ff',swamp:'#4fd8b8',castle:'#ff5b7a'};
+const stageColor=i=>STAGE_COL[STAGES[i].theme]||'#ffc83a';
 function renderLobby(){
   const i=S.sel,st=STAGES[i],ch=chapterOf(i);
-  $('#chRibbon').textContent='CHAPTER '+(ch+1);$('#chTitle').textContent=CHAPTERS[ch].title;
-  $('#stNum').textContent=`지역 ${i+1} · ${REGIONS[i].name}`;$('#stName').textContent=`방 5개 원정 · 보스: ${st.name}`;
+  $('#chRibbon').innerHTML=`STAGE <b>${i+1}</b> / ${STAGES.length} · CHAPTER ${ch+1}`;$('#chTitle').textContent=REGIONS[i].name;
+  document.documentElement.style.setProperty('--stc',stageColor(i));
+  $('#stNum').textContent=`${CHAPTERS[ch].title} · 보스 ${st.name}`;$('#stName').textContent=`방 5개 원정 · 2페이즈 보스`;
   $('#bossTag').hidden=!st.boss;$('#clearTag').hidden=!(i<S.cleared);
   $('#stPrev').disabled=i<=0;$('#stNext').disabled=i>=Math.min(S.cleared,STAGES.length-1);
   const chips=[`<span class="chip">${ic('heart')} 체력 ${fmt(st.hp)}</span>`,`<span class="chip">공격 ${st.atk}</span>`,`<span class="chip">${ic('coin')} ${fmt(st.gold)}</span>`];
@@ -1345,7 +1365,7 @@ function renderLobby(){
   if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승 · 시작 카드 ${streakCards()}${streakGold()?' · 골드 +'+Math.round(streakGold()*100)+'%':''}</span>`);
   const eg=ENGRAVINGS.find(e=>e.boss&&e.from===i);if(eg&&!ownE(eg.id))chips.push(`<span class="chip" style="color:#e3c8ff">${ic('eng_'+eg.id)} ${eg.name} 획득</span>`);
   $('#stChips').innerHTML=chips.join('');
-  $('#dots').innerHTML=STAGES.map((s,k)=>`<i class="${[k<S.cleared?'done':'',k===i?'cur':'',s.boss?'boss':''].join(' ')}"></i>`).join('');
+  $('#dots').innerHTML=STAGES.map((s,k)=>`<i class="${[k<S.cleared?'done':'',k===i?'cur':'',s.boss?'boss':''].join(' ')}">${k+1}</i>`).join('');
   const left=HEROES_LEFT[S.cleared];
   const msgs=[];const R=mulberry(S.cleared*31+3);
   for(let k=0;k<4;k++){const n=HERO_NAMES[Math.floor(R()*HERO_NAMES.length)];const s=Math.min(10,S.cleared+1+Math.floor(R()*3));
@@ -1622,7 +1642,7 @@ function startFight(cfg,walkIn){
   if(cfg.label!=='시험'&&cfg.label!=='금고')cfg=Object.assign({},cfg,{stunMult:(cfg.stunMult||0)*STUN_GAIN});
   B.fx=EFX();B.perfStreak=0;
   if($('#coach'))$('#coach').hidden=true;B.tutFreeze=false;B.tutWait=null;B.tutStep=undefined;
-  B.finalBlow=false;
+  B.finalBlow=false;$('#cine').classList.remove('on');cineText('');
   _hs=0;_hsFrozen=0;_hsBlockUntil=0;B.hsReady=0;
   cancelAnimationFrame(prevRAF);
   const idx=R.idx,sh=battleStats();
@@ -1637,12 +1657,12 @@ function startFight(cfg,walkIn){
   $('#shell').hidden=true;$('#title').hidden=true;$('#battle').hidden=false;fx.innerHTML='';
   sizeArena();B.kx=B.kx0-34;B.ex=B.ex0+44;
   const roomNo=R.room+1;
-  $('#bStage').textContent=`${idx+1}-${cfg.label==='보스'?'보스':roomNo}`;
+  $('#bStage').innerHTML=`<b>STAGE ${idx+1}${cfg.label==='보스'?' · BOSS':'-'+roomNo}</b><small>${REGIONS[idx].name}</small>`;$('#bStage').style.setProperty('--stc',stageColor(idx));
   $('#eName').innerHTML=cfg.name+(cfg.label==='보스'?' <em>BOSS</em>':cfg.label==='정예'||cfg.label==='위험'?` <em style="background:#7d2fd0">${cfg.label}</em>`:'');
   $('#pShIc').src=iconURL['shield'+S.shStage];
   renderRunMap();updPots();
   if(walkIn)flash('#000000',1,600);
-  banner(cfg.label==='보스'?'BOSS':`방 ${roomNo}`,cfg.name);
+  banner(cfg.label==='보스'?`STAGE ${idx+1} BOSS`:`STAGE ${idx+1}-${roomNo}`,`${REGIONS[idx].name} · ${cfg.name}`);
   if(cfg.line)setTimeout(()=>{if(B.active&&B.state==='INTRO')bubble(cfg.line,false)},250);
   if(cfg.taunt)setTimeout(()=>{if(B.active&&B.state==='INTRO')bubble(cfg.taunt,true)},1300);
   B.introDur=cfg.taunt?2600:cfg.line?1700:1100;
@@ -1653,7 +1673,7 @@ function renderRunMap(){
   const icon={min:'swords',fork:'gift',spring:'potHp',danger:'skull',elite:'skull',boss:'crown'};
   $('#runMap').innerHTML=R.rooms.map((r,i)=>`<i class="${i<R.room?'done':i===R.room?'cur':''} ${r==='boss'?'boss':''}">${ic(icon[r]||'swords')}</i>`).join('<b></b>');
 }
-function endBattle(){Music.rate=1;R=null;B.active=false;cancelAnimationFrame(B.raf);B.guard=false;fx.innerHTML='';Music.hype=false;showShell()}
+function endBattle(){$('#cine').classList.remove('on');cineText('');Music.rate=1;R=null;B.active=false;cancelAnimationFrame(B.raf);B.guard=false;fx.innerHTML='';Music.hype=false;showShell()}
 function showShell(){setTimeout(()=>{if(!offlineShown){offlineShown=true;offlineCheck()}},400);$('#battle').hidden=true;$('#story').hidden=true;$('#title').hidden=true;$('#shell').hidden=false;refreshTop();drawAvatar();setTab(tab==='battle'?'battle':tab);playMusic('lobby');duckMusic(MUS_VOL)}
 function setState(s){B.state=s;B.stT=B.time}
 function setKPose(p){B.kPose=p;B.kPoseT=B.time}
@@ -1689,7 +1709,7 @@ function loopBody(ts){
     checkPhase();
     if(_hs>0){_hs-=dt;_hsFrozen+=dt;if(_hsFrozen>200){_hs=0;_hsFrozen=0;_hsBlockUntil=performance.now()+150}}
     else{_hsFrozen=0;B.time+=gdt;update(gdt)}
-    B.shake=Math.max(0,B.shake-dt*.02);B.zoom=lerp(B.zoom,1,Math.min(1,dt*.009));
+    B.shake=Math.max(0,B.shake-dt*.02);if(B.state!=='TRANSFORM')B.zoom=lerp(B.zoom,1,Math.min(1,dt*.009));
   }
   draw();updHud();
   // watchdog: a state that should be short but has lasted far too long gets reset
@@ -1706,7 +1726,7 @@ function update(dt){
   if(R&&R.v2){if(B.guard)B.psh=Math.max(0,B.psh-dt*.008*(B.pshMax/100));if(B.state==='IDLE'&&t-B.v2PostT>1500)B.stun=Math.max(0,B.stun-dt*.006)}
   let kt=B.kx0+(B.disarm?B.disarm.side*B.disarm.steps*6:0);if(B.state==='GROGGY'||B.state==='EXEC'||(B.state==='OPEN'&&B.open.hits>0))kt=EX()-Math.round(B.E.scale*7)-14;
   pushTick(dt,t);
-  if(!(R&&(R.v2||R.vault||R.rhythm||R.prologue))&&(B.state==='IDLE'||B.state==='WINDUP')&&B.stun>0&&t-B.lastParryT>2000)B.stun=Math.max(0,B.stun-dt*.006);
+  if(!(R&&(R.v2||R.vault||R.rhythm||R.prologue))&&(B.state==='IDLE'||B.state==='WINDUP')&&B.stun>0&&t-B.lastParryT>4000)B.stun=Math.max(0,B.stun-dt*.0025);
   B.kx=lerp(B.kx,kt,Math.min(1,dt*.012));
   switch(B.state){
     case 'WALK':B.kx+=dt*.07;if(t-B.stT>900){B.active=false;cancelAnimationFrame(B.raf);advanceRoom()}return;
@@ -1728,9 +1748,15 @@ function update(dt){
     case 'GROGGY':B.ex=lerp(B.ex,EX()+Math.min(2,pushMax()-B.push),Math.min(1,dt*.01));if(t>=B.groggyEnd)endGroggy();break;
     case 'TRANSFORM':B.ex=lerp(B.ex,EX(),Math.min(1,dt*.01));
       if(Math.random()<dt*.04)B.parts.push({x:B.ex+rnd(-B.E.scale*6,B.E.scale*6),y:B.gy-rnd(0,B.E.scale*20),vx:0,vy:-rnd(.02,.06),life:rnd(400,700),col:Math.random()<.5?'#ff2b5c':'#3a0018',sz:2});
-      if(!B.tfDone&&t-B.stT>750)transformHit();
-      B.ehp=Math.round(B.emax*clamp((t-B.stT-250)/1200,0,1));
-      if(t-B.stT>1600){B.ehp=B.emax;setState('IDLE');B.idleDur=350}break;
+      {const e=t-B.stT;
+      if(B.cineStep===0&&e>1100){B.cineStep=1;cineText('');sfx('warn');vib([30,30,30,30,30]);vig('rgba(255,30,60,.9)',1400);bubble(P2_LINES[B.idx]||'아직 끝나지 않았다...!',true)}
+      if(e>1100)B.zoom=Math.max(B.zoom,lerp(1,1.28,clamp((e-1100)/700,0,1)));
+      if(!B.tfDone&&e>2300)transformHit();
+      B.ehp=Math.round(B.emax*clamp((e-1200)/1100,0,1));
+      if(B.cineStep===1&&e>2450){B.cineStep=2;cineText(`<small>— ${B.idx+1}스테이지 보스 —</small><b>PHASE 2</b><span>각성한 ${B.st.name}</span><em>공격력·속도 상승 · 새로운 패턴</em>`)}
+      if(B.cineStep===2&&e>4300){B.cineStep=3;cineText('');$('#cine').classList.remove('on')}
+      if(e>4700){B.ehp=B.emax;setState('IDLE');B.idleDur=300}}
+      break;
     case 'OPEN':B.ex=lerp(B.ex,B.ex0+6,Math.min(1,dt*.012));if(t>=B.open.end){if(!B.open.real){B.v2Ambush=true;B.idleDur=0}else B.idleDur=450;setState('IDLE')}break;
     case 'EXEC':{B.ex=lerp(B.ex,B.ex0+2,Math.min(1,dt*.01));const e=B.exec;
       if(e.charge<0&&t>e.until){ftAt('기회를 놓쳤다...',B.ex,B.gy-B.E.scale*16,'warn');B.stun=35;Music.hype=false;B.exec=null;setState('IDLE');B.idleDur=500}
@@ -1948,7 +1974,7 @@ function enterGroggy(){
   track('groggy');
   if(B.fx.groggyShield){B.psh=B.pshMax;ftAt('실드 회복',B.kx,B.gy-36,'info')}
   if(R&&R.prologue&&B.tutStep===6)setTimeout(()=>{if(B.active&&B.state==='GROGGY')coachShow(6)},350);
-  setState('GROGGY');B.groggyDur=2200+B.wp.stunBonus*600;B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?.08:B.st.label==='정예'||B.st.label==='위험'?.22:.35);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
+  setState('GROGGY');B.groggyDur=2900+B.wp.stunBonus*600;B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?.08:B.st.label==='정예'||B.st.label==='위험'?.22:.35);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
   if(R&&R.vault){B.groggyDur=2600+B.wp.stunBonus*500;B.groggyEnd=B.time+B.groggyDur}
   banner(R&&R.vault?'털어라!':'기절!',R&&R.vault?'연타로 금화 주머니 흔들기!!':'연타 공격!!');sfx('groggy');flash('#ffffff',.55,300);zoom(1.12);vib([30,40,30]);domShake(2);Music.hype=true;
 }
@@ -2039,7 +2065,7 @@ function draw(){
   c.drawImage(B.bg,0,0);   // the backdrop (and the wall) stay put; only the fighters and effects shake / zoom
   drawWall(c,t);
   c.save();if(B.shake>0)c.translate(Math.round(rnd(-1,1)*B.shake),Math.round(rnd(-1,1)*B.shake));
-  if(B.zoom>1.002){const fx0=(B.kx+B.ex)/2,fy0=gy-20;c.translate(fx0,fy0);c.scale(B.zoom,B.zoom);c.translate(-fx0,-fy0)}
+  if(B.zoom>1.002){const fx0=B.state==='TRANSFORM'?B.ex:(B.kx+B.ex)/2,fy0=B.state==='TRANSFORM'?gy-B.E.scale*12:gy-20;c.translate(fx0,fy0);c.scale(B.zoom,B.zoom);c.translate(-fx0,-fy0)}
   if(B.state==='GROGGY'){c.fillStyle='rgba(40,0,30,.25)';c.fillRect(0,0,W,B.H);c.fillStyle='rgba(255,255,255,.3)';
     for(let i=0;i<7;i++){const y=Math.floor(Math.random()*gy),len=10+Math.floor(Math.random()*30);c.fillRect(Math.random()<.5?0:W-len,y,len,1)}}
   if(B.state==='TRANSFORM'){c.fillStyle=`rgba(30,0,12,${.35+.1*Math.sin(t/70)})`;c.fillRect(0,0,W,B.H)}
@@ -2056,14 +2082,14 @@ function draw(){
     if(a.kind==='orb'){const k=a.idx,mid=k?(a.notes[k-1].t+a.notes[k].t)/2:-1e9;pose=Math.abs(t-mid)<110?'strike':'windup';p=.75;heavy=false}}
   if(B.state==='STRIKE'){pose='strike'}
   if(B.state==='RECOIL'||B.state==='OPEN')pose='recoil';
-  if(B.state==='TRANSFORM'){pose='windup';p=.5+.5*Math.sin(t/90)}
+  if(B.state==='TRANSFORM'){if(t-B.stT<1100)pose='recoil';else{pose='windup';p=.5+.5*Math.sin(t/90)}}
   if(B.state==='WAKE'){pose='windup';p=clamp((t-B.atk.start)/B.atk.dur,0,1);heavy=!B.atk.resolved}
   const dead=B.state==='VICTORY'||B.state==='WALK'?clamp((t-(B.state==='WALK'?B.stT-1500:B.stT))/700,0,1):0;
   const flash=B.eFlash>0?'#ffffff':(B.state==='TRANSFORM'&&!B.tfDone&&Math.floor(t/80)%2)?'#ffffff':(B.state==='OPEN'&&B.open&&!B.open.real&&t-B.stT<560&&Math.floor((t-B.stT)/90)%2===0)?'#ff4d5e':null;
   const back=B.state==='STRIKE'?clamp((t-B.stT)/320,0,1):0;
   const lungeP=B.state==='STRIKE'?1-back:(pose==='strike'?1:0);
   const hk=clamp(1-(t-B.eHitT)/130,0,1);
-  const info=drawEnemy(c,B.ex+Math.round(hk*4),gy,B.st.kind,{scale:B.E.scale,t,pose,p,heavy,flash,rage:B.transformed||B.state==='TRANSFORM'&&B.tfDone,groggy:B.state==='GROGGY'||B.state==='EXEC'||(B.state==='OPEN'&&B.open.real),dead,back,lunge:lungeP,hitK:hk});
+  const info=drawEnemy(c,B.ex+Math.round(hk*4),gy,B.st.kind,{scale:B.E.scale,t,pose,p,heavy,flash,rage:B.transformed||B.state==='TRANSFORM'&&B.tfDone,groggy:(B.state==='TRANSFORM'&&t-B.stT<1100)||B.state==='GROGGY'||B.state==='EXEC'||(B.state==='OPEN'&&B.open.real),dead,back,lunge:lungeP,hitK:hk});
   if(B.state==='GROGGY'||B.state==='EXEC'||(B.state==='OPEN'&&B.open.real))drawStars(c,B.ex,info.top-3,t);
   if(B.state==='OPEN'&&!B.open.real)drawGlint(c,B.ex-B.E.scale*2,info.top+B.E.scale*10,t-B.stT);
   if(B.state==='WINDUP'&&!B.atk.resolved){const a=B.atk;if(a.kind==='orb'||a.kind==='barrage'){}else if(a.kind==='feint'&&a.impact-t>a.dur*.16)drawQ(c,B.ex,Math.round(info.top-14),t);
@@ -2789,12 +2815,16 @@ function drawBarrage(c,t,gy){
 }
 
 /* ===================== phase 2 transformation ===================== */
+const P2_LINES=['말랑하다고 얕보지 마라! 진짜 힘을 보여주마!','크하하! 이제 장난은 끝이다!','뼈가 부서져도 멈추지 않는다!','어둠 속에서 날 이길 수 있을까?','이 왕좌는 절대 내주지 않는다!',
+  '도끼가 피를 원한다...!','텅 빈 갑옷에 저주가 차오른다...','늪의 모든 저주를 너에게!','마왕님의 오른팔을 얕보지 마라!','방패 하나로 여기까지 오다니... 이제 진짜 절망을 보여주마!'];
+function cineText(html){const c=$('#cineText');if(!html){c.classList.remove('show');return}c.innerHTML=html;c.classList.remove('show');void c.offsetWidth;c.classList.add('show')}
 function startTransform(){
   if(B.atk)B.atk.resolved=true;B.phase2=true;B.ehp=0;B.pendingKO=false;B.slam=false;B.cutChain=false;B.orbFinal=null;
   if(B.disarm){B.disarm=null;B.psh=B.pshMax*.6}
   Music.rate=1.12;
-  setState('TRANSFORM');B.tfDone=false;B.guard=false;B.stun=0;if(B.push)B.pushBack=true;Music.hype=false;
-  banner('1페이즈 격파!',B.st.name+'이(가) 각성한다...!');sfx('warn');vib([40,40,40,40]);vig('rgba(255,30,60,.9)',1200);
+  setState('TRANSFORM');B.tfDone=false;B.guard=false;B.stun=0;if(B.push)B.pushBack=true;Music.hype=false;B.cineStep=0;
+  sfx('ko');slow(700,.25);flash('#ffffff',.8,400);vib([60,40,60]);
+  cineText(`<small>PHASE 1 CLEAR</small><span>${B.st.name}을(를) 쓰러뜨렸다...?</span>`);$('#cine').classList.add('on');
 }
 function transformHit(){
   B.tfDone=true;B.transformed=true;B.E.scale=Math.round(B.E.scale*1.15*10)/10;B.push=Math.min(B.push,pushMax());
@@ -2803,7 +2833,7 @@ function transformHit(){
   burstParts(B.ex,B.gy-B.E.scale*10,40,['#ff2b5c','#ffffff','#3a0018','#ffd23f'],.2,.0003,.5);
   B.parts.push({ring:true,x:B.ex,y:B.gy-B.E.scale*10,r:4,vr:.15,life:600,col:'#ff2b5c'});addFx('burst',B.ex,B.gy-B.E.scale*10,{dur:600});
   sfx('crit',3);sfx('gbreak');flash('#ffffff',.9,450);zoom(1.2);domShake(4);B.shake=7;slow(450,.3);vib([80,40,200]);
-  banner('PHASE 2','각성한 '+B.st.name+' · 공격력↑ 속도↑');lastHud='';
+  lastHud='';
 }
 
 /* ===================== combat 2.0 prototype (goblin trial) =====================
