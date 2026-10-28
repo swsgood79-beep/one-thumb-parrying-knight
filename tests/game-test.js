@@ -226,7 +226,7 @@ const BOT = `(()=>{
       if (!B.slams) return 'wall slam never happened (push ' + B.push + '/' + pushMax() + ')';
       for (let i = 0; i < 300 && B.state !== 'GROGGY'; i++) __tick(16); if (B.state !== 'GROGGY') return 'wall slam did not stun (state ' + B.state + ')';
       for (let i = 0; i < 600 && B.state !== 'IDLE'; i++) __tick(16);
-      const s0 = B.psh; B.lastParryT = -1e9; onTap(); if (!(B.psh < s0)) return 'tapping with no attack did not cost shield';
+      const s0 = B.psh; B.lastParryT = -1e9; B.mashGrace = 0; onTap(); for (let i = 0; i < 10; i++) __tick(16); if (!(B.psh < s0)) return 'tapping with no attack did not cost shield';
       if (!(B.stiffUntil > B.time)) return 'empty tap did not stiffen'; const ev = B.evadeT; onSwipe(-1); if (B.evadeT !== ev) return 'could dodge while stiff';
       __bot.sig = undefined;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
@@ -311,6 +311,31 @@ const BOT = `(()=>{
       if (!sawCard) return 'ready card was not offered between gates'; document.querySelector('[data-m="c0"]').click();
       if (R.cgReady !== 0 || R.cgGot !== 1) return 'card count not consumed'; if (cgNeed() !== CG_BASE + CG_STEP) return 'next card should need more';
       __bot.sig = undefined; for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '사람처럼 스와이프(터치→밀기)로 회피 공격 전부 피하기 · 기상 충격파', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
+      const humanDodge = () => { onTap(); onSwipe(-1); };
+      // every pattern that contains a dodge note
+      for (const name of Object.keys(PATMAKE)) { const P = PATMAKE[name](); if (!P.notes.some(n => n.type === 'swipe')) continue;
+        startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); B.ehp = B.emax = 1e7; B.st.stunMult = 0; B.st.pool = { base: [[name, 1]] }; B.firstAtk = false;
+        for (let i = 0; i < 150 && B.state !== 'WINDUP'; i++) __tick(16);
+        let vt = 0, hits = 0; const h0 = window.hurt; window.hurt = function (d, l, g) { if (!g && B.atk && B.atk.notes[B.atk.idx] && B.atk.notes[B.atk.idx].type === 'swipe') hits++; return h0.apply(this, arguments); };
+        let lastKey = '';
+        while (vt < 15000 && B.state === 'WINDUP') { const a = B.atk, n = a.notes[a.idx], key = a.start + ':' + a.idx;
+          if (n.type === 'swipe' && key !== lastKey && a.impact - B.time <= 180) { lastKey = key; humanDodge(); }
+          else if (n.type === 'tap' && key !== lastKey && a.impact - B.time <= 20) { lastKey = key; onTap(); }
+          else if (n.type === 'hold') setGuard(B.time >= n.t - 80);
+          __tick(16); vt += 16; }
+        window.hurt = h0; setGuard(false);
+        if (hits) return `pattern ${name}: a touch-then-swipe dodge still got hit (${hits})`; endBattle(); }
+      // wake shockwave after a stun, also right after mashing
+      for (const idx of STAGES.map((s, i) => i).filter(i => STAGES[i].boss)) for (const mash of [false, true]) {
+        startRun(idx); R.room = 4; startFight(roomCfg(idx, 'boss'), false); for (let i = 0; i < 150; i++) __tick(16); B.ehp = B.emax = 1e7;
+        B.stun = 100; enterGroggy(); while (B.state === 'GROGGY') { __tick(16); if (mash) onTap(); }
+        if (B.state !== 'WAKE') return `stage ${idx + 1}: no wake shockwave`;
+        const hp0 = B.php, until = B.time + 250; let done = false;
+        while (B.state === 'WAKE' && !B.atk.resolved) { if (mash && B.time < until) onTap(); if (!done && B.atk.impact - B.time <= 200) { done = true; humanDodge(); } __tick(16); }
+        if (B.php < hp0) return `stage ${idx + 1}${mash ? ' (after mashing)' : ''}: dodged wake shockwave still hurt`; endBattle(); }
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
