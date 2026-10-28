@@ -730,22 +730,30 @@ PATMAKE.holdswipe=()=>({kind:'chain',notes:[{o:0,type:'hold',len:1.5},{o:2.5,typ
 const ORB_O=[0,2,3.75,5.25,6.5,7.5,8.25];
 const orbPat=n=>({kind:'orb',notes:ORB_O.slice(0,n).map(o=>({o,type:'tap'})),lead:1.2});
 PATMAKE.orb5=()=>orbPat(5);PATMAKE.orb6=()=>orbPat(6);PATMAKE.orb7=()=>orbPat(7);
+PATMAKE.echo=()=>({kind:'chain',notes:[0,.5,2,2.5].map(o=>({o,type:'tap'}))});
+PATMAKE.feintheavy=()=>({kind:'feint',notes:[{o:0,type:'swipe'}],lead:1.6});
+PATMAKE.slowfast=()=>({kind:'chain',notes:[0,2,3,3.5,4,6].map(o=>({o,type:'tap'}))});
+PATMAKE.ghost3=()=>({kind:'chain',notes:[{o:0,type:'tap'},{o:1,type:'tap'},{o:2.5,type:'tap',ghost:true}]});
+PATMAKE.rush=()=>PAT.chain(8,.5);
+PATMAKE.tapguard=()=>({kind:'chain',notes:[{o:0,type:'tap'},{o:1,type:'hold',len:1},{o:3,type:'tap'}]});
+PATMAKE.slow=()=>({kind:'single',notes:[{o:0,type:'tap'}],lead:2.1});
+PATMAKE.orb4=()=>orbPat(4);
 PATMAKE.desp=()=>({kind:'desp',notes:[0,1,1.75,2.5,3].map(o=>({o,type:'tap'})),lead:1.6});
 PATMAKE.barrage=()=>({kind:'barrage',notes:[0,1.5,3,4.5].map(o=>({o,type:'swipe'})),lead:1.2});
 PATMAKE.smash=()=>({kind:'smash',notes:[{o:0,type:'swipe'}],lead:1.75});
 const PAT_NAMES={chain:'연속 공격',rally:'저주 구슬 랠리',hold:'난타',feint:'',single:'',heavy:''};
 /* which patterns each monster uses (weights). p2 = boss phase 2 (HP under 50%) */
 const POOLS=[
-  {base:[['single',.75],['chain2s',.25]]},
-  {base:[['single',.45],['chain2s',.25],['chain2',.15],['stutter',.15]]},
-  {base:[['single',.25],['chain3',.25],['heavy',.15],['feint',.15],['sync',.1],['mix',.1]]},
-  {base:[['single',.15],['chain3f',.2],['hold',.15],['heavy',.15],['feint',.1],['accel',.15],['mix',.1]]},
-  {base:[['single',.1],['chain4',.2],['sync',.15],['heavy',.15],['feint',.15],['accel',.15],['mix',.1]],p2:[['chain6',.2],['sync',.15],['riff',.15],['heavy',.15],['feint',.1],['orb5',.25]]},
-  {base:[['single',.1],['heavy',.2],['feint',.25],['chain3',.2],['mix',.15],['holdswipe',.1]]},
-  {base:[['single',.1],['chain4',.2],['hold',.2],['heavy',.15],['feint',.1],['holdswipe',.15],['accel',.1]]},
-  {base:[['single',.1],['orb5',.3],['rally',.15],['heavy',.15],['hold',.1],['chain3f',.1],['mix',.1]]},
-  {base:[['single',.05],['chain5',.2],['sync',.15],['feint',.15],['heavy',.15],['accel',.15],['mix',.15]]},
-  {base:[['single',.05],['riff',.2],['chain5',.1],['hold',.1],['heavy',.1],['feint',.15],['orb6',.15],['accel',.15]],p2:[['riff',.2],['riff2',.15],['chain6',.15],['feint',.15],['heavy',.1],['orb7',.25]]},
+  {base:[['single',.6],['chain2s',.25],['echo',.15]],p2:[['single',.35],['chain2s',.25],['echo',.2],['slow',.2]]},
+  {base:[['single',.4],['chain2s',.2],['chain2',.15],['stutter',.15],['echo',.1]],p2:[['chain2',.25],['stutter',.2],['echo',.2],['ghost3',.15],['slow',.2]]},
+  {base:[['single',.2],['chain3',.2],['heavy',.15],['feint',.15],['sync',.1],['mix',.1],['echo',.1]],p2:[['chain3',.2],['mix',.2],['feintheavy',.15],['ghost3',.15],['tapguard',.15],['heavy',.15]]},
+  {base:[['single',.15],['chain3f',.15],['hold',.15],['heavy',.1],['feint',.1],['accel',.15],['mix',.1],['tapguard',.1]],p2:[['accel',.2],['chain3f',.15],['ghost3',.15],['tapguard',.15],['slowfast',.15],['orb4',.2]]},
+  {base:[['single',.1],['chain4',.15],['sync',.15],['heavy',.15],['feint',.1],['accel',.15],['mix',.1],['slowfast',.1]],p2:[['chain6',.15],['sync',.15],['riff',.15],['heavy',.1],['feintheavy',.1],['ghost3',.1],['orb5',.25]]},
+  {base:[['single',.1],['heavy',.15],['feint',.2],['chain3',.15],['mix',.15],['holdswipe',.1],['feintheavy',.15]],p2:[['feintheavy',.2],['mix',.2],['riff',.15],['ghost3',.15],['tapguard',.15],['heavy',.15]]},
+  {base:[['single',.1],['chain4',.15],['hold',.15],['heavy',.1],['feint',.1],['holdswipe',.15],['accel',.1],['tapguard',.15]],p2:[['holdswipe',.2],['tapguard',.2],['riff2',.15],['slowfast',.15],['accel',.15],['heavy',.15]]},
+  {base:[['single',.1],['orb5',.25],['rally',.15],['heavy',.15],['hold',.1],['chain3f',.1],['mix',.1],['ghost3',.05]],p2:[['orb6',.3],['rally4',.2],['ghost3',.15],['feintheavy',.15],['mix',.2]]},
+  {base:[['single',.05],['chain5',.15],['sync',.15],['feint',.15],['heavy',.15],['accel',.15],['mix',.1],['ghost3',.1]],p2:[['rush',.2],['chain5',.15],['feintheavy',.15],['slowfast',.15],['riff',.2],['ghost3',.15]]},
+  {base:[['single',.05],['riff',.15],['chain5',.1],['hold',.1],['heavy',.1],['feint',.1],['orb6',.15],['accel',.1],['slowfast',.075],['ghost3',.075]],p2:[['riff',.15],['riff2',.15],['chain6',.1],['rush',.15],['feintheavy',.1],['heavy',.1],['orb7',.25]]},
 ];
 const pickW=list=>{let r=Math.random()*list.reduce((a,b)=>a+b[1],0);for(const[n,w]of list){if((r-=w)<=0)return n}return list[0][0]};
 const PARRY_TUNE=[
@@ -1521,9 +1529,10 @@ let bctx=null;
 function sizeArena(){const r=arena.getBoundingClientRect();B.W=128;B.H=Math.max(90,Math.round(128*r.height/Math.max(1,r.width)));bcv.width=B.W;bcv.height=B.H;
   bctx=bcv.getContext('2d');bctx.imageSmoothingEnabled=false;B.gy=B.H-16;B.kx0=Math.round(B.W*.27);B.ex0=Math.round(B.W*.65);
   if(B.st)B.bg=buildBg(B.W,B.H,B.st.theme,B.idx,B.gy);B.css=r.width/B.W}
+const BOSS_HP_MUL=1.6;
 function roomCfg(idx,type){
   const st=STAGES[idx],rg=REGIONS[idx],T=PARRY_TUNE[idx],k=R?R.room:0;
-  if(type==='boss')return{kind:st.kind,name:st.name,scale:Math.max(EN[st.kind].scale,3),hp:st.hp,atk:st.atk*ATK_MUL[idx],windup:st.windup,stunMult:st.stunMult,gold:st.gold*.6,
+  if(type==='boss')return{kind:st.kind,name:st.name,scale:Math.max(EN[st.kind].scale,3),hp:st.hp*BOSS_HP_MUL,atk:st.atk*ATK_MUL[idx],windup:st.windup,stunMult:st.stunMult,gold:st.gold*.6,
     theme:st.theme,boss:!!st.boss,music:'boss',pool:POOLS[idx],tune:T,line:st.line,taunt:st.taunt||'',label:'보스'};
   if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.5:.45),atk:st.atk*.88*ATK_MUL[idx],windup:st.windup,
     stunMult:st.stunMult*1.05,gold:st.gold*.32*(type==='danger'?2:1),theme:st.theme,boss:false,music:'battle',pool:POOLS[idx],tune:T,line:'',label:type==='danger'?'위험':'정예'}}
@@ -1614,7 +1623,7 @@ function loopBody(ts){
   if(!B.paused&&B.active){const cap=(R&&(R.rhythm||R.prologue||R.vault&&B.state==='DONE'))?null:{STRIKE:2500,RECOIL:2500,WAKE:4000,WALK:3000,GROGGY:12000,WINDUP:15000}[B.state];
     if(cap&&B.time-B.stT>cap){logError('watchdog',`stuck in ${B.state}`);recoverFight()}}
 }
-function checkPhase(){if(B.st.boss&&!B.phase2&&B.ehp>0&&B.ehp<B.emax*.5&&B.state!=='VICTORY'){B.phase2=true;Music.rate=1.12;banner('2페이즈!',B.idx===9?'마왕이 분노했다':'적이 분노했다');flash('#ff2b3b',.45,400);vig('rgba(255,40,60,.9)',800);domShake(3);vib([60,60,60]);sfx('warn')}}
+function checkPhase(){if((B.st.boss||B.st.label==='보스')&&B.st.pool.p2&&!(R&&(R.rhythm||R.trial))&&!B.phase2&&B.ehp>0&&B.ehp<B.emax*.5&&B.state!=='VICTORY'){B.phase2=true;Music.rate=1.12;banner('2페이즈!',B.idx===9?'마왕이 분노했다':B.st.name+'이(가) 분노했다! 패턴 변화');flash('#ff2b3b',.45,400);vig('rgba(255,40,60,.9)',800);domShake(3);vib([60,60,60]);sfx('warn')}}
 function update(dt){
   const t=B.time;
   if(R&&R.vault)vaultTick();
@@ -1673,7 +1682,7 @@ function beginAttack(){
   const P=PATMAKE[name](),beat=beatMs();
   let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?.88:1);if(ambush)lead=520;
   if(P.notes.length>1||P.kind==='hold')lead=alignBeat(Math.max(lead,700));
-  const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*beat,type:n.type,dur:(n.len||0)*beat,res:false}));
+  const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*beat,type:n.type,dur:(n.len||0)*beat,res:false,ghost:!!n.ghost}));
   B.atk={kind:P.kind,name,start:B.time,impact:notes[0].t,dur:lead,notes,idx:0,resolved:false,heavy:notes[0].type==='swipe',chainOk:true,holdOk:true,holdTick:0,ticks:0,pulseT:-9999,parried:0};
   if(ambush){B.atk.ambush=true;ftAt('기습!',B.ex,B.gy-B.E.scale*16,'warn')}
   if(P.kind==='desp'){banner('최후의 발악!','5연타를 모두 막아라!');Music.rate=1.15;sfx('warn');vig('rgba(255,30,50,.9)',800);domShake(2);vib([40,40,40])}
@@ -1929,7 +1938,7 @@ function drawLane(c,t){
   const near=a.impact-t<120&&curNote().type==='tap';
   pixCircle(c,jx,y,4,near?'#ffe14d':'#ffffff');pixCircle(c,jx,y,5,'rgba(255,255,255,.35)');
   for(let k=a.idx;k<a.notes.length;k++){const n=a.notes[k];if(n.res)continue;const dt=n.t-t;if(dt>lead)break;
-    const x=Math.round(jx+dt*v),hidden=a.kind==='feint'&&dt>320;
+    const x=Math.round(jx+dt*v),hidden=(a.kind==='feint'||n.ghost)&&dt>320;
     if(n.type==='hold'){const x2=Math.round(jx+(n.t+n.dur-t)*v);const xa=Math.max(jx,x);c.fillStyle=K;c.fillRect(xa-1,y-3,x2-xa+3,7);c.fillStyle='#4bb6ff';c.fillRect(xa,y-2,x2-xa+1,5);c.fillStyle='#bfe6ff';c.fillRect(xa,y-2,x2-xa+1,1);continue}
     if(x>B.W+4)continue;
     const col=hidden?'#8a7fb8':n.type==='swipe'?'#ff4d5e':'#ffe14d';
@@ -1940,9 +1949,9 @@ function drawLane(c,t){
 }
 function draw(){
   const c=bctx;if(!c||!B.bg)return;const t=B.time,W=B.W,gy=B.gy;
+  c.drawImage(B.bg,0,0);   // the backdrop stays put; only the fighters and effects shake / zoom
   c.save();if(B.shake>0)c.translate(Math.round(rnd(-1,1)*B.shake),Math.round(rnd(-1,1)*B.shake));
   if(B.zoom>1.002){const fx0=(B.kx+B.ex)/2,fy0=gy-20;c.translate(fx0,fy0);c.scale(B.zoom,B.zoom);c.translate(-fx0,-fy0)}
-  c.drawImage(B.bg,0,0);
   if(B.state==='GROGGY'){c.fillStyle='rgba(40,0,30,.25)';c.fillRect(0,0,W,B.H);c.fillStyle='rgba(255,255,255,.3)';
     for(let i=0;i<7;i++){const y=Math.floor(Math.random()*gy),len=10+Math.floor(Math.random()*30);c.fillRect(Math.random()<.5?0:W-len,y,len,1)}}
   drawWall(c,t);
@@ -1991,7 +2000,7 @@ function draw(){
   if(B.state==='DEFEAT'){c.save();c.translate(Math.round(kx),gy);c.rotate(-1.4*clamp((t-B.stT)/300,0,1));drawKnight(c,0,0,{t,...KV(),pose:'hurt',flash:kflash});c.restore()}
   else drawKnight(c,kx,gy,{t,...KV(),...(B.disarm?{s:null}:{}),walk:kp==='walk',pose:kp==='walk'?'idle':kp,pp:since/200,swing:B.swing,flash:kflash,raise:B.state==='VICTORY'});
   if(B.guard){const[sx,sy]=shieldPos();pixCircle(c,sx+1,sy,9+Math.sin(t/80),'rgba(120,200,255,.75)');pixCircle(c,sx+1,sy,11+Math.sin(t/80),'rgba(120,200,255,.3)')}
-  if(B.state==='WINDUP'&&!B.atk.resolved&&curNote().type==='tap'&&!(B.atk.kind==='feint'&&B.atk.impact-t>B.atk.dur*.3)){const[sx,sy]=shieldPos();const toImp=B.atk.impact-t,w=pWin(),k=28/B.atk.dur;
+  if(B.state==='WINDUP'&&!B.atk.resolved&&curNote().type==='tap'&&!(B.atk.kind==='feint'&&B.atk.impact-t>B.atk.dur*.3)&&!(curNote().ghost&&B.atk.impact-t>320)){const[sx,sy]=shieldPos();const toImp=B.atk.impact-t,w=pWin(),k=28/B.atk.dur;
     const r=Math.max(5,5+toImp*k),zr=5+w.e*k,inWin=toImp<=w.e,pulse=t-B.atk.pulseT<110;c.globalAlpha=B.tune.guide;
     for(let rr=5;rr<=zr;rr+=1.5)pixCircle(c,sx+1,sy,rr,inWin?'rgba(255,225,77,.3)':'rgba(255,225,77,.13)');
     pixCircle(c,sx+1,sy,zr,inWin?'#ffe14d':'rgba(255,225,77,.6)');pixCircle(c,sx+1,sy,5,'#ffffff');
