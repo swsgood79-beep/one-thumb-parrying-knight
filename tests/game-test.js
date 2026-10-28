@@ -99,7 +99,7 @@ const BOT = `(()=>{
             if (ratio < 0.4) { problem = `clock starved: game time ran at ${Math.round(ratio * 100)}% of real time in state ${B.state}`; break; }
             winV = 0; winT0 = B.time; }
           if (B.state === lastState) stateMs += 16; else { stateMs = 0; lastState = B.state; }
-          const cap = { IDLE: 6000, INTRO: 6000, WINDUP: 12000, STRIKE: 3000, RECOIL: 3000, GROGGY: 9000, WAKE: 4000, WALK: 3000, VICTORY: 6000, DEFEAT: 6000 }[B.state] || 8000;
+          const cap = { IDLE: 6000, INTRO: 6000, WINDUP: 12000, STRIKE: 3000, RECOIL: 3000, GROGGY: 9000, WAKE: 4000, WALK: 3000, VICTORY: 6000, DEFEAT: 6000, TRANSFORM: 12000 }[B.state] || 8000;
           if (stateMs > cap) { problem = `stuck: state ${B.state} for ${stateMs}ms (room ${R && R.room}, pattern ${B.atk && B.atk.name})`; break; }
         } else { stillMs = 0; stateMs = 0; winV = 0; winT0 = null; }
       }
@@ -288,6 +288,17 @@ const BOT = `(()=>{
       if (!document.querySelector('#chRibbon').textContent.includes('★')) return 'lobby star total missing';
       if (!document.querySelector('#dots i:nth-child(3) b')) return 'stage dot stars missing';
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '무리 관문 (4:1) · 피로도 가득 차면 즉시 기절', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); __bot.skill = 1; __bot.sig = 8; S.streak = 0;
+      startRun(6); R.room = 1; startFight(roomCfg(6, 'pack'), false); if (!B.pack || B.pack.length !== 4) return 'pack of 4 not created';
+      let vt = 0, backAtk = false; while (vt < 240000 && B.state !== 'VICTORY') { __tick(16); vt += 16; if (B.state === 'WINDUP' && B.packAtk > 0) backAtk = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
+      if (B.state !== 'VICTORY') return 'pack fight never finished (' + B.state + ', left ' + (B.pack && B.pack.length) + ')';
+      if (B.packKills !== 3) return 'expected 3 front kills before the last one, got ' + B.packKills; if (!backAtk) return 'back members never attacked';
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
+      startRun(3); startFight(roomCfg(3, 'min'), false); B.st.pool = { base: [['chain4', 1]] }; B.firstAtk = false; B.ehp = B.emax = 1e6; vt = 0;
+      while (vt < 20000 && !(B.state === 'WINDUP' && B.atk.idx === 1)) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); }
+      B.stun = 100; __tick(16); __tick(16); if (B.state !== 'GROGGY') return 'full stagger mid-chain did not stun at once (' + B.state + ')';
+      __bot.sig = undefined; return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
@@ -298,6 +309,35 @@ const BOT = `(()=>{
       return scenarios.map(sc => { let r; try { r = sc.run(); } catch (e) { r = 'threw: ' + e.message; } try { endBattle(); } catch (_) {} return [sc.name, r]; });
     });
     for (const [name, r] of res) { total++; console.log(`[시나리오] ${r ? 'FAIL' : 'ok'} ${name} ${r || ''}`); if (r) fails.push(`[시나리오 ${name}] ${r}`); }
+    await page.close();
+  }
+
+  // speech bubbles must never sit under the HUD, for every monster (present and future) and several screen ratios
+  for (const [vw, vh] of [[360, 640], [390, 844], [430, 932], [412, 600], [768, 1024]]) {
+    total++;
+    const page = await browser.newPage({ viewport: { width: vw, height: vh } });
+    page.on('pageerror', e => fails.push(`[말풍선 ${vw}x${vh}] pageerror: ${e.message}`));
+    await page.addInitScript(CLOCK);
+    await page.addInitScript(`localStorage.setItem('otpk-save-v1',JSON.stringify({intro:true,prologue:true,login:'guest',snd:false,bgm:false,cleared:9}))`);
+    await page.goto(FILE);
+    const r = await page.evaluate(() => {
+      for (let i = 0; i < 60; i++) __tick(16); document.querySelector('#sSkip').click(); __tick(16); document.querySelector('#tStart').click(); for (let i = 0; i < 30; i++) __tick(16); closeModal();
+      const hit = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+      const scales = k => [EN[k].scale, Math.max(EN[k].scale, 3), Math.round(Math.max(EN[k].scale, 3) * 1.15 * 10) / 10];
+      for (const kind of Object.keys(EN)) for (const sc of scales(kind)) {
+        startRun(2); startFight(Object.assign(roomCfg(2, 'min'), { kind, scale: sc, line: '', taunt: '' }), false); for (let i = 0; i < 5; i++) __tick(16);
+        fx.innerHTML = ''; bubble('이 방패 하나로 여기까지 오다니... 이제 진짜 절망을 보여주마!', true, 99999); bubble('공주님을 돌려받으러 왔다. 이 방패 하나로!', false, 99999);
+        const ar = arena.getBoundingClientRect(), hud = [...document.querySelectorAll('#battle .bhud .bh-row, #battle .bhud .en-row, #battle .bhud .hprow, #battle .bhud #eStunBar')].map(e => e.getBoundingClientRect()).filter(q => q.height);
+        for (const b of document.querySelectorAll('#fx .bubble')) { const q = b.getBoundingClientRect();
+          if (hud.some(h => hit(q, h))) return `${kind} x${sc}: bubble overlaps the HUD`;
+          if (q.left < ar.left - 1 || q.right > ar.right + 1) return `${kind} x${sc}: bubble leaves the screen`; }
+        endBattle(); }
+      // cinematic: the transformed boss must fit between the HUD/bars and the bottom bar
+      for (let idx = 0; idx < STAGES.length; idx++) { startRun(idx); R.room = 4; startFight(roomCfg(idx, 'boss'), false);
+        const sc = Math.round(B.E.scale * 1.15 * 10) / 10, f = cineFrame(sc, B.st.kind);
+        if (f.bh * f.z > f.bot - f.top + 1) return `stage ${idx + 1} boss (${Math.round(f.bh * f.z)}px) does not fit the cinematic frame (${Math.round(f.bot - f.top)}px)`; endBattle(); }
+      return __errors.length ? 'error: ' + __errors[0] : null; });
+    console.log(`[말풍선 ${vw}x${vh}] ${r ? 'FAIL ' + r : 'ok'} 모든 몬스터 말풍선 · 2페이즈 화면 배치`); if (r) fails.push(`[말풍선 ${vw}x${vh}] ` + r);
     await page.close();
   }
 
