@@ -245,6 +245,21 @@ const BOT = `(()=>{
       if (!sawBarrage) return 'no barrage after losing the shield'; if (B.disarm) return 'shield never recovered'; if (!(B.psh > 0)) return 'shield empty after pickup';
       __bot.sig = undefined;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '보스 체력바 x20 · 페이즈2 변신 · 분노의 5연타', run: () => {
+      __bot.skill = 1; __bot.sig = 8; for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
+      startRun(3); R.room = 4; startFight(roomCfg(3, 'boss'), false); for (let i = 0; i < 20; i++) __tick(16);
+      if (document.querySelector('#eBars').hidden || document.querySelector('#eBars').textContent !== 'x20') return 'boss bar counter not x20: ' + document.querySelector('#eBars').textContent;
+      if (document.querySelector('#ePhase').textContent !== 'PHASE 1') return 'phase label missing';
+      const sc0 = B.E.scale; B.ehp = Math.round(B.emax * .49); let vt = 0, sawT = false;
+      while (vt < 20000 && !(B.transformed && B.state !== 'TRANSFORM')) { __tick(16); vt += 16; if (B.state === 'TRANSFORM') sawT = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
+      if (!sawT || !B.transformed) return 'boss never transformed in phase 2'; if (!(B.E.scale > sc0)) return 'boss did not grow';
+      if (document.querySelector('#eBars').textContent !== 'x10') return 'bar counter at 49% should be x10, got ' + document.querySelector('#eBars').textContent;
+      if (!document.querySelector('#ePhase').textContent.startsWith('PHASE 2')) return 'phase 2 label missing';
+      B.st.pool = { base: [['fury', 1]], p2: [['fury', 1]] }; B.st.stunMult = 0; B.stun = 0; B.ehp = B.emax * .4; vt = 0; let furyDone = false, st0 = 0;
+      while (vt < 20000 && !furyDone) { __tick(16); vt += 16; if (B.atk && B.atk.kind === 'fury' && B.state === 'WINDUP') st0 = 1; if (st0 && B.state !== 'WINDUP') furyDone = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
+      if (!furyDone) return 'fury pattern never ran'; if (!(B.stun >= 35 || B.state === 'GROGGY')) return 'fully parried fury gave no stun (' + B.stun + ')';
+      __bot.sig = undefined;
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
