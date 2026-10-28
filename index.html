@@ -2344,8 +2344,6 @@ function drawLane(c,t){
   const live=B.state==='WINDUP'||B.state==='IDLE'||B.state==='RECOIL'||B.state==='STRIKE';if(!live||(R&&R.prologue&&B.state!=='WINDUP'))return;
   const jx=Math.round(B.kx0+10),y=B.gy+8,v=.07,lead=B.tune.lead;
   c.fillStyle='rgba(10,6,30,.55)';c.fillRect(jx-6,y-5,B.W-jx+6,11);
-  if(AC&&Music.last&&Music.cur){const now=AC.currentTime,L=Music.last,per=L.per;let k=Math.ceil((now-L.t)/per);
-    for(let n=0;n<16;n++,k++){const tb=L.t+k*per,x=Math.round(jx+(tb-now)*1000*v);if(x>B.W)break;if(x<jx)continue;const down=((L.n+k)%4+4)%4===0;c.fillStyle=down?'rgba(255,225,77,.6)':'rgba(255,255,255,.3)';c.fillRect(x,y-4,down?2:1,9)}}
   {const bp=clamp(1-(t-(B.beatT||-1e9))/140,0,1);if(bp>0)pixCircle(c,jx,y,6+bp*2,B.beatDown?'rgba(255,225,77,.8)':'rgba(255,255,255,.5)')}
   const a=B.atk;if(B.state!=='WINDUP'||!a||!a.notes){pixCircle(c,jx,y,4,'rgba(255,255,255,.6)');return}
   const near=a.impact-t<120&&curNote().type==='tap';
