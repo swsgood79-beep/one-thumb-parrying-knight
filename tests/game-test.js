@@ -288,7 +288,7 @@ const BOT = `(()=>{
       if (!document.querySelector('#chRibbon').textContent.includes('★')) return 'lobby star total missing';
       if (!document.querySelector('#dots i:nth-child(3) b')) return 'stage dot stars missing';
       return __errors.length ? 'error: ' + __errors[0] : null; } },
-    { name: '무리 관문 (4:1) · 피로도 가득 차면 즉시 기절', run: () => {
+    { name: '무리 관문 (4:1) · 피로도 가득 차면 패턴 끝에 기절', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); __bot.skill = 1; __bot.sig = 8; S.streak = 0;
       startRun(6); R.room = 1; startFight(roomCfg(6, 'pack'), false); if (!B.pack || B.pack.length !== 4) return 'pack of 4 not created';
       let vt = 0, backAtk = false; while (vt < 240000 && B.state !== 'VICTORY') { __tick(16); vt += 16; if (B.state === 'WINDUP' && B.packAtk > 0) backAtk = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
@@ -297,7 +297,8 @@ const BOT = `(()=>{
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
       startRun(3); startFight(roomCfg(3, 'min'), false); B.st.pool = { base: [['chain4', 1]] }; B.firstAtk = false; B.ehp = B.emax = 1e6; vt = 0;
       while (vt < 20000 && !(B.state === 'WINDUP' && B.atk.idx === 1)) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); }
-      B.stun = 100; __tick(16); __tick(16); if (B.state !== 'GROGGY') return 'full stagger mid-chain did not stun at once (' + B.state + ')';
+      B.stun = 100; __tick(16); __tick(16); if (!B.finishReady) return 'full stagger mid-chain did not arm FINISH (' + B.state + ')';
+      while (vt < 30000 && B.state === 'WINDUP') { __tick(16); vt += 16; __botStep(); } for (let i = 0; i < 30 && B.state !== 'GROGGY'; i++) __tick(16); if (B.state !== 'GROGGY') return 'no stun after the chain (' + B.state + ')';
       __bot.sig = undefined; return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '퍼펙트 게이지 카드: 게이지가 차야만 관문 사이에서 카드', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; __bot.skill = 1; __bot.sig = 8;
@@ -370,18 +371,21 @@ const BOT = `(()=>{
       S.shLv = 4; S.shStage = 0; const n0 = need(0); S.shLv = 40; S.shStage = 3; const n9 = need(9); S.shLv = 1; S.shStage = 0;
       if (n0 < 5 || n9 < 9 || n9 <= n0) return `perfect parries to stun: stage 1 = ${n0}, stage 10 = ${n9} (expected ~6 → ~11+)`;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
-    { name: '새 패턴 첫 만남 안내 · 패턴 도감', run: () => {
-      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; window.__noTips = false; S.seenPat = {};
-      startRun(4); startFight(roomCfg(4, 'min'), false); B.ehp = B.emax = 1e6; B.st.pool = { base: [['gallop', 1]] }; B.firstAtk = false;
-      let vt = 0; while (vt < 8000 && document.querySelector('#modal').hidden) { __tick(16); vt += 16; }
-      const h = (document.querySelector('#mbox h2') || {}).textContent; if (h !== '새 패턴!') { window.__noTips = true; return 'no first-encounter tip (got ' + h + ')'; }
-      if (!document.querySelector('#mbox svg')) { window.__noTips = true; return 'tip has no drawing'; }
-      document.querySelector('[data-m="go"]').click(); vt = 0; while (vt < 4000 && !(B.state === 'WINDUP' && B.atk.name === 'gallop')) { __tick(16); vt += 16; }
-      if (!(B.state === 'WINDUP' && B.atk.name === 'gallop')) { window.__noTips = true; return 'the explained pattern did not follow the tip'; }
-      for (let i = 0; i < 300; i++) { __tick(16); if (!document.querySelector('#modal').hidden) break; }
-      const again = (document.querySelector('#mbox h2') || {}).textContent === '새 패턴!' && document.querySelector('#modal').hidden === false;
-      window.__noTips = true; closeModal(); if (again) return 'the same pattern was explained twice';
-      endBattle(); helpModal(); document.querySelector('[data-m="book"]').click();
+    { name: '전투 중 새 패턴 안내 없음 · 패턴 도감 · FINISH', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; window.__noTips = false; S.seenPat = {}; __bot.skill = 1; __bot.sig = 8;
+      startRun(4); startFight(roomCfg(4, 'min'), false); B.ehp = B.emax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [['gallop', 1]] }; B.firstAtk = false;
+      let vt = 0, paused = false; while (vt < 8000) { __tick(16); vt += 16; if (!document.querySelector('#modal').hidden) { paused = true; break; } __botStep(); }
+      window.__noTips = true; if (paused) return 'a popup interrupted the fight: ' + (document.querySelector('#mbox h2') || {}).textContent;
+      if (!S.seenPat.gallop) return 'met pattern not recorded for the book';
+      endBattle(); startRun(4); startFight(roomCfg(4, 'min'), false); B.ehp = B.emax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [['stream8', 1]] }; B.firstAtk = false; vt = 0;
+      while (vt < 20000 && !(B.state === 'WINDUP' && B.atk.idx === 2)) { __tick(16); vt += 16; __botStep(); }
+      B.stun = 100; __tick(16); __tick(16);
+      if (B.state !== 'WINDUP' || !B.finishReady) return 'full stagger mid-phrase should wait for the phrase (state ' + B.state + ')';
+      vt = 0; while (vt < 8000 && B.state === 'WINDUP') { __tick(16); vt += 16; __botStep(); }
+      for (let i = 0; i < 30 && B.state !== 'GROGGY'; i++) __tick(16);
+      if (B.state !== 'GROGGY') return 'no stun right after the phrase ended (' + B.state + ')';
+      if (!B.finishBonus) return 'perfect finish bonus missing (perfect bot)';
+      __bot.sig = undefined; endBattle(); helpModal(); document.querySelector('[data-m="book"]').click();
       for (const [k] of PAT_CATS) { document.querySelector(`[data-m="c_${k}"]`).click(); if (!document.querySelectorAll('#mbox .pbrow').length) return 'empty pattern book tab ' + k; }
       const named = Object.keys(PATMAKE).filter(k => !PAT_INFO[k]); if (named.length) return 'patterns missing from the book: ' + named.join(',');
       closeModal(); return __errors.length ? 'error: ' + __errors[0] : null; } },

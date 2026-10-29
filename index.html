@@ -233,6 +233,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #atkcue.burst b{animation:cuein .9s forwards}
 @keyframes cuein{0%{transform:scale(2.6);opacity:0}18%{transform:scale(.92);opacity:1}30%{transform:scale(1.05)}70%{transform:scale(1);opacity:1}100%{transform:scale(1.1);opacity:0}}
 .pad.groggy .padbtn{box-shadow:0 0 0 6px rgba(255,210,63,.55),0 0 34px 10px rgba(255,170,30,.7)}
+.bar.stun.ready{box-shadow:0 0 14px 4px rgba(255,210,63,.95);border-color:#ffd23f}.bar.stun.ready i{background:linear-gradient(90deg,#fff3a0,#ffd23f,#fff3a0);background-size:200% 100%;animation:fvbg .5s linear infinite}
 .bar.stun.near{box-shadow:0 0 10px 2px rgba(255,210,63,.8);animation:flash .35s infinite}
 .arena #cine{position:absolute;inset:0;pointer-events:none;z-index:7}
 #cine .lb{position:absolute;left:0;right:0;height:0;background:#000;transition:height .45s ease}
@@ -1706,7 +1707,7 @@ function patternBook(onBack,cat){
   Object.assign({back:()=>{closeModal();onBack&&onBack()}},Object.fromEntries(PAT_CATS.map(([k])=>['c_'+k,()=>patternBook(onBack,k)]))));
 }
 /* first time a pattern shows up in a real fight: pause and show how to read it */
-const tipsOn=()=>!window.__noTips&&R&&!(R.rhythm||R.prologue||R.vault||R.trial);
+const tipsOn=()=>false;   // patterns are taught in the prologue now; fights are never paused for tips
 function patTip(name,go){
   S.seenPat=S.seenPat||{};S.seenPat[name]=1;save();B.paused=true;sfx('ui');
   modal(`<h2>새 패턴!</h2><p style="font-size:20px;margin:2px 0;color:var(--gold);font-family:var(--f-display)">${PAT_INFO[name][0]}</p>${patSvg(name)}<p>${PAT_INFO[name][2]}</p>
@@ -1844,7 +1845,7 @@ function startFight(cfg,walkIn){
     php:R.hp,pmax:R.maxHp,psh:sh.maxShield,pshMax:sh.maxShield,guard:false,evadeUntil:-1,evadeCd:-1,evadeT:-9999,evadeDir:-1,
     parryLock:-1,atk:null,combo:0,maxCombo:0,hitstop:0,shake:0,parts:[],fxs:[],kFlash:0,kFlashCol:null,eFlash:0,kx:0,ex:0,swing:false,swingT:-9999,
     revived:R.revived,paused:false,idleDur:900,groggyEnd:0,parries:0,perfects:0,kPose:'idle',kPoseT:-9999,recoilFrom:0,deadT:0,orb:null,lastLabelT:{},
-    tune:cfg.tune,firstAtk:true,kill:null,miniKill:null,fever:0,fvStreak:0,fvDash:-1e9,fvBashT:0,eRed:0,gTot:0,wallHitT:null,cam:0,camT:null,pendWhiff:0,mashGrace:0,bolts:[],pack:cfg.pack?cfg.pack.map(m=>Object.assign({},m)):null,packAtk:0,packKills:0,tapN:0,transformed:false,tfDone:false,lastBar:null,pStreak:0,stiffUntil:0,disarm:null,cutChain:false,despUsed:false,streakG:0,push:0,pushT:0,pushBack:false,slam:false,slams:0,orbFinal:null,orbBooms:0,lastParryT:-1e9,phase2:false,zoom:1,slowUntil:0,slowF:1,eHitT:-9999,pendingKO:false,walkT:-1});
+    tune:cfg.tune,firstAtk:true,finishReady:false,finishBonus:false,kill:null,miniKill:null,fever:0,fvStreak:0,fvDash:-1e9,fvBashT:0,eRed:0,gTot:0,wallHitT:null,cam:0,camT:null,pendWhiff:0,mashGrace:0,bolts:[],pack:cfg.pack?cfg.pack.map(m=>Object.assign({},m)):null,packAtk:0,packKills:0,tapN:0,transformed:false,tfDone:false,lastBar:null,pStreak:0,stiffUntil:0,disarm:null,cutChain:false,despUsed:false,streakG:0,push:0,pushT:0,pushBack:false,slam:false,slams:0,orbFinal:null,orbBooms:0,lastParryT:-1e9,phase2:false,zoom:1,slowUntil:0,slowF:1,eHitT:-9999,pendingKO:false,walkT:-1});
   $('#shell').hidden=true;$('#title').hidden=true;$('#battle').hidden=false;fx.innerHTML='';
   sizeArena();B.kx=B.kx0-34;B.ex=B.ex0+44;
   const roomNo=R.room+1;
@@ -1917,14 +1918,17 @@ function update(dt){
   const t=B.time;
   if(R&&R.vault)vaultTick();
   if(B.pendWhiff&&t>=B.pendWhiff){B.pendWhiff=0;missPenalty(.04);stiffen()}
-  if(B.stun>=100&&!B.finalBlow&&!(R&&R.rhythm)&&(B.state==='WINDUP'||B.state==='RECOIL'||B.state==='STRIKE'||B.state==='IDLE')){if(B.atk)B.atk.resolved=true;B.cutChain=false;B.slam=false;enterGroggy();return}
+  if(B.stun>=100&&!B.finalBlow&&!(R&&R.rhythm)&&(B.state==='WINDUP'||B.state==='RECOIL'||B.state==='STRIKE'||B.state==='IDLE')){
+    // mid-phrase: keep the rhythm going, stun the moment the last note is done
+    if(B.state==='WINDUP'&&B.atk&&!B.atk.resolved&&!B.slam){if(!B.finishReady){B.finishReady=true;B.finishPerfect=true;B.finishNotes=0;ftAt('FINISH!',B.ex,B.gy-B.E.scale*22,'combo');sfx('combo');vib([20,20,20]);lastHud=''}}
+    else{if(B.atk)B.atk.resolved=true;B.cutChain=false;B.slam=false;enterGroggy();return}}
   if(B.pendingKO&&B.state!=='VICTORY'){B.pendingKO=false;victory();return}
   if(B.guard&&B.psh<=0)B.guard=false;
   if(!B.guard&&B.state!=='GROGGY'&&!B.disarm)B.psh=Math.min(B.pshMax,B.psh+dt*.008*(B.pshMax/100)*(R&&R.v2?.35:1));
   if(R&&R.v2){if(B.guard)B.psh=Math.max(0,B.psh-dt*.008*(B.pshMax/100));if(B.state==='IDLE'&&t-B.v2PostT>1500)B.stun=Math.max(0,B.stun-dt*.006)}
   let kt=B.kx0+(B.disarm?B.disarm.side*B.disarm.steps*6:0);if(B.state==='GROGGY'||B.state==='EXEC'||(B.state==='OPEN'&&B.open.hits>0))kt=EX()-Math.round(B.E.scale*7)-14;
   pushTick(dt,t);if(B.pack)packTick();
-  if(!(R&&(R.v2||R.vault||R.rhythm||R.prologue))&&(B.state==='IDLE'||B.state==='WINDUP')&&B.stun>0&&!feverOn()&&t-B.lastParryT>4000)B.stun=Math.max(0,B.stun-dt*.0025);
+  if(!(R&&(R.v2||R.vault||R.rhythm||R.prologue))&&(B.state==='IDLE'||B.state==='WINDUP')&&B.stun>0&&!feverOn()&&!B.finishReady&&t-B.lastParryT>4000)B.stun=Math.max(0,B.stun-dt*.0025);
   if(B.fever&&((B.fever>t)!==B.fvShown||Math.floor(t/250)!==B.fvTick)){B.fvShown=B.fever>t;B.fvTick=Math.floor(t/250);feverHud();if(!B.fvShown){B.fever=0;Music.hype=B.state==='GROGGY';Music.rate=B.phase2?1.12:1;ftAt('피버 종료',B.kx,B.gy-46,'info');fvMeter()}}
   B.kx=lerp(B.kx,kt,Math.min(1,dt*.012));
   switch(B.state){
@@ -1973,11 +1977,13 @@ function beginAttack(){
   if(B.pack)packPickAttacker();
   const T=B.tune,pool=(B.phase2&&B.st.pool.p2)||B.st.pool.base;
   let name=B.firstAtk?'single':pickW(pool);B.firstAtk=false;
-  if(R&&R.prologue){name=B.tutStep===4?'hold':B.tutStep===5?'heavy':'single'}
-  if(R&&R.prologue&&B.tutStep>=7){name='heavy';B.finalBlow=true;coachSoft('...!? 이 공격은 <b class="r">무언가 다르다</b>...');setTimeout(()=>{if(B.active)ftAt('막을 수 없는 일격이 온다...!',B.kx+10,B.gy-50,'warn')},100)}
+  if(R&&R.prologue){name=B.tutStep===4?'hold':B.tutStep===5?'heavy':'single';
+    if(B.tutStep>=10&&B.tutStep<10+LESSONS.length){if(!B.lessonGo){lessonShow(B.tutStep-10);setState('IDLE');B.idleDur=1e9;return}B.lessonGo=false;name=LESSONS[B.tutStep-10];B.isLesson=true}}
+  if(R&&R.prologue&&B.tutStep===7){name='heavy';B.finalBlow=true;coachSoft('...!? 이 공격은 <b class="r">무언가 다르다</b>...');setTimeout(()=>{if(B.active)ftAt('막을 수 없는 일격이 온다...!',B.kx+10,B.gy-50,'warn')},100)}
   if(!B.disarm&&despReady()){B.despUsed=true;name='desp'}
   if(B.disarm&&!B.disarm.started){B.disarm.started=true;name='barrage'}
   if(B.forcePat){name=B.forcePat;B.forcePat=null}
+  if(PAT_INFO[name]&&R&&!R.prologue&&!(S.seenPat||{})[name]){S.seenPat=S.seenPat||{};S.seenPat[name]=1}
   else if(tipsOn()&&PAT_INFO[name]&&name!=='single'&&!(S.seenPat||{})[name]&&!B.disarm){const nm=name;patTip(nm,()=>{if(B.active&&B.state==='IDLE'){B.forcePat=nm;B.idleDur=350;B.stT=B.time}});setState('IDLE');B.idleDur=1e9;return}
   let ambush=false;if(R&&R.v2){ambush=B.v2Ambush;B.v2Ambush=false;name=ambush?'single':v2Pick()}
   const P=PATMAKE[name](),beat=beatMs();
@@ -1986,6 +1992,7 @@ function beginAttack(){
   if(P.off)lead+=P.off*beat;
   const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*beat,type:n.type,dur:(n.len||0)*beat,res:false,ghost:!!n.ghost}));
   B.atk={kind:P.kind,name,start:B.time,impact:notes[0].t,dur:lead,notes,idx:0,resolved:false,heavy:notes[0].type==='swipe',chainOk:true,holdOk:true,holdTick:0,ticks:0,pulseT:-9999,parried:0};
+  B.atk.lesson=!!B.isLesson;B.isLesson=false;
   if(ambush){B.atk.ambush=true;ftAt('기습!',B.ex,B.gy-B.E.scale*16,'warn')}
   if(P.kind==='fury'){banner('분노의 5연타!','전부 막으면 큰 빈틈!');Music.rate=1.1;sfx('warn');vig('rgba(255,30,50,.8)',600);domShake(1)}
   if(P.kind==='desp'){banner('최후의 발악!','5연타를 모두 막아라!');Music.rate=1.15;sfx('warn');vig('rgba(255,30,50,.9)',800);domShake(2);vib([40,40,40])}
@@ -2007,6 +2014,10 @@ function finishPattern(defended){
   const a=B.atk,n=a.notes.length;
   if(R&&R.rhythm){setState('DONE');banner(a.chainOk?'FULL COMBO!':'FINISH!',fmt(B.score)+'점');sfx('combo');setTimeout(()=>{if(B.active)rhythmEnd()},1400);return}
   if(R&&R.v2&&defended&&v2Opening(a))return;
+  if(R&&R.prologue&&a.lesson&&B.tutStep>=10&&B.tutStep<10+LESSONS.length){const okL=a.chainOk&&a.holdOk;B.lessonTry=(B.lessonTry||0)+1;
+    if(okL||B.lessonTry>=2){ftAt(okL?'성공!':'다음으로!',B.kx,B.gy-50,okL?'combo':'info');if(okL)sfx('combo');B.tutStep++;B.lessonTry=0;if(B.tutStep>=10+LESSONS.length){B.tutStep=6;B.stun=100}}
+    else ftAt('다시 한 번!',B.kx,B.gy-50,'warn');
+    B.recoilFrom=B.ex;setState(defended?'RECOIL':'STRIKE');return}
   B.cutChain=false;
   if(a.kind==='fury'){Music.rate=B.phase2?1.12:1;
     if(a.parried===n){cgAdd(12);B.stun=Math.min(100,B.stun+35);chip(B.wp.groggyTapDamage*5,'봉쇄');pushAdd(3);banner('분노 봉쇄!','5연타를 전부 막았다!');sfx('combo');flash('#ffffff',.6,300);zoom(1.14);track('chain')}
@@ -2056,6 +2067,7 @@ function onTap(){
   const t=B.time;
   padHit();
   if(B.tutWait==='tap'&&B.tutStep===0){tutNext();return}
+  if(B.tutWait==='lesson'){coachHide();B.lessonGo=true;B.idleDur=350;B.stT=B.time;return}
   if(B.tutWait==='tapgo'){coachHide();coachSoft('계속 연타! 연타!');}
   if(B.state==='GROGGY'){groggyHit();return}
   if(B.state==='OPEN'){v2Bash();return}
@@ -2092,7 +2104,7 @@ function parryBlock(){
     if(B.psh>=cost){B.psh-=cost;lbl='막기! 실드 -'+Math.round(cost);hurt(B.st.atk*.2*red,null,true)}
     else{B.psh=0;guardBreak();hurt(B.st.atk*.6*red,'가드 브레이크!')}
     if(B.state==='DEFEAT'||B.state==='VICTORY')return}
-  pushAdd(.5);B.pStreak=0;ftAt(lbl,sx,sy-18,'info');rScore(50,'block');tutParried('block');advanceNote(true);
+  pushAdd(.5);B.pStreak=0;B.finishPerfect=false;ftAt(lbl,sx,sy-18,'info');rScore(50,'block');tutParried('block');advanceNote(true);
 }
 function parrySuccess(early,win){
   const a=B.atk;curNote().res=true;a.parried++;B.tapN++;const light=midChain();
@@ -2120,7 +2132,7 @@ function parrySuccess(early,win){
   if(perfect&&cardN('perfHeal')&&B.php<B.pmax){const h=5*cardN('perfHeal');B.php=Math.min(B.pmax,B.php+h)}
   if(perfect&&B.fx.perfectChip){for(let i=0;i<8;i++)B.parts.push({x:sx,y:sy,vx:rnd(.1,.18),vy:rnd(-.06,.02),g:.0001,life:300,col:'#efe8d6',sz:2});chip(B.wp.groggyTapDamage*B.fx.perfectChip,'반격')}
   if(R&&R.vault){B.vChain++;vCoin((perfect?2:1)*vMul(),sx,sy-10)}
-  B.lastParryT=B.time;cgAdd(perfect?6:3);const wasFever=feverOn();feverParry();if(wasFever)feverStrike(perfect?3:2,'반격');if(a.kind!=='orb')pushAdd(perfect?2.5:1.5);parryGold(sx,sy);
+  B.lastParryT=B.time;if(B.finishReady){B.finishNotes++;if(!perfect)B.finishPerfect=false}cgAdd(perfect?6:3);const wasFever=feverOn();feverParry();if(wasFever)feverStrike(perfect?3:2,'반격');if(a.kind!=='orb')pushAdd(perfect?2.5:1.5);parryGold(sx,sy);
   if(R&&R.v2){a.lastPerfect=perfect;B.v2PostT=B.time;B.psh=Math.min(B.pshMax,B.psh+B.pshMax*(perfect?.2:.1))}
   if(a.kind==='desp'||a.kind==='fury'){zoom(1.08+a.idx*.04);domShake(1+a.idx);if(a.idx===a.notes.length-1)slow(500,.2)}
   comboPop();milestone();advanceNote(true);
@@ -2132,7 +2144,7 @@ function hurt(dmg,label,guarded){
   if(R&&R.vault){vaultHurt(guarded);return}
   dmg=Math.max(1,Math.round(dmg));B.php-=dmg;
   if(!guarded&&B.push)pushAdd(-4);
-  if(!guarded){B.pStreak=0;feverBreak()}
+  if(!guarded){B.pStreak=0;feverBreak();B.finishPerfect=false}
   if(!guarded){B.combo=0;B.kFlash=240;B.kFlashCol='#ff4d5e';B.shake=5;sfx('hurt');vib([100]);
     flash('#ff2b3b',.38,260);vig('rgba(255,30,50,.95)',500);domShake(2);zoom(1.05);barShake('#pHpBar');
     burstParts(B.kx,B.gy-14,10,['#ff4d5e','#ffd0d6'],.1,.0003,.2)}
@@ -2150,7 +2162,7 @@ function witchBonus(){if(B.fx.evadeStun){const v=Math.round(B.fx.evadeStun);B.st
 function resolveImpact(){
   if(B.finalBlow){prologueKO();return}
   const a=B.atk,n=curNote();n.res=true;if(n.type==='tap')B.tapN++;const t=B.time,atk=B.st.atk*(a.kind==='desp'||a.kind==='fury'?.7:1),red=1-B.ar.dmgReduce;let ok=false;
-  if(t<B.evadeUntil){ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok){B.tutStep=6;B.stun=100;coachHide()}}
+  if(t<B.evadeUntil){ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 리듬 패턴을 연습해 봐요')}}
   else if(n.type==='swipe'&&a.kind==='barrage')hurt(atk*.35*red,'피격!');
   else if(n.type==='swipe'){if(B.guard){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 붕괴!')}else hurt(atk*1.4*red)}
   else if(B.guard&&B.psh>0){B.psh-=atk*1.2*(1-Math.min(.6,(B.fx.guardDrain||0)/100))*Math.max(.3,1-.55*cardN('grip'));
@@ -2168,14 +2180,15 @@ function resolveImpact(){
 }
 function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(450,900)*(B.idx<2?1.15:1.1-B.idx*.05)*(B.phase2?.75:1)}
 function enterGroggy(){
-  B.gTot=0;
+  B.gTot=0;B.finishBonus=false;
+  if(B.finishReady){B.finishReady=false;if(B.finishPerfect&&B.finishNotes>0){B.finishBonus=true;setTimeout(()=>{if(B.active&&B.state==='GROGGY')banner('PERFECT FINISH!','기절 시간 · 연타 피해 UP')},150)}}
   B.slam=false;
   if(B.pack&&B.pack.length){B.packAtk=0;B.E=Object.assign({},EN[B.pack[0].kind],{scale:B.pack[0].scale});B.ex=packX(0)}
   if(R&&R.v2){enterBreak();return}
   track('groggy');
   if(B.fx.groggyShield){B.psh=B.pshMax;ftAt('실드 회복',B.kx,B.gy-36,'info')}
   if(R&&R.prologue&&B.tutStep===6)setTimeout(()=>{if(B.active&&B.state==='GROGGY')coachShow(6)},350);
-  setState('GROGGY');B.groggyDur=(2900+B.wp.stunBonus*600)*(feverOn()?1.5:1);B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?.10:B.st.label==='정예'||B.st.label==='위험'||B.st.label==='무리'?.25:.4)*(feverOn()?1.6:1);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
+  setState('GROGGY');B.groggyDur=(2900+B.wp.stunBonus*600)*(feverOn()?1.5:1)*(B.finishBonus?1.3:1);B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?.10:B.st.label==='정예'||B.st.label==='위험'||B.st.label==='무리'?.25:.4)*(feverOn()?1.6:1)*(B.finishBonus?1.3:1);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
   if(R&&R.vault){B.groggyDur=2600+B.wp.stunBonus*500;B.groggyEnd=B.time+B.groggyDur}
   atkCue(true);slow(160,.2);zoom(1.16);flash('#fff3a0',.55,240);
   if(R&&R.vault)banner('털어라!','연타로 금화 주머니 흔들기!!');sfx('groggy');flash('#ffffff',.55,300);zoom(1.12);vib([30,40,30]);domShake(2);Music.hype=true;
@@ -2183,7 +2196,7 @@ function enterGroggy(){
 function milestone(){if([10,25,50,75,100,150].includes(B.combo)){ftAt(B.combo+' COMBO!',B.W/2,B.H*.36,'combo');sfx('combo');vig('rgba(255,210,80,.85)',500)}}
 function groggyHit(){
   {const now=performance.now();if(now-(B.lastBashT||-1e9)<90)return;B.lastBashT=now}
-  const crit=Math.random()<B.wp.critRate;const d=Math.max(1,Math.round(B.wp.groggyTapDamage*(feverOn()?1.3:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
+  const crit=Math.random()<B.wp.critRate;const d=Math.max(1,Math.round(B.wp.groggyTapDamage*(feverOn()?1.3:1)*(B.finishBonus?1.25:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
   B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
   if(B.st.label==='보스'&&B.phase2&&!B.despUsed&&B.ehp<=B.emax*.1&&!(R&&(R.rhythm||R.prologue||R.vault||R.trial))){B.ehp=Math.max(1,B.ehp);B.stun=0;Music.hype=false;setState('IDLE');B.idleDur=450;ftAt(String(d),B.ex,B.gy-30,'dmg');flash('#ff2b3b',.4,300);return}
   {const now=performance.now();if(now>=(B.hsReady||0)){B.hitstop=crit?80:30;B.hsReady=now+(crit?220:140)}}B.shake=crit?4.5:1.8;zoom(crit?1.09:1.025);
@@ -2470,10 +2483,10 @@ function hpBar(){
 }
 function updHud(){
   let stunPct=B.stun;if(B.state==='GROGGY')stunPct=100*Math.min(clamp((B.groggyEnd-B.time)/B.groggyDur,0,1),B.groggyCap?clamp(1-B.groggyDmg/B.groggyCap,0,1):1);
-  const sig=[Math.round(B.ehp),Math.round(stunPct),Math.round(B.php),Math.round(B.psh),B.combo,B.state,B.guard,B.atk&&B.atk.heavy&&!B.atk.resolved,B.atk&&B.atk.idx,B.atk&&B.atk.kind,B.exec&&B.exec.charge>=0,B.disarm&&B.disarm.steps,B.phase2,Math.round(B.groggyDmg||0)].join('|');
+  const sig=[Math.round(B.ehp),Math.round(stunPct),Math.round(B.php),Math.round(B.psh),B.combo,B.state,B.guard,B.atk&&B.atk.heavy&&!B.atk.resolved,B.atk&&B.atk.idx,B.atk&&B.atk.kind,B.exec&&B.exec.charge>=0,B.disarm&&B.disarm.steps,B.phase2,Math.round(B.groggyDmg||0),B.finishReady].join('|');
   if(sig===lastHud)return;lastHud=sig;
   hpBar();
-  hud.eStun.style.width=stunPct+'%';hud.eStunBar.classList.toggle('near',B.state!=='GROGGY'&&B.stun>=80);hud.eStunBar.querySelector('span').textContent=R&&R.v2?'자세':'피로도';hud.eStunBar.classList.toggle('full',B.state==='GROGGY');
+  hud.eStun.style.width=stunPct+'%';hud.eStunBar.classList.toggle('near',B.state!=='GROGGY'&&B.stun>=80&&!B.finishReady);hud.eStunBar.classList.toggle('ready',!!B.finishReady);hud.eStunBar.querySelector('span').textContent=R&&R.v2?'자세':'피로도';hud.eStunBar.classList.toggle('full',B.state==='GROGGY');
   hud.pHp.style.width=(100*B.php/B.pmax)+'%';hud.pHpTxt.textContent=Math.ceil(B.php)+' / '+B.pmax;
   hud.pSh.style.width=(100*B.psh/B.pshMax)+'%';hud.pShTxt.textContent=(R&&R.v2?'스태미나 ':'실드 ')+Math.round(B.psh);hud.pShBar.classList.toggle('low',B.psh<B.pshMax*.25);
   hud.comboN.textContent=B.combo;
@@ -2885,8 +2898,16 @@ const TUT={
   3:{tag:'튜토리얼 4/6 · 혼자 해 보기',text:'이번엔 멈추지 않아요. <b>틱-틱-틱</b> 다음 박자, 링이 <b class="y">노란 구역</b>일 때 탭!',soft:true},
   4:{tag:'튜토리얼 5/6 · 가드',text:'<b class="bl">파란 막대</b>는 연속으로 때리는 난타 공격이에요.<br>버튼을 <b>꾹 누른 채</b> 끝날 때까지 버티세요!',target:'pad',wait:'hold'},
   5:{tag:'튜토리얼 6/6 · 회피',text:'<b class="r">빨갛게 빛나는 공격</b>은 방패로 막을 수 없어요!<br>버튼을 <b>좌우로 밀어서</b> 피하세요.',target:'pad',wait:'swipe'},
-  6:{tag:'보너스 · 기절',text:'패링을 계속 성공하면 적이 지쳐서 <b>기절</b>해요.<br>지금이에요! 버튼을 <b>마구 연타!</b>',target:'pad',wait:'tapgo'},
+  6:{tag:'마지막 · 기절',text:'패링을 계속 성공하면 적이 지쳐서 <b>기절</b>해요.<br>지금이에요! 버튼을 <b>마구 연타!</b>',target:'pad',wait:'tapgo'},
 };
+const LESSONS=['chain3','dotted','ghost3','mix','longnote','gallop'];
+function lessonShow(i){
+  const k=LESSONS[i];B.tutWait='lesson';B.tutFreeze=true;
+  const el=$('#coach');el.hidden=false;el.classList.remove('soft');$('#cNext').hidden=true;
+  $('#cStep').textContent=`패턴 연습 ${i+1}/${LESSONS.length} · ${PAT_INFO[k][0]}`;
+  $('#cText').innerHTML=`${patSvg(k,240)}${PAT_INFO[k][2]}<br><small style="opacity:.8">노트가 흰 원에 닿는 박에 맞춰요 · 준비되면 <b>탭!</b></small>`;
+  $('#cHole').style.width='0';$('#cArrow').style.left='-99px';$('#cBox').style.top='96px';sfx('ui');
+}
 function coachShow(step){
   const c=TUT[step];B.tutWait=c.wait||null;B.tutFreeze=!!c.wait;
   const el=$('#coach');el.hidden=false;el.classList.toggle('soft',!!c.soft);
@@ -2924,10 +2945,10 @@ function tutParried(kind){ // kind: 'parry' | 'block' | 'hit'
 }
 function startPrologue(){
   R={idx:9,room:4,rooms:ROOMS.slice(),maxHp:999,hp:999,cards:{},gold:0,revived:true,parries:0,perfects:0,maxCombo:0,prologue:true};
-  const cfg=Object.assign(roomCfg(9,'boss'),{hp:99999,stunMult:0,windup:1150,pool:{base:[['single',1]]},
+  const cfg=Object.assign(roomCfg(9,'boss'),{music:'st0',hp:99999,stunMult:0,windup:1150,pool:{base:[['single',1]]},
     tune:{win:420,late:200,jit:0,lock:0,cue:3,guide:1,lead:1600,stars:1},line:'(꿈속) 이 빛나는 방패라면... 마왕도 막을 수 있어!',taunt:'어리석은 용사여. 그 방패로 몇 번이나 버틸 수 있을까?'});
   startFight(cfg,false);
-  $('#bStage').textContent='PROLOGUE';$('#runMap').innerHTML='';$('#eName').innerHTML='마왕 <em>꿈</em>';
+  $('#bStage').textContent='PROLOGUE';$('#runMap').innerHTML='';$('#eName').innerHTML='마왕 <em>꿈</em>';banner('PROLOGUE','꿈속의 마왕');
   B.tutStep=0;B.tutShown0=false;B.tutFreeze=false;B.tutWait=null;B.introDur=2600;
 }
 function prologueKO(){
