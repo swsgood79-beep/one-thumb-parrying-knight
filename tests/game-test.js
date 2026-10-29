@@ -46,19 +46,20 @@ const BOT = `(()=>{
     if(typeof B==='undefined'||!B.active||B.paused)return;
     if(B.tutWait){__bot.log.push('tut:'+B.tutStep+':'+B.tutWait);if(B.tutWait==='hold')setGuard(true);else if(B.tutWait==='swipe')onSwipe(-1);else onTap();return}
     const t=B.time;
-    if(B.state==='GROGGY'){onTap();return}
+    if(B.state==='GROGGY'||B.grab){onTap();return}
     if(B.state==='OPEN'){if(B.open&&B.open.real)onTap();else if(B.open&&Math.random()<(1-__bot.skill)*.04)onTap();return}
     if(B.state==='EXEC'){if(!B.exec)return;if(B.exec.charge<0){__bot.execAt=Math.random()<__bot.skill?.86:(Math.random()<.5?.6:1.2);onTap()}else if((t-B.exec.charge)/EXEC_MS>=__bot.execAt)onRelease();return}
     if(B.state==='WAKE'&&!B.atk.resolved&&B.atk.impact-t<260){onSwipe(-1);return}
     if(B.state!=='WINDUP'||!B.atk||B.atk.resolved){if(B.guard)setGuard(false);return}
     const a=B.atk,n=a.notes[a.idx],key=a.start+':'+a.idx;
     if(n.type==='hold'){setGuard(t>=n.t-80&&Math.random()<.995);return}
+    if(n.type==='block'){if(!__bot.plan||__bot.plan.key!==key)__bot.plan={key,done:true,go:Math.random()<__bot.skill};setGuard(__bot.plan.go&&t>=n.t-420);return}
     if(a.kind==='smash'&&!a.heavy){if(!__bot.sp||__bot.sp.key!==key)__bot.sp={key,go:Math.random()<__bot.skill};if(__bot.sp.go&&t-a.start>a.dur*.3)onSwipeUp();return}
     if(B.guard)setGuard(false);
     if(!__bot.plan||__bot.plan.key!==key){const good=Math.random()<__bot.skill;
       const g=Math.sqrt(-2*Math.log(Math.random()+1e-9))*Math.cos(6.2832*Math.random());
-      __bot.plan={key,done:false,at:good?(n.type==='swipe'?140:15+g*(__bot.sig??40)):(Math.random()<.5?350:-160)}}
-    if(!__bot.plan.done&&a.impact-t<=__bot.plan.at){__bot.plan.done=true;if(n.type==='swipe')onSwipe(B.disarm?B.disarm.side:-1);else onTap()}
+      __bot.plan={key,done:false,at:good?(n.type==='swipe'||n.type==='jump'?140:15+g*(__bot.sig??40)):(Math.random()<.5?350:-160)}}
+    if(!__bot.plan.done&&a.impact-t<=__bot.plan.at){__bot.plan.done=true;if(n.type==='swipe')onSwipe(B.disarm?B.disarm.side:n.dir||-1);else if(n.type==='jump')onSwipeUp();else onTap()}
   };
 })();`;
 
@@ -315,7 +316,7 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '사람처럼 스와이프(터치→밀기)로 회피 공격 전부 피하기 · 기상 충격파', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
-      const humanDodge = () => { onTap(); onSwipe(-1); };
+      const humanDodge = (dir = -1) => { onTap(); onSwipe(dir); };
       // every pattern that contains a dodge note
       for (const name of Object.keys(PATMAKE)) { const P = PATMAKE[name](); if (!P.notes.some(n => n.type === 'swipe')) continue;
         startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); B.ehp = B.emax = 1e7; B.st.stunMult = 0; B.st.pool = { base: [[name, 1]] }; B.firstAtk = false;
@@ -323,7 +324,9 @@ const BOT = `(()=>{
         let vt = 0, hits = 0; const h0 = window.hurt; window.hurt = function (d, l, g) { if (!g && B.atk && B.atk.notes[B.atk.idx] && B.atk.notes[B.atk.idx].type === 'swipe') hits++; return h0.apply(this, arguments); };
         let lastKey = '';
         while (vt < 15000 && B.state === 'WINDUP') { const a = B.atk, n = a.notes[a.idx], key = a.start + ':' + a.idx;
-          if (n.type === 'swipe' && key !== lastKey && a.impact - B.time <= 180) { lastKey = key; humanDodge(); }
+          if (n.type === 'swipe' && key !== lastKey && a.impact - B.time <= 180) { lastKey = key; humanDodge(n.dir || -1); }
+          else if (n.type === 'jump' && key !== lastKey && a.impact - B.time <= 180) { lastKey = key; onTap(); onSwipeUp(); }
+          else if (n.type === 'block') { if (key !== lastKey && a.impact - B.time <= 450) { lastKey = key; onTap(); } setGuard(a.impact - B.time <= 280); }
           else if (n.type === 'tap' && key !== lastKey && a.impact - B.time <= 20) { lastKey = key; onTap(); }
           else if (n.type === 'hold') setGuard(B.time >= n.t - 80);
           __tick(16); vt += 16; }
@@ -337,6 +340,45 @@ const BOT = `(()=>{
         const hp0 = B.php, until = B.time + 250; let done = false;
         while (B.state === 'WAKE' && !B.atk.resolved) { if (mash && B.time < until) onTap(); if (!done && B.atk.impact - B.time <= 200) { done = true; humanDodge(); } __tick(16); }
         if (B.php < hp0) return `stage ${idx + 1}${mash ? ' (after mashing)' : ''}: dodged wake shockwave still hurt`; endBattle(); }
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '특수 동작: 짓누르기(꾹) · 휩쓸기(방향) · 점프(↑) · 잡기(연타 탈출)', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
+      const one = (name, act, post) => { startRun(3); R.room = 4; startFight(roomCfg(3, 'boss'), false); B.ehp = B.emax = 1e7; B.php = B.pmax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [[name, 1]] }; B.firstAtk = false;
+        for (let i = 0; i < 300 && B.state !== 'WINDUP'; i++) __tick(16);
+        if (B.state !== 'WINDUP' || B.atk.name !== name) return { err: name + ': attack never started' };
+        const out = { hurts: 0, labels: [] }, h0 = window.hurt; window.hurt = function (d, l, g) { if (!g) { out.hurts++; out.labels.push(l) } return h0.apply(this, arguments); };
+        let vt = 0; const done = {};
+        while (vt < 8000 && B.state === 'WINDUP') { const a = B.atk; act(a.notes[a.idx], a.impact - B.time, done, a.idx); __tick(16); vt += 16; }
+        out.grabbed = !!B.grab; if (post) post(out); window.hurt = h0; setGuard(false); endBattle(); return out; };
+      const once = (k, f) => (n, d, done, i) => { if (!done[k + i] && d <= 180) { done[k + i] = 1; f(n); } };
+      let r = one('crush', (n, d, done) => { if (!done.t && d <= 450) { done.t = 1; onTap(); } setGuard(d <= 280); });
+      if (r.err || r.hurts) return 'crush: holding the guard early still got hit ' + (r.err || r.labels);
+      r = one('crush', (n, d, done) => { if (!done.t && d <= 20) { done.t = 1; onTap(); } });
+      if (r.err || !r.hurts) return 'crush: a plain tap parried a guard-only attack';
+      r = one('crush', once('s', () => { onTap(); onSwipe(-1); }));
+      if (r.err || !r.hurts) return 'crush: a side dodge avoided a guard-only attack';
+      r = one('sweepL', once('s', () => { onTap(); onSwipe(1); }));
+      if (r.err || !r.labels.includes('반대쪽!')) return 'sweepL: dodging the wrong way was not punished ' + (r.err || r.labels);
+      r = one('sweepL', once('s', () => { onTap(); onSwipe(-1); }));
+      if (r.err || r.hurts) return 'sweepL: dodging the arrow way still got hit';
+      r = one('sweepR', once('s', () => { onTap(); onSwipe(1); }));
+      if (r.err || r.hurts) return 'sweepR: dodging the arrow way still got hit';
+      r = one('lowsweep', once('s', () => { onTap(); onSwipeUp(); }));
+      if (r.err || r.hurts) return 'lowsweep: a touch-then-swipe-up jump still got hit ' + (r.err || r.labels);
+      r = one('lowsweep', once('s', () => { onTap(); onSwipe(-1); }));
+      if (r.err || !r.hurts) return 'lowsweep: a side dodge avoided the low sweep';
+      r = one('dance', once('s', n => { onTap(); if (n.type === 'jump') onSwipeUp(); else onSwipe(n.dir); }));
+      if (r.err || r.hurts) return 'dance: ◀ ↑ ▶ done right still got hit ' + (r.err || r.labels);
+      r = one('grab', once('s', () => { onTap(); onSwipe(1); }));
+      if (r.err || r.hurts || r.grabbed) return 'grab: dodging still got grabbed';
+      r = one('grab', (n, d) => setGuard(d <= 400), o => { if (!B.grab) { o.err = 'guarding did not get grabbed'; return }
+        let k = 0; while (B.grab && k++ < 200) { onTap(); __tick(16); __tick(16); __tick(16); __tick(16); __tick(16); } o.escaped = !o.labels.includes('내동댕이!') && !B.grab;
+        let w = 0; while (w++ < 300 && B.state !== 'WINDUP') __tick(16); o.next = B.state === 'WINDUP'; });
+      if (r.err || !r.escaped || !r.next) return 'grab: mashing out failed ' + (r.err || JSON.stringify(r));
+      r = one('grab', (n, d) => setGuard(d <= 400), o => { let k = 0; while (B.grab && k++ < 300) __tick(16); o.thrown = o.labels.includes('내동댕이!');
+        let w = 0; while (w++ < 300 && B.state !== 'WINDUP') __tick(16); o.next = B.state === 'WINDUP'; });
+      if (r.err || !r.thrown || !r.next) return 'grab: not mashing should throw the knight, then the fight goes on ' + (r.err || JSON.stringify(r));
+      for (let i = 0; i < POOLS.length; i++) if (!POOLS[i].base.some(([n]) => PAT_INFO[n] && PAT_INFO[n][1] === 'action')) return `stage ${i + 1} has no action attacks`;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '피버 타임 · 기절 게이지가 피해만큼 줄어듦', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; __bot.skill = 1; __bot.sig = 8;
@@ -446,7 +488,7 @@ const BOT = `(()=>{
         if (__errors.length) return 'error: ' + __errors[0];
         if (!document.querySelector('#story').hidden) document.querySelector('#sSkip').click();
         else if (typeof B !== 'undefined' && B.active) __botStep();
-        if (!document.querySelector('#title').hidden) { const seen = new Set(__bot.log.filter(x => String(x).startsWith('tut:')).map(x => x.split(':')[1])); const miss = ['0','1','2','4','5','6'].filter(k => !seen.has(k)); return !S.prologue ? 'title shown but prologue not marked done' : miss.length ? 'tutorial steps never shown: ' + miss.join(',') : null; } }
+        if (!document.querySelector('#title').hidden) { const seen = new Set(__bot.log.filter(x => String(x).startsWith('tut:')).map(x => x.split(':')[1])); const miss = ['0','1','2','4','5','6'].filter(k => !seen.has(k)); const les = new Set(__bot.log.filter(x => /^tut:1\d:lesson$/.test(x))); return !S.prologue ? 'title shown but prologue not marked done' : miss.length ? 'tutorial steps never shown: ' + miss.join(',') : les.size !== LESSONS.length ? `only ${les.size}/${LESSONS.length} action lessons shown` : null; } }
       return 'prologue never reached the title (state ' + (typeof B !== 'undefined' ? B.state : '?') + ')'; });
     console.log(`[프롤로그] ${r ? 'FAIL ' + r : 'ok'} 꿈속 마왕전 → 타이틀`); if (r) fails.push('[프롤로그] ' + r);
     await page.close();

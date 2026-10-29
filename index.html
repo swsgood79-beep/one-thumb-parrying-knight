@@ -825,7 +825,7 @@ PATMAKE.tapguard=()=>({kind:'chain',notes:[{o:0,type:'tap'},{o:1,type:'hold',len
 PATMAKE.slow=()=>({kind:'single',notes:[{o:0,type:'tap'}],lead:2.1});
 PATMAKE.orb4=()=>orbPat(4);
 /* complex patterns: t = parry, s = dodge (≥2.5 beats between dodges), h = hold, g = hidden-until-late tap */
-const MP=(kind,spec,lead)=>()=>({kind,lead,notes:spec.map(([o,c,len])=>({o,type:c==='s'?'swipe':c==='h'?'hold':'tap',len,ghost:c==='g'}))});
+const MP=(kind,spec,lead)=>()=>({kind,lead,notes:spec.map(([o,c,len])=>({o,type:'sLRk'.includes(c)?'swipe':c==='h'?'hold':c==='b'?'block':c==='j'?'jump':'tap',len,ghost:c==='g',dir:c==='L'?-1:c==='R'?1:0,grab:c==='k'}))});
 Object.assign(PATMAKE,{
   zigzag:MP('chain',[[0,'t'],[1,'s'],[2,'t'],[2.5,'t'],[3.75,'s'],[4.75,'t']]),
   cascade:MP('chain',[[0,'t'],[.5,'t'],[1,'t'],[1.75,'h',1.25],[3.5,'t'],[4,'t'],[4.5,'t']]),
@@ -902,6 +902,23 @@ const POOLS=[
   {base:[['stream16',0.12],['gallop',0.12],['jack',0.1],['poly34',0.1],['callresp',0.1],['storm',.12],['quad',.12],['chaosS',.12],['dfeint',.12],['ramp12',.12],['offsync',.1],['mirror',.1],['fury',.12],['snapchain',.08]],p2:[['stream16',0.14],['gallop',0.14],['jack',0.14],['measure',0.12],['poly34',0.12],['callresp',0.12],['gauntlet',.16],['quad',.14],['chaosS',.16],['blind5',.12],['ramp12',.12],['rush',.1],['fury',.2]]},
   {base:[['stream16',0.12],['gallop',0.12],['jack',0.12],['measure',0.1],['poly34',0.1],['callresp',0.1],['gauntlet',.12],['quad',.12],['chaosS',.12],['orb8',.12],['blind5',.1],['ramp12',.1],['offsync',.1],['storm',.1],['fury',.12]],p2:[['stream16',0.14],['gallop',0.14],['jack',0.14],['measure',0.12],['poly34',0.12],['callresp',0.12],['gauntlet',.16],['quad',.14],['chaosS',.16],['blind5',.12],['offsync',.1],['orb8',.12],['fury',.2]]},
 ];
+/* action attacks: each asks for a different move — b = crush (guard only, hold early), L/R = sweep (dodge that way only), j = low sweep (swipe up to jump), k = grab (dodge, or mash out) */
+Object.assign(PATMAKE,{
+  crush:MP('chain',[[0,'b']],1.3),crush2:MP('chain',[[0,'t'],[1,'t'],[2.5,'b']]),
+  sweepL:MP('chain',[[0,'L']],1.25),sweepR:MP('chain',[[0,'R']],1.25),sweep2:MP('chain',[[0,'L'],[2,'R']],1.25),
+  lowsweep:MP('chain',[[0,'j']],1.25),jumpchain:MP('chain',[[0,'t'],[1,'t'],[2,'j'],[3,'t']]),
+  grab:MP('chain',[[0,'k']],1.4),grabchain:MP('chain',[[0,'t'],[1,'t'],[2,'k']]),
+  crushjump:MP('chain',[[0,'b'],[1.5,'j']],1.3),sweepX:MP('chain',[[0,'L'],[1,'t'],[2,'R'],[3,'t']],1.25),
+  holdjump:MP('chain',[[0,'h',1.5],[2.5,'j']]),dance:MP('chain',[[0,'L'],[1,'j'],[2.5,'R']],1.25),
+  mechmix:MP('chain',[[0,'t'],[1.5,'b'],[3,'j'],[4,'R'],[5,'t']]),
+});
+const MECH=[
+  [[['crush',.14],['sweepL',.08],['sweepR',.08]],[['crush2',.12],['sweep2',.12],['crush',.1]]],
+  [[['crush',.1],['sweep2',.1],['lowsweep',.12],['crush2',.1]],[['jumpchain',.12],['crushjump',.12],['sweepL',.08],['sweepR',.08]]],
+  [[['lowsweep',.1],['jumpchain',.12],['grab',.12],['sweepX',.1]],[['grabchain',.14],['holdjump',.12],['crush2',.1]]],
+  [[['grabchain',.12],['crushjump',.12],['sweepX',.12],['dance',.1]],[['mechmix',.14],['grab',.1],['holdjump',.1]]],
+];
+POOLS.forEach((p,i)=>{const m=MECH[i]||[[['mechmix',.12],['dance',.12],['grabchain',.12],['crushjump',.1],['sweepX',.1],['holdjump',.1]],[['mechmix',.16],['dance',.14],['grabchain',.12],['crushjump',.12],['sweepX',.1]]];p.base.push(...m[0]);p.p2.push(...m[1])});
 const pickW=list=>{let r=Math.random()*list.reduce((a,b)=>a+b[1],0);for(const[n,w]of list){if((r-=w)<=0)return n}return list[0][0]};
 const PARRY_TUNE=[
   {win:210,late:100,jit:0,  lock:0,  cue:3,guide:1,  comboK:.9, lead:1500,ne:40,nl:30,stars:1},
@@ -1484,6 +1501,7 @@ function renderLobby(){
   const pn=new Set(POOLS[i].base.map(x=>x[0]));
   if(pn.has('heavy'))chips.push(`<span class="chip warn">붉은 강공격</span>`);
   if([...pn].some(n=>n.startsWith('chain')||n==='sync'||n.startsWith('riff')))chips.push(`<span class="chip" style="color:#ffe58a">♪ 연속 패링</span>`);
+  if([...pn].some(n=>PAT_INFO[n]&&PAT_INFO[n][1]==='action'))chips.push(`<span class="chip" style="color:#8fe86a">특수 동작</span>`);
   if(pn.has('feint'))chips.push(`<span class="chip" style="color:#d6c2ff">? 페이크</span>`);
   if(pn.has('hold'))chips.push(`<span class="chip" style="color:#9ad8ff">꾹 난타</span>`);
   if(pn.has('rally'))chips.push(`<span class="chip" style="color:#e3a6ff">랠리</span>`);
@@ -1656,8 +1674,16 @@ function simulateAd(cb,label='보상'){
   const iv=setInterval(()=>{n--;const el=$('#adN');if(el)el.textContent=n;if(n<=0){clearInterval(iv);closeModal();cb()}},1000);
 }
 /* ===================== pattern book: names, how to beat them, drawings ===================== */
-const PAT_CATS=[['basic','기본'],['chain','연타'],['rhythm','리듬'],['feint','페이크'],['hidden','숨은 노트'],['dodge','회피 섞기'],['hold','버티기'],['orb','마법 구체'],['hard','고난도'],['special','특수']];
+const PAT_CATS=[['basic','기본'],['chain','연타'],['rhythm','리듬'],['feint','페이크'],['hidden','숨은 노트'],['dodge','회피 섞기'],['action','특수 동작'],['hold','버티기'],['orb','마법 구체'],['hard','고난도'],['special','특수']];
 const PAT_INFO={
+  crush:['짓누르기','action','파란 방패 노트. 패링도 회피도 안 돼요. 미리 꾹 눌러 가드!'],crush2:['짓누르기 콤보','action','탭 · 탭 → 짓누르기(꾹).'],
+  sweepL:['휩쓸기 ◀','action','화살표 방향으로만 피할 수 있어요. 왼쪽으로 스와이프!'],sweepR:['휩쓸기 ▶','action','화살표 방향으로만 피할 수 있어요. 오른쪽으로 스와이프!'],
+  sweep2:['왕복 휩쓸기','action','◀ 왼쪽 → ▶ 오른쪽. 화살표를 보고 피해요.'],
+  lowsweep:['발밑 쓸기','action','초록 노트. 위로 스와이프해서 점프!'],jumpchain:['점프 콤보','action','탭 · 탭 · 점프 · 탭.'],
+  grab:['잡기','action','주황 노트. 가드하면 붙잡혀요! 회피하거나, 잡히면 마구 연타로 탈출.'],grabchain:['잡기 콤보','action','탭 · 탭 → 잡기(회피).'],
+  crushjump:['짓눌러 쓸기','action','꾹 가드 → 바로 위로 점프.'],sweepX:['교차 휩쓸기','action','◀ · 탭 · ▶ · 탭.'],
+  holdjump:['난타 후 쓸기','action','꾹 버티다 손을 떼고 위로 점프.'],dance:['칼춤','action','◀ 회피 · ↑ 점프 · ▶ 회피.'],
+  mechmix:['종합 시험','action','탭 · 꾹 · 점프 · ▶ · 탭. 모든 동작을 한 번에!'],
   single:['단발','basic','박자에 맞춰 한 번 내려쳐요. 박에 딱 맞춰 탭!'],heavy:['붉은 강공격','dodge','막을 수 없어요. 붉게 빛나면 좌우 스와이프로 회피!'],
   feint:['페이크','feint','들어오다 멈칫해요. 속지 말고 끝까지 보고 탭.'],hold:['난타','hold','파란 긴 노트. 끝날 때까지 꾹 눌러 버텨요.'],
   chain2s:['느린 2연타','chain','한 박 반 간격 2연타.'],chain2:['2연타','chain','한 박 간격 2연타.'],chain3:['3연타','chain','한 박 간격 3연타.'],chain3f:['빠른 3연타','chain','3/4박 간격 3연타.'],
@@ -1695,13 +1721,17 @@ function patSvg(name,w=260){
   for(let b=0;b<=Math.ceil(end);b++){const x=x0+b*bw;g+=`<line x1="${x}" y1="9" x2="${x}" y2="27" stroke="${b%4?'#3b3277':'#6b5fc0'}" stroke-width="${b%4?1:2}"/>`}
   for(const n of ns){const x=x0+(n.o+(P.off||0))*bw;
     if(n.type==='hold')g+=`<rect x="${x-4}" y="${y-5}" width="${Math.max(8,(n.len||1)*bw+8)}" height="10" rx="5" fill="#4bb6ff" stroke="#bfe6ff"/>`;
+    else if(n.type==='swipe'&&n.grab)g+=`<circle cx="${x}" cy="${y}" r="6" fill="#ff9b2f" stroke="#ffe0b0"/><path d="M${x-3} ${y-2} v4 M${x} ${y-3} v5 M${x+3} ${y-2} v4" stroke="#3a1a00" stroke-width="1.3"/>`;
+    else if(n.type==='swipe'&&n.dir)g+=`<path d="M${x+n.dir*7} ${y} l${-n.dir*6} -6 v4 h${-n.dir*7} v4 h${n.dir*7} v4z" fill="#ff4d5e" stroke="#ffd0d6" stroke-width=".8"/>`;
+    else if(n.type==='block')g+=`<path d="M${x-6} ${y-6} h12 v5 q0 6 -6 8 q-6 -2 -6 -8z" fill="#2f7fff" stroke="#bfe6ff" stroke-width="1"/>`;
+    else if(n.type==='jump')g+=`<path d="M${x} ${y-7} l6 6 h-3 v7 h-6 v-7 h-3z" fill="#5fd23a" stroke="#d6ffc0" stroke-width=".8"/>`;
     else if(n.type==='swipe')g+=`<path d="M${x-7} ${y} l5 -6 v4 h4 v-4 l5 6 l-5 6 v-4 h-4 v4z" fill="#ff4d5e" stroke="#ffd0d6" stroke-width=".8"/>`;
     else g+=`<rect x="${x-5}" y="${y-5}" width="10" height="10" transform="rotate(45 ${x} ${y})" fill="${n.ghost?'none':'#ffd23f'}" stroke="${n.ghost?'#c9a6ff':'#fff3a0'}" ${n.ghost?'stroke-dasharray="2 2" stroke-width="1.5"':''}/>`}
   return g+`</svg>`}
 function patternBook(onBack,cat){
   cat=cat||'basic';const names=Object.keys(PAT_INFO).filter(k=>PAT_INFO[k][1]===cat&&PATMAKE[k]),seen=S.seenPat||{};
   modal(`<h2>패턴 도감</h2><div class="pbtabs">${PAT_CATS.map(([k,l])=>`<button class="btn ${k===cat?'y':'d'}" data-m="c_${k}">${l}</button>`).join('')}</div>
-    <p style="font-size:11px;color:var(--muted);margin:2px 0 6px"><b style="color:#ffd23f">◆</b> 탭 · <b style="color:#ff4d5e">◀▶</b> 회피 · <b style="color:#4bb6ff">━</b> 꾹 · <b style="color:#c9a6ff">◇</b> 숨은 노트 · 세로줄 = 박 (굵은 줄 = 마디)</p>
+    <p style="font-size:11px;color:var(--muted);margin:2px 0 6px"><b style="color:#ffd23f">◆</b> 탭 · <b style="color:#ff4d5e">◀▶</b> 회피 · <b style="color:#4bb6ff">━</b> 꾹 · <b style="color:#4bb6ff">⛉</b> 짓누르기(꾹) · <b style="color:#5fd23a">↑</b> 점프 · <b style="color:#ff9b2f">●</b> 잡기 · <b style="color:#c9a6ff">◇</b> 숨은 노트 · 세로줄 = 박 (굵은 줄 = 마디)</p>
     <div class="pblist">${names.map(k=>`<div class="pbrow"><div class="pbh"><b>${PAT_INFO[k][0]}</b>${seen[k]?'':'<small>미발견</small>'}</div>${patSvg(k)}<p>${PAT_INFO[k][2]}</p></div>`).join('')}</div>
     <div class="btns"><button class="btn g" data-m="back">닫기</button></div>`,
   Object.assign({back:()=>{closeModal();onBack&&onBack()}},Object.fromEntries(PAT_CATS.map(([k])=>['c_'+k,()=>patternBook(onBack,k)]))));
@@ -1717,12 +1747,14 @@ function patTip(name,go){
 function helpModal(onClose){
   modal(`<h2>조작법</h2>
   <div class="ctl"><div class="k btn y">탭</div><p><b>패링</b> — 모든 공격은 <b>음악 박자</b>에 떨어져요. 아래 레인의 노트가 판정 원에 닿는 박에 탭! 박에 딱 맞으면 <b style="color:#ffe14d">퍼펙트</b>, 살짝 빗나가면 <b>막기</b>(실드 소모). 공격이 없을 때 누르면 헛스윙 경직.</p></div>
-  <div class="ctl"><div class="k btn b">꾹</div><p><b>가드</b> — 누르고 있으면 방패로 막아요. 피해는 줄지만 실드 게이지가 닳아요.</p></div>
-  <div class="ctl"><div class="k btn r">◀ ▶</div><p><b>회피</b> — <span style="color:#ff8a8a">붉게 빛나는 강공격</span>은 막을 수 없어요. 좌우로 스와이프해서 구르기!</p></div>
+  <div class="ctl"><div class="k btn b">꾹</div><p><b>가드</b> — 누르고 있으면 방패로 막아요. 피해는 줄지만 실드 게이지가 닳아요. <b style="color:#9ad8ff">파란 방패 노트(짓누르기)</b>는 패링·회피가 안 돼요 — 미리 꾹!</p></div>
+  <div class="ctl"><div class="k btn r">◀ ▶</div><p><b>회피</b> — <span style="color:#ff8a8a">붉게 빛나는 강공격</span>은 막을 수 없어요. 좌우로 스와이프해서 구르기! 화살표가 붙은 <b>휩쓸기</b>는 그 방향으로만 피할 수 있어요.</p></div>
+  <div class="ctl"><div class="k btn g">↑</div><p><b>점프</b> — <span style="color:#8fe86a">초록 노트(발밑 쓸기)</span>는 위로 스와이프해서 뛰어넘어요.</p></div>
+  <div class="ctl"><div class="k btn y" style="background:linear-gradient(#ffe0b0,#ff9b2f)">잡기</div><p><b>잡기</b> — <span style="color:#ffb35a">주황 노트</span>는 가드하면 붙잡혀요. 좌우로 피하거나, 잡히면 마구 연타해서 탈출!</p></div>
   <div class="ctl"><div class="k btn y" style="background:linear-gradient(#fff,#ff9b2f 50%,#e0283f)">연타</div><p><b>기절</b> — 피로도가 가득 차면 「지금 공격!!」 마구 연타! 게이지는 시간과 피해 여유만큼 줄어요.</p></div>
   <div class="ctl"><div class="k btn y" style="background:conic-gradient(#ff3b5c,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c)">FEVER</div><p><b>피버</b> — 맞지 않고 8연속 패링(콤보 아래 8칸)! 8초 동안 패링하면 자동 반격, 빈 틈에 탭하면 강타.</p></div>
   <div class="ctl"><div class="k btn y">♪</div><p><b>특수 패턴</b> — 바닥의 노트를 보세요. <b style="color:#ffe14d">노랑</b>=탭, <b style="color:#ff8a8a">빨강</b>=스와이프, <b style="color:#9ad8ff">파랑</b>=꾹. 연속 패링을 전부 성공하면 <b>PERFECT CHAIN</b>! 보라색 <b>?</b>는 페이크.</p></div>
-  <p style="font-size:12px">키보드: 스페이스(탭·꾹) · ← → (회피)</p>
+  <p style="font-size:12px">키보드: 스페이스(탭·꾹) · ← → (회피) · ↑ (점프)</p>
   <div class="btns"><button class="btn b" data-m="book">♪ 패턴 도감 (${Object.keys(PAT_INFO).length}종)</button><button class="btn g" data-m="ok">알겠어!</button></div>`,{ok:()=>{closeModal();onClose&&onClose()},book:()=>patternBook(()=>helpModal(onClose))});
 }
 
@@ -1845,7 +1877,7 @@ function startFight(cfg,walkIn){
     php:R.hp,pmax:R.maxHp,psh:sh.maxShield,pshMax:sh.maxShield,guard:false,evadeUntil:-1,evadeCd:-1,evadeT:-9999,evadeDir:-1,
     parryLock:-1,atk:null,combo:0,maxCombo:0,hitstop:0,shake:0,parts:[],fxs:[],kFlash:0,kFlashCol:null,eFlash:0,kx:0,ex:0,swing:false,swingT:-9999,
     revived:R.revived,paused:false,idleDur:900,groggyEnd:0,parries:0,perfects:0,kPose:'idle',kPoseT:-9999,recoilFrom:0,deadT:0,orb:null,lastLabelT:{},
-    tune:cfg.tune,firstAtk:true,finishReady:false,finishBonus:false,kill:null,miniKill:null,fever:0,fvStreak:0,fvDash:-1e9,fvBashT:0,eRed:0,gTot:0,wallHitT:null,cam:0,camT:null,pendWhiff:0,mashGrace:0,bolts:[],pack:cfg.pack?cfg.pack.map(m=>Object.assign({},m)):null,packAtk:0,packKills:0,tapN:0,transformed:false,tfDone:false,lastBar:null,pStreak:0,stiffUntil:0,disarm:null,cutChain:false,despUsed:false,streakG:0,push:0,pushT:0,pushBack:false,slam:false,slams:0,orbFinal:null,orbBooms:0,lastParryT:-1e9,phase2:false,zoom:1,slowUntil:0,slowF:1,eHitT:-9999,pendingKO:false,walkT:-1});
+    tune:cfg.tune,firstAtk:true,finishReady:false,finishBonus:false,kill:null,miniKill:null,fever:0,fvStreak:0,fvDash:-1e9,fvBashT:0,eRed:0,gTot:0,wallHitT:null,cam:0,camT:null,pendWhiff:0,grab:null,jumpUntil:0,jumpT:-1e9,jumpCd:0,mashGrace:0,bolts:[],pack:cfg.pack?cfg.pack.map(m=>Object.assign({},m)):null,packAtk:0,packKills:0,tapN:0,transformed:false,tfDone:false,lastBar:null,pStreak:0,stiffUntil:0,disarm:null,cutChain:false,despUsed:false,streakG:0,push:0,pushT:0,pushBack:false,slam:false,slams:0,orbFinal:null,orbBooms:0,lastParryT:-1e9,phase2:false,zoom:1,slowUntil:0,slowF:1,eHitT:-9999,pendingKO:false,walkT:-1});
   $('#shell').hidden=true;$('#title').hidden=true;$('#battle').hidden=false;fx.innerHTML='';
   sizeArena();B.kx=B.kx0-34;B.ex=B.ex0+44;
   const roomNo=R.room+1;
@@ -1935,7 +1967,7 @@ function update(dt){
     case 'VICTORY':if(B.kill)killTick(t-B.kill.t0);break;
     case 'WALK':B.kx+=dt*.07;if(t-B.stT>900){B.active=false;cancelAnimationFrame(B.raf);advanceRoom()}return;
     case 'INTRO':B.ex=lerp(B.ex,EX(),Math.min(1,dt*.006));if(t-B.stT>B.introDur){setState('IDLE');B.idleDur=500}break;
-    case 'IDLE':B.ex=lerp(B.ex,EX(),Math.min(1,dt*.01));if(t-B.stT>B.idleDur)beginAttack();break;
+    case 'IDLE':B.ex=lerp(B.ex,EX(),Math.min(1,dt*.01));if(t-B.stT>B.idleDur&&!B.grab)beginAttack();break;
     case 'WINDUP':{const a=B.atk,n=a.notes[a.idx],toImp=a.impact-t;
       if(a.kind==='orb'||a.kind==='barrage'){B.ex=lerp(B.ex,EX(),Math.min(1,dt*.01));if(a.kind==='orb')orbTick(a,t)}
       else if(!B.E.ranged){const close=B.kx0+14+B.E.scale*4;
@@ -1945,7 +1977,7 @@ function update(dt){
       if(a.idx===0&&n.type!=='swipe'&&a.kind!=='feint'&&B.tune.cue)for(let k=B.tune.cue;k>=1;k--){const tt=a.impact-k*200;if(tt>=a.start&&t>=tt&&!(a.ticks&(1<<k))){a.ticks|=1<<k;sfx('tick',k);a.pulseT=t}}
       if(a.kind==='smash'&&!a.heavy&&t>=a.start+a.dur*.6){a.heavy=true;sfx('warn');vig('rgba(255,40,60,.75)',500);ftAt('늦었다! 좌우 회피!',B.kx,B.gy-44,'warn')}
       if(n.type==='hold')holdUpdate(n,t);
-      else if(!n.res&&t>=a.impact+(n.type==='swipe'?40:pWin().l+nearL()))resolveImpact();
+      else if(!n.res&&t>=a.impact+(n.type==='tap'?pWin().l+nearL():40))resolveImpact();
       break}
     case 'STRIKE':{const p=clamp((t-B.stT)/320,0,1);if(!B.E.ranged&&!(B.atk&&(B.atk.kind==='orb'||B.atk.kind==='barrage')))B.ex=lerp(B.kx0+14+B.E.scale*4,EX(),ease(p));if(t-B.stT>320)nextAfterAttack();break}
     case 'RECOIL':{const q=clamp((t-B.stT)/380,0,1);B.ex=lerp(B.recoilFrom,EX()+Math.min(6,pushMax()-B.push),ease(q));if(t-B.stT>380){if(B.stun>=100)enterGroggy();else nextAfterAttack()}break}
@@ -1960,6 +1992,7 @@ function update(dt){
       else if(e.charge>=0&&t-e.charge>1500)v2Execute();break}
     case 'WAKE':if(!B.atk.resolved&&t>=B.atk.impact)resolveShock();if(t-B.stT>B.atk.dur+450){setState('IDLE');B.idleDur=600}break;
   }
+  if(B.grab){B.ex=lerp(B.ex,B.kx0+12+B.E.scale*4,Math.min(1,dt*.02));if(t>=B.grab.until)grabEnd(false)}
   for(const p of B.parts){p.life-=dt;if(p.ring){p.r+=p.vr*dt}else{p.vy+=(p.g||0)*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.bounce&&p.y>B.gy-1){p.y=B.gy-1;p.vy*=-.45;p.vx*=.7}}}
   B.parts=B.parts.filter(p=>p.life>0);
   B.fxs=B.fxs.filter(f=>t-f.t0<f.dur);
@@ -1990,7 +2023,7 @@ function beginAttack(){
   let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?.88:1);if(ambush)lead=520;
   if(!(R&&R.prologue)&&!ambush)lead=alignBeat(Math.max(lead,P.notes.length>1||P.kind==='hold'?700:(P.lead&&P.lead<.7?420:560)));
   if(P.off)lead+=P.off*beat;
-  const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*beat,type:n.type,dur:(n.len||0)*beat,res:false,ghost:!!n.ghost}));
+  const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*beat,type:n.type,dur:(n.len||0)*beat,res:false,ghost:!!n.ghost,dir:n.dir||0,grab:!!n.grab}));
   B.atk={kind:P.kind,name,start:B.time,impact:notes[0].t,dur:lead,notes,idx:0,resolved:false,heavy:notes[0].type==='swipe',chainOk:true,holdOk:true,holdTick:0,ticks:0,pulseT:-9999,parried:0};
   B.atk.lesson=!!B.isLesson;B.isLesson=false;
   if(ambush){B.atk.ambush=true;ftAt('기습!',B.ex,B.gy-B.E.scale*16,'warn')}
@@ -1999,7 +2032,11 @@ function beginAttack(){
   if(P.kind==='barrage'){ftAt(B.disarm?(B.disarm.side<0?'◀ 왼쪽으로 회피해 방패를!':'오른쪽으로 회피해 방패를! ▶'):'탄막!',B.kx+10,B.gy-50,'warn')}
   if(P.kind==='smash'){B.atk.heavy=false;setState('WINDUP');sfx('warn');ftAt('몽둥이를 치켜든다! ↑ 밀쳐!',B.kx+6,B.gy-46,'info');vib(15);return}
   setState('WINDUP');
-  if(B.atk.heavy&&P.kind!=='barrage'){sfx('warn');ftAt('강공격! 회피!',B.kx,B.gy-44,'warn');vig('rgba(255,40,60,.75)',600);vib(15)}else sfx('windup');
+  const n0=notes[0];
+  if(B.atk.heavy&&P.kind!=='barrage'){sfx('warn');ftAt(n0.grab?'잡기! 회피!':n0.dir?(n0.dir<0?'◀ 휩쓸기! 왼쪽으로':'휩쓸기! 오른쪽으로 ▶'):'강공격! 회피!',B.kx,B.gy-44,'warn');vig(n0.grab?'rgba(255,155,47,.8)':'rgba(255,40,60,.75)',600);vib(15)}
+  else if(n0.type==='block'){sfx('warn');ftAt('짓누르기! 꾹 가드!',B.kx+10,B.gy-46,'info');vig('rgba(60,120,255,.8)',500);vib(15)}
+  else if(n0.type==='jump'){sfx('warn');ftAt('발밑 쓸기! ↑ 점프!',B.kx+10,B.gy-46,'info');vig('rgba(95,210,58,.75)',500);vib(15)}
+  else sfx('windup');
   if(notes.length>1)ftAt(`${P.kind==='rally'?'랠리':P.kind==='orb'?'마법 구체 랠리':'♪ '+notes.length+'연속'}!`,B.ex-4,B.gy-B.E.scale*26-8,'combo');
   if(P.kind==='hold'){ftAt('난타! 꾹 눌러 버텨!',B.kx+10,B.gy-46,'info');vig('rgba(80,170,255,.75)',500)}
 }
@@ -2074,12 +2111,13 @@ function onTap(){
   if(B.state==='EXEC'){if(B.exec&&B.exec.charge<0){B.exec.charge=B.time;sfx('windup');vib(10)}return}
   if(B.state==='TRANSFORM'){if(t-B.stT>600&&B.cineStep<5){if(!B.tfDone)transformHit();B.cineStep=4;cineSub('');B.stT=B.time-7900}return}
   if(B.state==='INTRO'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='WAKE')return;
+  if(B.grab){grabTap();return}
   if(feverOn()&&(B.state==='IDLE'||B.state==='RECOIL'||B.state==='STRIKE')){feverStrike(.7,'강타');return}
   if(t<B.parryLock)return;
   if(B.disarm){ftThrottle('방패가 없어! 방패 쪽으로 회피!',B.kx,B.gy-40,'warn');return}
   setKPose('parry');
   if(B.state==='WINDUP'&&!B.atk.resolved){const n=curNote();
-    if(n.type==='hold')return;
+    if(n.type==='hold'||n.type==='block'||n.type==='jump')return;
     if(n.type==='swipe'){B.parryLock=t+(midChain()?120:300);sfx('whiff');ftThrottle(B.atk.kind==='smash'&&!B.atk.heavy?'위로 스와이프해 밀쳐!':'막을 수 없어! 스와이프!',B.kx,B.gy-40,'warn');return}
     const w=pWin(),early=B.atk.impact-t;
     if(early<=w.e&&early>=-w.l){parrySuccess(early,w.e);return}
@@ -2162,7 +2200,14 @@ function witchBonus(){if(B.fx.evadeStun){const v=Math.round(B.fx.evadeStun);B.st
 function resolveImpact(){
   if(B.finalBlow){prologueKO();return}
   const a=B.atk,n=curNote();n.res=true;if(n.type==='tap')B.tapN++;const t=B.time,atk=B.st.atk*(a.kind==='desp'||a.kind==='fury'?.7:1),red=1-B.ar.dmgReduce;let ok=false;
-  if(t<B.evadeUntil){ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 리듬 패턴을 연습해 봐요')}}
+  if(n.type==='jump'){if(t<(B.jumpUntil||0)){ok=true;actOk('점프!','#d6ffc0',.4);sfx('evadeOk')}else hurt(atk*1.2*red,B.guard?'발밑을 쓸었다!':'↑ 점프했어야!')}
+  else if(n.type==='block'){if(B.guard&&B.psh>0){B.psh-=atk*.6*Math.max(.3,1-.55*cardN('grip'));
+      if(B.psh<=0){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 브레이크!')}
+      else{ok=true;actOk('철벽!','#bfe6ff',.5);sfx('guard',S.shStage);sfx('clang',true);domShake(1);barShake('#pShBar');ripple('#8fd0ff')}}
+    else hurt(atk*1.3*red,t<B.evadeUntil?'충격파는 못 피해! 꾹!':'짓눌렸다! 꾹 가드!')}
+  else if(t<B.evadeUntil&&n.dir&&B.evadeDir!==n.dir)hurt(atk*1.2*red,'반대쪽!');
+  else if(t<B.evadeUntil){ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
+  else if(n.grab)grabStart(atk*red);
   else if(n.type==='swipe'&&a.kind==='barrage')hurt(atk*.35*red,'피격!');
   else if(n.type==='swipe'){if(B.guard){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 붕괴!')}else hurt(atk*1.4*red)}
   else if(B.guard&&B.psh>0){B.psh-=atk*1.2*(1-Math.min(.6,(B.fx.guardDrain||0)/100))*Math.max(.3,1-.55*cardN('grip'));
@@ -2178,6 +2223,19 @@ function resolveImpact(){
   if(a.kind==='orb'&&!ok){a.resolved=true;ftAt('랠리 끊김',B.kx,B.gy-50,'warn');finishPattern(false);return}
   advanceNote(ok);
 }
+/* a special move landed (crush blocked, low sweep jumped) */
+function actOk(label,col,k){const[sx,sy]=shieldPos();B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*k);ftAt(label,B.kx+10,B.gy-40,'perfect');vib(15);
+  vig('rgba(140,220,255,.55)',300);burstParts(sx+2,sy,10,[col,'#ffffff'],.1,.0002,.3);if(!midChain())B.hitstop=Math.max(B.hitstop,60);B.shake=2}
+/* grab: caught knights mash taps to break free before the throw */
+function grabStart(dmg){hurt(dmg*.3,'잡혔다!');if(B.state==='DEFEAT'||B.state==='VICTORY')return;
+  B.grab={until:B.time+1700,need:6+Math.min(4,(R&&!R.prologue?R.idx:0)>>1),cnt:0,dmg:dmg*1.5,lastT:0};B.guard=false;
+  banner('잡혔다!','마구 탭해서 빠져나와요!');sfx('warn');vib([60,40,60]);vig('rgba(255,155,47,.8)',500)}
+function grabTap(){const g=B.grab,now=performance.now();if(now-g.lastT<60)return;g.lastT=now;g.cnt++;B.shake=2;sfx('hit');vib(8);setKPose('parry');
+  const[sx,sy]=shieldPos();burstParts(sx,sy,3,['#ffd23f','#ffffff'],.08,.0002,.2);if(g.cnt>=g.need)grabEnd(true)}
+function grabEnd(ok){const g=B.grab;if(!g)return;B.grab=null;
+  if(ok){ftAt('탈출!',B.kx+10,B.gy-44,'perfect');sfx('combo');flash('#ffffff',.4,200);zoom(1.06);B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.4);B.ex=EX();B.eFlash=80}
+  else{hurt(g.dmg,'내동댕이!');domShake(2)}
+  if(B.state==='IDLE'){B.stT=B.time;B.idleDur=500}}
 function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(450,900)*(B.idx<2?1.15:1.1-B.idx*.05)*(B.phase2?.75:1)}
 function enterGroggy(){
   B.gTot=0;B.finishBonus=false;
@@ -2230,13 +2288,13 @@ function resolveShock(){
 }
 function onSwipe(dir){
   if(!B.active||B.paused||B.finalBlow)return;
-  if(B.state==='GROGGY'||B.state==='VICTORY'||B.state==='DEFEAT')return;
+  if(B.state==='GROGGY'||B.state==='VICTORY'||B.state==='DEFEAT'||B.grab)return;
   B.pendWhiff=0;
   if(B.time<B.evadeCd||B.time<(B.stiffUntil||0))return;
   if(B.tutWait==='swipe')coachHide();
   B.evadeUntil=B.time+430;B.evadeCd=B.time+650;B.evadeT=B.time;B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
 }
-function setGuard(on){if(!B.active)return;if(on&&(B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
+function setGuard(on){if(!B.active)return;if(on&&(B.grab||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
   if(on&&!B.guard){sfx('guard',0);vib(10)}B.guard=on}
 function victory(){
   atkCue(false);B.fever=0;feverHud();
@@ -2351,6 +2409,10 @@ function drawUp(c,x,y,t){const b=Math.floor(t/90)%2;px(c,x-4,y+1,9,9,K);px(c,x-1
   px(c,x,y-2,1,11,col);px(c,x-1,y-1,3,1,col);px(c,x-2,y,5,1,col);px(c,x-3,y+1,7,1,col)}
 function drawGlint(c,x,y,ms){const on=ms<560?Math.floor(ms/90)%2===1:Math.floor(ms/200)%2===0;if(!on)return;const r=ms<560?6:4;
   px(c,x-r-1,y-1,r*2+3,3,K);px(c,x-1,y-r-1,3,r*2+3,K);px(c,x-r,y,r*2+1,1,'#ff3b4b');px(c,x,y-r,1,r*2+1,'#ff3b4b');px(c,x-1,y-1,3,3,'#ff3b4b');px(c,x,y,1,1,'#ffffff')}
+const BITS_ARR=['.....#...','.....##..','########.','#########','########.','.....##..','.....#...'],BITS_ARL=BITS_ARR.map(r=>[...r].reverse().join('')),
+  BITS_GRAB=['#.#.#..','#.#.#..','#####.#','######.','#####..','.###...'];
+function drawBits(c,x,y,rows,col,t){for(const[ox,oy]of[[-1,0],[1,0],[0,-1],[0,1]])rows.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')px(c,x+i+ox,y+j+oy,1,1,K)});
+  rows.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')px(c,x+i,y+j,1,1,j===0||Math.floor(t/120)%2&&j===1?'#ffffff':col)})}
 function drawHoldMark(c,x,y,t){const s=Math.floor(t/60)%2;px(c,x-6,y-1,13,7,K);px(c,x-5,y,11,5,s?'#4bb6ff':'#9ad8ff');px(c,x-1,y+1,3,3,'#ffffff')}
 /* rhythm lane along the ground: notes slide toward the knight's shield */
 function drawLane(c,t){
@@ -2365,10 +2427,12 @@ function drawLane(c,t){
     const x=Math.round(jx+dt*v),hidden=(a.kind==='feint'||n.ghost)&&dt>320;
     if(n.type==='hold'){const x2=Math.round(jx+(n.t+n.dur-t)*v);const xa=Math.max(jx,x);c.fillStyle=K;c.fillRect(xa-1,y-3,x2-xa+3,7);c.fillStyle='#4bb6ff';c.fillRect(xa,y-2,x2-xa+1,5);c.fillStyle='#bfe6ff';c.fillRect(xa,y-2,x2-xa+1,1);continue}
     if(x>B.W+4)continue;
-    const col=hidden?'#8a7fb8':n.type==='swipe'?'#ff4d5e':'#ffe14d';
+    const col=hidden?'#8a7fb8':n.grab?'#ff9b2f':n.type==='swipe'?'#ff4d5e':n.type==='block'?'#4bb6ff':n.type==='jump'?'#5fd23a':'#ffe14d';
     px(c,x-3,y-1,7,3,K);px(c,x-1,y-3,3,7,K);px(c,x-2,y-2,5,5,K);
     px(c,x-2,y,5,1,col);px(c,x-1,y-1,3,3,col);px(c,x,y-2,1,5,col);
-    if(n.type==='swipe'){px(c,x-1,y,1,1,'#fff');px(c,x+1,y,1,1,'#fff')}
+    if(n.type==='swipe'&&n.dir){px(c,x,y,1,1,'#fff');px(c,x+n.dir,y,1,1,'#fff');px(c,x+n.dir*2,y,1,1,'#fff')}
+    else if(n.type==='swipe'&&!n.grab){px(c,x-1,y,1,1,'#fff');px(c,x+1,y,1,1,'#fff')}
+    else if(n.type==='jump'){px(c,x,y-2,1,3,'#fff')}else if(n.type==='block'){px(c,x-1,y,3,1,'#fff')}
     if(hidden)px(c,x,y,1,1,'#ffffff')}
 }
 function draw(){
@@ -2413,7 +2477,10 @@ function draw(){
   if(B.state==='GROGGY')drawAttackMark(c,info,t);
   if(B.state==='OPEN'&&!B.open.real)drawGlint(c,B.ex-B.E.scale*2,info.top+B.E.scale*10,t-B.stT);
   if(B.state==='WINDUP'&&!B.atk.resolved){const a=B.atk;if(a.kind==='orb'||a.kind==='barrage'){}else if(a.kind==='feint'&&a.impact-t>a.dur*.16)drawQ(c,B.ex,Math.round(info.top-14),t);
-    else if(curNote().type==='hold')drawHoldMark(c,B.ex,Math.round(info.top-12),t);else if(a.kind==='smash'&&!a.heavy)drawUp(c,B.ex,Math.round(info.top-16),t);else drawBang(c,B.ex,Math.round(info.top-14),heavy,t)}
+    else if(curNote().grab)drawBits(c,B.ex-3,Math.round(info.top-16),BITS_GRAB,'#ff9b2f',t);
+    else if(curNote().dir)drawBits(c,B.ex-4+(Math.floor(t/90)%2)*curNote().dir,Math.round(info.top-15),curNote().dir<0?BITS_ARL:BITS_ARR,'#ff3b4b',t);
+    else if(curNote().type==='jump')drawUp(c,B.ex,Math.round(info.top-16),t);
+    else if(curNote().type==='hold'||curNote().type==='block')drawHoldMark(c,B.ex,Math.round(info.top-12),t);else if(a.kind==='smash'&&!a.heavy)drawUp(c,B.ex,Math.round(info.top-16),t);else drawBang(c,B.ex,Math.round(info.top-14),heavy,t)}
   if(B.state==='WAKE'&&!B.atk.resolved)drawBang(c,B.ex,Math.round(info.top-14),true,t);
   B.orb=null;
   drawOrb(c,t,gy);drawBarrage(c,t,gy);if(B.state==='TRANSFORM')drawBolts(c,t-B.stT,gy);
@@ -2422,7 +2489,7 @@ function draw(){
     px(c,Math.round(ox)-2,Math.round(oy)-2,5,5,K);px(c,Math.round(ox)-1,Math.round(oy)-1,3,3,col);px(c,Math.round(ox)-1,Math.round(oy)-1,1,1,'#fff')}}
   let kp='idle',kx=B.kx;const since=t-B.kPoseT;
   if(B.state==='DEFEAT'){kp='hurt'}
-  else if(t-B.evadeT<430){kp='evade';const q=(t-B.evadeT)/430;kx-=Math.sin(q*Math.PI)*16}
+  else if(t-B.evadeT<430){kp='evade';const q=(t-B.evadeT)/430;kx+=(B.evadeDir>0?1:-1)*Math.sin(q*Math.PI)*16}
   else if((B.state==='GROGGY'||B.state==='OPEN'||B.state==='EXEC'||B.state==='RECOIL'&&R&&R.v2)&&t-B.swingT<160){kp='attack';kx+=3}
   else if(B.state==='EXEC'&&B.exec&&B.exec.charge>=0)kp='guard';
   else if(B.state==='WALK')kp='walk';
@@ -2430,7 +2497,8 @@ function draw(){
   else if(B.kPose==='parry'&&since<200){kp='parry';kx+=since<80?2:0}
   if(B.state==='VICTORY')kp='idle';
   const kflash=B.kFlash>0&&Math.floor(B.kFlash/50)%2?B.kFlashCol:(B.state==='DEFEAT'?'#555066':null);
-  if(kp==='evade'){c.globalAlpha=.35;drawKnight(c,kx+8,gy,{t,...KV(),pose:'evade',flash:'#8fd0ff'});c.globalAlpha=.18;drawKnight(c,kx+14,gy,{t,...KV(),pose:'evade',flash:'#8fd0ff'});c.globalAlpha=1}
+  const ed=B.evadeDir>0?-1:1,jy=t-B.jumpT<430?Math.round(Math.sin((t-B.jumpT)/430*Math.PI)*14):0;if(B.grab)kx+=Math.round(rnd(-1,1));
+  if(kp==='evade'){c.globalAlpha=.35;drawKnight(c,kx+8*ed,gy,{t,...KV(),pose:'evade',flash:'#8fd0ff'});c.globalAlpha=.18;drawKnight(c,kx+14*ed,gy,{t,...KV(),pose:'evade',flash:'#8fd0ff'});c.globalAlpha=1}
   drawLooseShield(c,t);
   if(B.state!=='VICTORY'&&t-B.fvDash<200){const q=(t-B.fvDash)/200,reach=Math.max(0,B.ex-B.kx-B.E.scale*6-6)*Math.sin(q*Math.PI);
     c.globalAlpha=.35;drawKnight(c,kx+reach*.4,gy,{t,...KV(),pose:'attack',swing:B.swing,flash:'#ff9bd0'});c.globalAlpha=.6;drawKnight(c,kx+reach*.7,gy,{t,...KV(),pose:'attack',swing:B.swing,flash:'#ffd23f'});c.globalAlpha=1;
@@ -2439,7 +2507,9 @@ function draw(){
     for(const[ox,oy]of[[-1,0],[1,0],[0,-1],[0,1]])drawKnight(c,kx+ox,gy+oy,{t,...KV(),walk:kp==='walk',pose:kp==='walk'?'idle':kp,pp:since/200,swing:B.swing,flash:col});
     if(Math.random()<.5)B.parts.push({x:kx+rnd(-7,7),y:gy-rnd(0,24),vx:rnd(-.01,.01),vy:-rnd(.02,.05),life:rnd(300,500),col:cols[Math.floor(Math.random()*5)],sz:1})}
   if(B.state==='DEFEAT'){c.save();c.translate(Math.round(kx),gy);c.rotate(-1.4*clamp((t-B.stT)/300,0,1));drawKnight(c,0,0,{t,...KV(),pose:'hurt',flash:kflash});c.restore()}
-  else drawKnight(c,kx,gy,{t,...KV(),...(B.disarm?{s:null}:{}),walk:kp==='walk',pose:kp==='walk'?'idle':kp,pp:since/200,swing:B.swing,flash:kflash,raise:B.state==='VICTORY'});
+  else{if(jy){c.globalAlpha=.25;drawKnight(c,kx,gy-Math.round(jy*.5),{t,...KV(),pose:'idle',flash:'#d6ffc0'});c.globalAlpha=1}
+    drawKnight(c,kx,gy-jy,{t,...KV(),...(B.disarm?{s:null}:{}),walk:kp==='walk',pose:kp==='walk'?'idle':kp,pp:since/200,swing:B.swing,flash:B.grab&&Math.floor(t/90)%2?'#ff9b2f':kflash,raise:B.state==='VICTORY'})}
+  if(B.grab){const g=B.grab,w=22,x=Math.round(B.kx-w/2+4),y=gy-42;px(c,x-1,y-1,w+2,6,K);px(c,x,y,Math.round(w*g.cnt/g.need),3,'#ffd23f');px(c,x,y+3,Math.round(w*clamp((g.until-t)/1700,0,1)),1,'#ff9b2f')}
   if(B.guard){const[sx,sy]=shieldPos();pixCircle(c,sx+1,sy,9+Math.sin(t/80),'rgba(120,200,255,.75)');pixCircle(c,sx+1,sy,11+Math.sin(t/80),'rgba(120,200,255,.3)')}
   if(B.state==='WINDUP'&&!B.atk.resolved&&curNote().type==='tap'&&!(B.atk.kind==='feint'&&B.atk.impact-t>B.atk.dur*.3)&&!(curNote().ghost&&B.atk.impact-t>320)){const[sx,sy]=shieldPos();const toImp=B.atk.impact-t,w=pWin(),k=28/B.atk.dur;
     const r=Math.max(5,5+toImp*k),zr=5+w.e*k,inWin=toImp<=w.e,pulse=t-B.atk.pulseT<110;c.globalAlpha=B.tune.guide;
@@ -2491,7 +2561,13 @@ function updHud(){
   hud.pSh.style.width=(100*B.psh/B.pshMax)+'%';hud.pShTxt.textContent=(R&&R.v2?'스태미나 ':'실드 ')+Math.round(B.psh);hud.pShBar.classList.toggle('low',B.psh<B.pshMax*.25);
   hud.comboN.textContent=B.combo;
   let mode='',label='패링',sub='TAP',hint='탭: 패링 · 꾹: 가드 · 좌우 스와이프: 회피';
-  if(B.disarm&&B.state!=='GROGGY'){mode='warn';label=B.disarm.side<0?'◀ 회피':'회피 ▶';sub=`방패 ${B.disarm.steps}/${B.disarm.need}`;hint=`방패를 놓쳤다! ${B.disarm.side<0?'왼쪽':'오른쪽'}으로 회피하며 방패를 주워요`}
+  const cn=B.state==='WINDUP'&&B.atk&&!B.atk.resolved?curNote():null;
+  if(B.grab){mode='groggy';label='탈출!!';sub=`${B.grab.cnt}/${B.grab.need}`;hint='붙잡혔다! 마구 탭해서 빠져나와요'}
+  else if(cn&&cn.grab){mode='warn';label='◀ 회피 ▶';sub='GRAB';hint='잡기! 가드하면 붙잡혀요 · 좌우로 회피'}
+  else if(cn&&cn.dir){mode='warn';label=cn.dir<0?'◀◀ 회피':'회피 ▶▶';sub='SWIPE';hint=`휩쓸기! ${cn.dir<0?'왼쪽':'오른쪽'}으로만 피할 수 있어요`}
+  else if(cn&&cn.type==='jump'){mode='guard';label='↑ 점프';sub='SWIPE UP';hint='발밑을 쓸어요! 위로 스와이프해 점프'}
+  else if(cn&&cn.type==='block'){mode='guard';label=B.guard?'버텨!!':'꾹!';sub='HOLD';hint='짓누르기! 패링·회피 불가 · 미리 꾹 눌러 가드'}
+  else if(B.disarm&&B.state!=='GROGGY'){mode='warn';label=B.disarm.side<0?'◀ 회피':'회피 ▶';sub=`방패 ${B.disarm.steps}/${B.disarm.need}`;hint=`방패를 놓쳤다! ${B.disarm.side<0?'왼쪽':'오른쪽'}으로 회피하며 방패를 주워요`}
   else if(B.state==='GROGGY'){mode='groggy';label='연타!!';sub='마구 탭하세요';hint='적이 기절했다! 방패로 마구 내려쳐라!'}
   else if(B.state==='OPEN'){mode='groggy';label='강타!?';sub='TAP';hint='★ 별이 돌면 진짜 빈틈 · 눈이 빨갛게 번뜩이면 함정 (참기)'}
   else if(B.state==='EXEC'){mode='groggy';label=B.exec&&B.exec.charge>=0?'놓기!':'꾹!';sub='처형';hint='꾹 눌러 힘을 모으고, 원이 금색 구역에 오면 손을 떼요'}
@@ -2900,12 +2976,13 @@ const TUT={
   5:{tag:'튜토리얼 6/6 · 회피',text:'<b class="r">빨갛게 빛나는 공격</b>은 방패로 막을 수 없어요!<br>버튼을 <b>좌우로 밀어서</b> 피하세요.',target:'pad',wait:'swipe'},
   6:{tag:'마지막 · 기절',text:'패링을 계속 성공하면 적이 지쳐서 <b>기절</b>해요.<br>지금이에요! 버튼을 <b>마구 연타!</b>',target:'pad',wait:'tapgo'},
 };
-const LESSONS=['chain3','dotted','ghost3','mix','longnote','gallop'];
+const LESSONS=['crush','sweep2','lowsweep','grab'],
+  LESSON_HOW={crush:'공격이 오기 <b>전에 미리 꾹</b> 눌러 두세요',sweep2:'노트의 <b>화살표 방향</b>으로 스와이프!',lowsweep:'버튼을 <b>위로 밀어</b> 점프!',grab:'좌우로 피해요 · 잡히면 <b>마구 연타</b>로 탈출!'};
 function lessonShow(i){
   const k=LESSONS[i];B.tutWait='lesson';B.tutFreeze=true;
   const el=$('#coach');el.hidden=false;el.classList.remove('soft');$('#cNext').hidden=true;
-  $('#cStep').textContent=`패턴 연습 ${i+1}/${LESSONS.length} · ${PAT_INFO[k][0]}`;
-  $('#cText').innerHTML=`${patSvg(k,240)}${PAT_INFO[k][2]}<br><small style="opacity:.8">노트가 흰 원에 닿는 박에 맞춰요 · 준비되면 <b>탭!</b></small>`;
+  $('#cStep').textContent=`특수 공격 ${i+1}/${LESSONS.length} · ${PAT_INFO[k][0]}`;
+  $('#cText').innerHTML=`${patSvg(k,240)}${PAT_INFO[k][2]}<br><b class="y">${LESSON_HOW[k]}</b><br><small style="opacity:.8">준비되면 <b>탭!</b></small>`;
   $('#cHole').style.width='0';$('#cArrow').style.left='-99px';$('#cBox').style.top='96px';sfx('ui');
 }
 function coachShow(step){
@@ -3289,7 +3366,10 @@ function v2Bash(){
   if(B.stun>=100)enterBreak();
 }
 function onSwipeUp(){
-  if(!B.active||B.paused||!(R&&R.v2))return;
+  if(!B.active||B.paused)return;
+  if(!(R&&R.v2)){if(B.finalBlow||B.grab||B.state==='GROGGY'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='TRANSFORM')return;B.pendWhiff=0;
+    if(B.time<(B.jumpCd||0)||B.time<(B.stiffUntil||0))return;
+    B.jumpUntil=B.time+430;B.jumpT=B.time;B.jumpCd=B.time+560;B.guard=false;sfx('dash');return}
   const a=B.atk,t=B.time;
   if(B.state==='WINDUP'&&a&&!a.resolved&&a.kind==='smash'&&!a.heavy){
     a.resolved=true;curNote().res=true;B.v2Stats.shove++;B.stun=Math.min(100,B.stun+30);B.v2PostT=t;B.ex=B.ex0+14;
