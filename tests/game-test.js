@@ -406,7 +406,7 @@ const BOT = `(()=>{
       if (!sawSil) return 'no silhouette walk-in'; if (B.state !== 'IDLE') return 'fight did not start after the entrance (' + B.state + ')';
       if (document.querySelector('#cine').classList.contains('on')) return 'letterbox stayed on';
       let w = 0; while (B.state !== 'WINDUP' && w++ < 300) __tick(16); if (B.state !== 'WINDUP') return 'boss never attacked after the entrance';
-      endBattle(); startRun(21); R.room = 4; startFight(roomCfg(21, 'boss'), false); if (B.state !== 'BOSSIN' || document.querySelector('#cine .bwarn')) return 'keeper should get the short entrance';
+      endBattle(); startRun(21); R.room = 4; startFight(roomCfg(21, 'boss'), false); if (B.state !== 'BOSSIN' || !document.querySelector('#cine .bwarn.keeper')) return 'keeper should get the warning entrance too';
       for (let i = 0; i < 40; i++) __tick(16); onTap(); __tick(16); if (B.state !== 'IDLE') return 'tap did not skip the entrance';
       endBattle(); startRun(24); R.room = 1; startFight(roomCfg(24, 'min'), false); if (B.state === 'BOSSIN') return 'minion got a boss entrance';
       endBattle(); window.__noBossIntro = true; return __errors.length ? 'error: ' + __errors[0] : null; } },

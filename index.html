@@ -526,6 +526,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 /* boss entrance */
 #cine .bwarn{position:absolute;left:0;right:0;top:30%;height:46px;overflow:hidden;background:repeating-linear-gradient(-45deg,#ff2b3b 0 14px,#3a0010 14px 28px);
   border-top:3px solid #ffd23f;border-bottom:3px solid #ffd23f;animation:bwin .25s ease-out,bwout .3s ease-in 1.3s forwards;box-shadow:0 0 24px rgba(255,40,60,.8)}
+#cine .bwarn.keeper{background:repeating-linear-gradient(-45deg,#ff9b2f 0 14px,#3a1a00 14px 28px)}
 #cine .bwarn i{position:absolute;top:50%;left:0;transform:translateY(-50%);white-space:nowrap;font-style:normal;font-family:var(--f-display);font-size:26px;color:#fff;letter-spacing:4px;
   text-shadow:0 2px 0 #3a0010,2px 0 0 #3a0010,-2px 0 0 #3a0010;animation:bscroll 1.6s linear infinite}
 @keyframes bwin{from{transform:scaleY(0)}}@keyframes bwout{to{transform:scaleY(0);opacity:0}}@keyframes bscroll{from{transform:translate(0,-50%)}to{transform:translate(-50%,-50%)}}
@@ -3991,11 +3992,11 @@ function atkCue(on){const c=document.getElementById('atkcue');if(!c)return;if(!o
 function cineSub(html){const c=$('#cineSub');if(!html){c.classList.remove('show');return}c.innerHTML=html;c.classList.remove('show');void c.offsetWidth;c.classList.add('show')}
 function cineText(html){const c=$('#cineText');if(!html){c.classList.remove('show');return}c.innerHTML=html;c.classList.remove('show');void c.offsetWidth;c.classList.add('show')}
 /* boss entrance: warning siren → camera on a black silhouette stomping in → flash, roar and a name card. Keepers get a short cut. Tap skips. */
-function bossInStart(cfg){const st=STAGES[B.idx]||{},big=!!st.boss;
-  B.bossIn={big,t0:B.time,len:big?4600:2500,rev:big?2500:900,walk0:big?1100:150,step:0,x0:EX()+70,shown:false};B.bossInCfg=cfg;
+function bossInStart(cfg){const st=STAGES[B.idx]||{},big=true,real=!!st.boss;
+  B.bossIn={big,real,t0:B.time,len:real?4600:4000,rev:real?2500:2200,walk0:real?1100:1000,step:0,x0:EX()+70,shown:false};B.bossInCfg=cfg;
   setState('BOSSIN');B.ex=B.bossIn.x0;B.kx=B.kx0;$('#banner').classList.remove('show');
   const ci=$('#cine');ci.classList.add('on','bossin');B.camT=null;B.cam=0;
-  if(big){ci.insertAdjacentHTML('beforeend','<div class="bwarn"><i>⚠ WARNING ⚠ BOSS ⚠ WARNING ⚠ BOSS ⚠ WARNING ⚠ BOSS ⚠ WARNING ⚠ BOSS ⚠</i></div>');sfx('warn');vib([40,60,40])}}
+  {const w=real?'⚠ WARNING ⚠ BOSS ':'⚠ WARNING ⚠ 수문장 ';ci.insertAdjacentHTML('beforeend',`<div class="bwarn${real?'':' keeper'}"><i>${w.repeat(5)}⚠</i></div>`);sfx('warn');vib([40,60,40])}}
 function bossInTick(e){const b=B.bossIn;if(!b)return;
   if(e>=1500&&!b.wOff){b.wOff=true;$('#cine').querySelectorAll('.bwarn').forEach(x=>x.remove())}
   if(b.big&&b.step<1&&e>=350){b.step=1;sfx('warn')}if(b.big&&b.step<2&&e>=800){b.step=2;sfx('warn')}
