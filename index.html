@@ -352,6 +352,15 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .cgauge i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#b45cff,#ffd23f);transition:width .15s}
 .cgauge span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#fff;text-shadow:0 1px 0 #000}
 .cgauge.ready{animation:flash .4s infinite;border-color:#ffd23f}
+.gauges{display:flex;gap:4px;align-self:center;width:86%;margin:-1px 0 1px}
+.gauges .cgauge{flex:none;width:30%;margin:0;align-self:auto}.gauges .cgauge span{font-size:10px}
+.fgauge{position:relative;flex:1;height:16px;border-radius:6px;border:2px solid var(--edge);background:#140d2e;overflow:hidden}
+.fgauge i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff3b5c,#ff9b2f,#ffd23f);transition:width .15s}
+.fgauge span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#fff;text-shadow:0 1px 0 #000;font-family:var(--f-display)}
+.fgauge.ready{border-color:#fff;box-shadow:0 0 10px #ff9bd0}
+.fgauge.ready i{background:linear-gradient(90deg,#ff3b5c,#ff9b2f,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c);background-size:200% 100%;animation:fvbg 1s linear infinite}
+.pad.fever .padbtn{background:conic-gradient(from var(--fa,0deg),#ff3b5c,#ff9b2f,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c)!important;animation:fvspin .8s linear infinite}
+.pad.fever .padbtn span{color:#fff;text-shadow:0 3px 0 #3a0a30,2px 0 0 #3a0a30,-2px 0 0 #3a0a30}.pad.fever .padbtn small{color:#fff;text-shadow:0 1px 0 #3a0a30}
 .runmap{flex:1;display:flex;align-items:center;justify-content:center;gap:0;pointer-events:none}
 .runmap i{width:24px;height:24px;border-radius:50%;border:2px solid var(--edge);background:#2a2160;display:grid;place-items:center;opacity:.55}
 .runmap i img{width:15px;height:15px}
@@ -740,7 +749,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
       <div id="cine"><i class="lb t"></i><i class="lb b"></i><div class="ct" id="cineText"></div><div class="csub" id="cineSub"></div><div class="cskip">탭하면 건너뛰기</div></div>
       <div class="bhud gut">
         <div class="bh-row"><div class="bh-stage ol" id="bStage">1-1</div><div class="runmap" id="runMap"></div><button class="pausebtn" id="pauseBtn" aria-label="일시정지"><i></i><i></i></button></div>
-        <div class="cgauge" id="cGauge" hidden><i id="cGaugeFill"></i><span id="cGaugeTxt">카드</span></div>
+        <div class="gauges"><div class="fgauge" id="fGauge" hidden><i id="fGaugeFill"></i><span id="fGaugeTxt">피버 게이지</span></div><div class="cgauge" id="cGauge" hidden><i id="cGaugeFill"></i><span id="cGaugeTxt">카드</span></div></div>
         <div class="ebar">
           <div class="en-row"><div class="en-name ol" id="eName"></div><span class="phase ol" id="ePhase" hidden></span></div>
           <div class="hprow"><div class="bar hp"><b class="under" id="eHpUnder"></b><i id="eHp"></i><span id="eHpTxt"></span></div><em class="bars ol" id="eBars" hidden>x20</em></div>
@@ -1118,7 +1127,7 @@ function cgAdd(v,label){
 }
 function cgDraw(){const el=document.getElementById('cGauge');if(!el)return;if(!cgOn()){el.hidden=true;return}el.hidden=false;
   document.getElementById('cGaugeFill').style.width=Math.min(100,100*(R.cg||0)/cgNeed())+'%';
-  document.getElementById('cGaugeTxt').textContent=R.cgReady?`카드 ${R.cgReady}장 준비! · 관문 돌파 시 선택`:`카드 게이지 ${Math.floor(100*(R.cg||0)/cgNeed())}%`;el.classList.toggle('ready',!!R.cgReady)}
+  document.getElementById('cGaugeTxt').textContent=R.cgReady?`카드 ${R.cgReady}장!`:`카드 ${Math.floor(100*(R.cg||0)/cgNeed())}%`;el.classList.toggle('ready',!!R.cgReady)}
 const HEROES_LEFT=Array.from({length:101},(_,i)=>i>=99?1:Math.max(1,Math.round(128*Math.pow(1-i/100,1.7))));
 const HERO_NAMES=['번개검 카일','불꽃 마법사 루나','황금창 레온','은빛 궁수 세라','대검사 발터','성기사 아이린','쌍검 제이크','폭풍 드루이드 미아','용병왕 그라함','천재 검사 유리'];
 
@@ -2064,7 +2073,7 @@ function helpModal(onClose){
   <div class="ctl"><div class="k btn g">↑</div><p><b>점프</b> — <span style="color:#8fe86a">초록 노트(발밑 쓸기)</span>는 위로 스와이프해서 뛰어넘어요.</p></div>
   <div class="ctl"><div class="k btn y" style="background:linear-gradient(#ffe0b0,#ff9b2f)">잡기</div><p><b>잡기</b> — <span style="color:#ffb35a">주황 노트</span>는 가드하면 붙잡혀요. 좌우로 피하거나, 잡히면 마구 연타해서 탈출!</p></div>
   <div class="ctl"><div class="k btn y" style="background:linear-gradient(#fff,#ff9b2f 50%,#e0283f)">연타</div><p><b>기절</b> — 피로도가 가득 차면 「지금 공격!!」 마구 연타! 게이지는 시간과 피해 여유만큼 줄어요.</p></div>
-  <div class="ctl"><div class="k btn y" style="background:conic-gradient(#ff3b5c,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c)">FEVER</div><p><b>피버</b> — 맞지 않고 8연속 패링(콤보 아래 8칸)! 8초 동안 패링하면 자동 반격, 빈 틈에 탭하면 강타.</p></div>
+  <div class="ctl"><div class="k btn y" style="background:conic-gradient(#ff3b5c,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c)">FEVER</div><p><b>피버(필살기)</b> — 패링할수록 위쪽 피버 게이지가 차요(콤보가 높을수록 빨리). 가득 차면 버튼이 무지개색으로 바뀌고, 탭하면 4.5초 동안 자동 연속 공격! 그동안 적은 반격하지 못해요. 게이지는 원정 내내 유지돼요.</p></div>
   <div class="ctl"><div class="k btn y">♪</div><p><b>특수 패턴</b> — 바닥의 노트를 보세요. <b style="color:#ffe14d">노랑</b>=탭, <b style="color:#ff8a8a">빨강</b>=스와이프, <b style="color:#9ad8ff">파랑</b>=꾹. 연속 패링을 전부 성공하면 <b>PERFECT CHAIN</b>! 보라색 <b>?</b>는 페이크.</p></div>
   <div class="ctl"><div class="k btn g">지형</div><p><b>지형 · 몬스터 특성</b> — 챕터마다 땅이 공격해요(낙석·용암·번개…). 몬스터마다 특성이 있어요(재생·독·부활·빙결…). 로비의 스테이지 정보에서 미리 확인!</p></div>
   <p style="font-size:12px">키보드: 스페이스(탭·꾹) · ← → (회피) · ↑ (점프)</p>
@@ -2547,6 +2556,7 @@ function update(dt){
     case 'RECOIL':{const q=clamp((t-B.stT)/300,0,1);B.ex=lerp(B.recoilFrom,EX()+Math.min(6,pushMax()-B.push),ease(q));if(t-B.stT>300){if(B.stun>=100)enterGroggy();else nextAfterAttack()}break}
     case 'GROGGY':B.ex=lerp(B.ex,EX()+Math.min(2,pushMax()-B.push),Math.min(1,dt*.01));if(t>=B.groggyEnd)endGroggy();break;
     case 'BOSSIN':bossInTick(t-B.stT);break;
+    case 'FEVER':feverTick(t);break;
     case 'TRANSFORM':B.ex=lerp(B.ex,EX(),Math.min(1,dt*.01));
       if(t-B.stT>2700&&t-B.stT<7900&&Math.random()<dt*.09)B.parts.push({x:B.ex+rnd(-B.E.scale*6,B.E.scale*6),y:B.gy-rnd(0,B.E.scale*20),vx:0,vy:-rnd(.02,.06),life:rnd(400,700),col:Math.random()<.5?'#ff2b5c':'#3a0018',sz:2});
       cineTick(t-B.stT);
@@ -2682,9 +2692,10 @@ function onTap(){
   if(B.state==='EXEC'){if(B.exec&&B.exec.charge<0){B.exec.charge=B.time;sfx('windup');vib(10)}return}
   if(B.state==='TRANSFORM'){if(t-B.stT>600&&B.cineStep<5){if(!B.tfDone)transformHit();B.cineStep=4;cineSub('');B.stT=B.time-7900}return}
   if(B.state==='BOSSIN'){if(t-B.stT>400)bossInEnd();return}
+  if(B.state==='FEVER'){feverStrike(.6,'추가');return}
+  if(fvReady()&&!B.disarm&&['IDLE','WINDUP','RECOIL','STRIKE','GROGGY'].includes(B.state)&&feverStart())return;
   if(B.state==='INTRO'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='WAKE')return;
   if(B.grab){grabTap();return}
-  if(feverOn()&&(B.state==='IDLE'||B.state==='RECOIL'||B.state==='STRIKE')){feverStrike(.7,'강타');return}
   if(t<B.parryLock)return;
   if(B.disarm){ftThrottle('방패가 없어! 방패 쪽으로 회피!',B.kx,B.gy-40,'warn');return}
   setKPose('parry');
@@ -2743,7 +2754,7 @@ function parrySuccess(early,win){
   if(perfect&&cardN('perfHeal')&&B.php<B.pmax){const h=5*cardN('perfHeal');B.php=Math.min(B.pmax,B.php+h)}
   if(perfect&&B.fx.perfectChip){for(let i=0;i<8;i++)B.parts.push({x:sx,y:sy,vx:rnd(.1,.18),vy:rnd(-.06,.02),g:.0001,life:300,col:'#efe8d6',sz:2});chip(B.wp.groggyTapDamage*B.fx.perfectChip,'반격')}
   if(R&&R.vault){B.vChain++;vCoin((perfect?2:1)*vMul(),sx,sy-10)}
-  B.lastParryT=B.time;if(B.finishReady){B.finishNotes++;if(!perfect)B.finishPerfect=false}cgAdd(perfect?6:3);const wasFever=feverOn();feverParry();if(wasFever)feverStrike(perfect?3:2,'반격');if(a.kind!=='orb')pushAdd(perfect?2.5:1.5);parryGold(sx,sy);
+  B.lastParryT=B.time;if(B.finishReady){B.finishNotes++;if(!perfect)B.finishPerfect=false}cgAdd(perfect?6:3);feverParry(perfect);if(a.kind!=='orb')pushAdd(perfect?2.5:1.5);parryGold(sx,sy);
   if(R&&R.v2){a.lastPerfect=perfect;B.v2PostT=B.time;B.psh=Math.min(B.pshMax,B.psh+B.pshMax*(perfect?.2:.1))}
   if(a.kind==='desp'||a.kind==='fury'){zoom(1.08+a.idx*.04);domShake(1+a.idx);if(a.idx===a.notes.length-1)slow(500,.2)}
   comboPop();milestone();advanceNote(true);
@@ -2863,13 +2874,13 @@ function resolveShock(){
 }
 function onSwipe(dir){
   if(!B.active||B.paused||B.finalBlow)return;
-  if(B.state==='GROGGY'||B.state==='VICTORY'||B.state==='DEFEAT'||B.grab)return;
+  if(B.state==='GROGGY'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='FEVER'||B.grab)return;
   B.pendWhiff=0;
   if(B.time<B.evadeCd||B.time<(B.stiffUntil||0))return;
   if(B.tutWait==='swipe')coachHide();
   B.evadeUntil=B.time+430;B.evadeCd=B.time+650+(B.hz==='mud'?150:0);B.evadeT=B.time;B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
 }
-function setGuard(on){if(!B.active)return;if(on&&B.pendWhiff){B.pendWhiff=0}if(on&&(B.grab||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
+function setGuard(on){if(!B.active)return;if(on&&B.pendWhiff){B.pendWhiff=0}if(on&&(B.grab||B.state==='FEVER'||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
   if(on&&!B.guard){sfx('guard',0);vib(10)}B.guard=on}
 function victory(){
   if(reviveCheck())return;
@@ -2926,30 +2937,42 @@ function drawKillOverlay(c,e){
   // vignette while the camera is in
   if(e<640){const v=e<380?1:1-(e-380)/260;c.fillStyle=`rgba(0,0,0,${.35*v})`;c.fillRect(0,0,W,6);c.fillRect(0,H-6,W,6)}
 }
-/* FEVER: 8 clean parries in a row → 8 s where stagger never drains, fills 1.5×, stuns last longer and hit harder */
-const FEVER_NEED=8,FEVER_MS=8000;
-const feverOn=()=>B.fever>B.time;
-const feverAllowed=()=>!(R&&(R.rhythm||R.prologue||R.trial||R.vault));
-function feverParry(){if(!feverAllowed())return;B.fvStreak++;
-  if(!feverOn()&&B.fvStreak>=FEVER_NEED){B.fvStreak=0;B.fever=B.time+FEVER_MS;banner('FEVER!!','패링하면 자동 반격 · 빈 틈에 탭하면 강타!');sfx('combo');sfx('clang',true);flash('#ff9bd0',.7,320);slow(380,.3);zoom(1.15);domShake(2);vib([30,30,30,30,80]);Music.hype=true;Music.rate=Math.max(Music.rate,1.08);
-    B.parts.push({ring:true,x:B.kx,y:B.gy-14,r:4,vr:.16,life:520,col:'#ff5bb5'},{ring:true,x:B.kx,y:B.gy-14,r:2,vr:.1,life:420,col:'#ffd23f'});burstParts(B.kx,B.gy-14,30,['#ff5bb5','#ffd23f','#4fb8ff','#5fd23a'],.16,.0002,.45);feverHud()}
-  else if(!feverOn()&&B.fvStreak>=FEVER_NEED-3)ftThrottle(`피버까지 ${FEVER_NEED-B.fvStreak}`,B.kx,B.gy-52,'info');
-  fvMeter()}
+/* FEVER = special move. Parries fill a run-wide gauge (faster at a high combo) — about once per expedition, around the boss gate.
+   Full gauge: the pad turns rainbow; one tap unleashes ~4.5 s of automatic rapid strikes while the enemy can only take it. */
+const FV_NEED=140,FEVER_MS=4500;
+const feverOn=()=>B.state==='FEVER'&&B.fever>B.time;
+const feverAllowed=()=>!(R&&(R.rhythm||R.prologue||R.trial||R.vault||R.v2));
+const fvReady=()=>!!(B.active&&R&&feverAllowed()&&(R.fv||0)>=FV_NEED&&!feverOn());
+function feverParry(perfect){if(!R||!feverAllowed()||feverOn())return;const was=fvReady();
+  R.fv=Math.min(FV_NEED,(R.fv||0)+(perfect?1.5:1)*(1+Math.min(B.combo,30)/30));
+  if(!was&&fvReady()){banner('FEVER 준비!','버튼을 탭하면 필살 연속 공격!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200)}fvMeter()}
+function feverStart(){if(!fvReady())return false;R.fv=0;
+  if(B.atk&&!B.atk.resolved){B.atk.resolved=true;B.atk.notes.forEach(n=>n.res=true)}B.guard=false;B.pendWhiff=0;B.grab=null;B.finishReady=false;B.cutChain=false;
+  setState('FEVER');B.fever=B.time+FEVER_MS;B.fvNext=B.time+260;B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?.3:.5);
+  banner('FEVER!!','필살 연속 공격!');sfx('combo');sfx('clang',true);flash('#ff9bd0',.7,320);zoom(1.15);domShake(2);vib([30,30,30,30,80]);Music.hype=true;Music.rate=Math.max(Music.rate,1.08);
+  B.parts.push({ring:true,x:B.kx,y:B.gy-14,r:4,vr:.16,life:520,col:'#ff5bb5'},{ring:true,x:B.kx,y:B.gy-14,r:2,vr:.1,life:420,col:'#ffd23f'});burstParts(B.kx,B.gy-14,30,['#ff5bb5','#ffd23f','#4fb8ff','#5fd23a'],.16,.0002,.45);
+  feverHud();return true}
+function feverTick(t){B.ex=lerp(B.ex,EX()+3,.2);if(t>=B.fever){feverEnd();return}
+  if(t>=B.fvNext){B.fvNext=t+85;B.fvHits++;const big=B.fvHits%7===0;feverStrike(big?2.2:1.1,big?'강타':'');if(B.fvHits%3===0)fvMeter()}}
+function feverEnd(){B.fever=0;Music.hype=false;Music.rate=B.phase2?1.12:1;
+  if(B.state==='FEVER'){if(B.fvDmg>0)ftAt(`FEVER 피해 ${fmt(Math.round(B.fvDmg))}`,B.W/2,B.H*.34,'combo');setState('IDLE');B.idleDur=500}feverHud()}
 function feverStrike(mult,label){
-  const now=performance.now();if(label==='강타'){if(now-(B.fvBashT||0)<140)return;B.fvBashT=now}
-  const d=Math.max(1,Math.round(B.wp.groggyTapDamage*mult*rnd(.9,1.15)));B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;B.eFlash=90;B.eRed=90;
+  const now=performance.now();if(label==='추가'){if(now-(B.fvBashT||0)<70)return;B.fvBashT=now}
+  let d=Math.max(1,Math.round(B.wp.groggyTapDamage*mult*rnd(.9,1.15)));if(B.fvCap!=null){if(B.fvDmg>=B.fvCap)d=Math.max(1,Math.round(d*.15));B.fvDmg+=d}
+  B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;B.eFlash=90;B.eRed=90;
   B.fvDash=B.time;B.swing=!B.swing;B.swingT=B.time;setKPose('attack');padHit();
   const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;
   addFx('slash',hx,hy,{len:14,ang:B.swing?-.75:.75+Math.PI,dur:140});addFx('pow',hx,hy,{r:8+mult*3,dur:150});
   for(let i=0;i<(4+mult*2);i++)B.parts.push({x:hx,y:hy,vx:rnd(.02,.14),vy:rnd(-.14,-.03),g:.0005,life:rnd(350,600),col:`hsl(${Math.floor(Math.random()*6)*60},100%,70%)`,sz:Math.random()<.5?2:1,bounce:true});
-  ftAt((mult>1?label+' ':'')+d,hx+rnd(-8,8),hy+rnd(-12,0),'fev');sfx(mult>1?'crit':'hit',S.shStage,B.combo);vib(mult>1?[25]:10);B.shake=Math.max(B.shake,mult>1?3:1.5);
+  ftAt((mult>1.5?label+' ':'')+d,hx+rnd(-8,8),hy+rnd(-12,0),'fev');sfx(mult>1.5?'crit':'hit',S.shStage,B.combo);vib(mult>1.5?[25]:10);B.shake=Math.max(B.shake,mult>1.5?3:1.5);
   B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);comboPop();
-  if(B.ehp<=0)B.pendingKO=true;
+  if(B.ehp<=0){B.pendingKO=true;B.fever=0}
 }
-function feverBreak(){if(B.fvStreak>2&&!feverOn())ftThrottle('콤보 끊김',B.kx,B.gy-52,'warn');B.fvStreak=0;fvMeter()}
-function fvMeter(){const m=document.getElementById('fvMeter');if(!m)return;if(!B.active||!feverAllowed()||(R&&R.vault)){m.innerHTML='';return}
-  if(feverOn()){m.className='fvm full';m.innerHTML=`<b style="width:${100*clamp((B.fever-B.time)/FEVER_MS,0,1)}%"></b>`;return}
-  m.className='fvm';m.innerHTML=Array.from({length:FEVER_NEED},(_,i)=>`<i class="${i<B.fvStreak?'on':''}"></i>`).join('')}
+function feverBreak(){}
+function fvMeter(){const m=document.getElementById('fvMeter');if(m)m.innerHTML='';const g=document.getElementById('fGauge');if(!g)return;
+  const on=B.active&&R&&feverAllowed();g.hidden=!on;if(!on)return;const live=feverOn(),f=live?clamp((B.fever-B.time)/FEVER_MS,0,1):clamp((R.fv||0)/FV_NEED,0,1);
+  document.getElementById('fGaugeFill').style.width=f*100+'%';g.classList.toggle('ready',live||fvReady());
+  document.getElementById('fGaugeTxt').textContent=live?`FEVER!! ${Math.ceil((B.fever-B.time)/1000)}초`:fvReady()?'피버 준비! 버튼을 탭!':`피버 게이지 ${Math.floor(f*100)}%`}
 function feverHud(){fvMeter();const el=document.getElementById('fever');if(!el)return;const on=B.active&&feverOn()&&B.state!=='VICTORY'&&B.state!=='DEFEAT';el.classList.toggle('on',on);$('#battle').classList.toggle('fever',on);
   if(on){document.getElementById('feverT').textContent=Math.ceil((B.fever-B.time)/1000)+'초';el.style.setProperty('--hb',(hudBottom()+2)+'px')}}
 function drawFeverFrame(c,t){if(!feverOn())return;const q=(B.fever-B.time)/FEVER_MS;
@@ -3046,7 +3069,7 @@ function draw(){
     if(a.hz){pose='idle';p=0;heavy=false}
     if(a.kind==='orb'){const k=a.idx,mid=k?(a.notes[k-1].t+a.notes[k].t)/2:-1e9;pose=Math.abs(t-mid)<110?'strike':'windup';p=.75;heavy=false}}
   if(B.state==='STRIKE'){pose='strike'}
-  if(B.state==='RECOIL'||B.state==='OPEN')pose='recoil';
+  if(B.state==='RECOIL'||B.state==='OPEN'||B.state==='FEVER')pose='recoil';
   if(B.state==='TRANSFORM'){if(t-B.stT<2700)pose='recoil';else{pose='windup';p=.5+.5*Math.sin(t/90)}}
   if(B.state==='WAKE'){pose='windup';p=clamp((t-B.atk.start)/B.atk.dur,0,1);heavy=!B.atk.resolved}
   const KC=B.state==='VICTORY'&&B.kill,dead=(KC&&B.kill.shattered)||B.state==='WALK'?1:0,kf=KC?killFlight(t-B.kill.t0):null;
@@ -3146,7 +3169,9 @@ function updHud(){
   hud.comboN.textContent=B.combo;
   let mode='',label='패링',sub='TAP',hint='탭: 패링 · 꾹: 가드 · 좌우 스와이프: 회피';
   const cn=B.state==='WINDUP'&&B.atk&&!B.atk.resolved?curNote():null;
-  if(B.grab){mode='groggy';label='탈출!!';sub=`${B.grab.cnt}/${B.grab.need}`;hint='붙잡혔다! 마구 탭해서 빠져나와요'}
+  if(B.state==='FEVER'){mode='fever';label='FEVER!!';sub='탭하면 추가타';hint='필살 연속 공격 중! 적은 반격할 수 없어요'}
+  else if(fvReady()&&!B.disarm&&B.state!=='VICTORY'&&B.state!=='DEFEAT'){mode='fever';label='FEVER!';sub='탭해서 발동';hint='피버 게이지 가득! 탭하면 자동 필살 연속 공격'}
+  else if(B.grab){mode='groggy';label='탈출!!';sub=`${B.grab.cnt}/${B.grab.need}`;hint='붙잡혔다! 마구 탭해서 빠져나와요'}
   else if(cn&&cn.grab){mode='warn';label='◀ 회피 ▶';sub='GRAB';hint='잡기! 가드하면 붙잡혀요 · 좌우로 회피'}
   else if(cn&&cn.dir){mode='warn';label=cn.dir<0?'◀◀ 회피':'회피 ▶▶';sub='SWIPE';hint=`휩쓸기! ${cn.dir<0?'왼쪽':'오른쪽'}으로만 피할 수 있어요`}
   else if(cn&&cn.type==='jump'){mode='guard';label='↑ 점프';sub='SWIPE UP';hint='발밑을 쓸어요! 위로 스와이프해 점프'}

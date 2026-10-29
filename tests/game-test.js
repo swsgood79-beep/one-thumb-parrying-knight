@@ -459,16 +459,19 @@ const BOT = `(()=>{
     { name: '피버 타임 · 기절 게이지가 피해만큼 줄어듦', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; __bot.skill = 1; __bot.sig = 8;
       startRun(3); startFight(roomCfg(3, 'min'), false); B.ehp = B.emax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [['single', 1]] };
-      let vt = 0; while (vt < 60000 && !feverOn()) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
-      if (!feverOn()) return 'fever never started after clean parries (streak ' + B.fvStreak + ')';
+      R.fv = FV_NEED - 3; let vt = 0; while (vt < 60000 && !fvReady()) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
+      if (!fvReady()) return 'fever gauge never filled from parries';
+      __tick(16); lastHud = ''; updHud(); if (!document.querySelector('#pad').classList.contains('fever')) return 'pad did not turn rainbow when fever is ready';
+      const fg = document.querySelector('#fGauge'); if (fg.hidden || !fg.classList.contains('ready')) return 'fever gauge not shown as ready';
+      let g = 0; while (B.state !== 'WINDUP' && g++ < 400) __tick(16); const e0 = B.ehp; onTap(); if (B.state !== 'FEVER') return 'tap did not unleash fever (' + B.state + ')';
       if (!document.querySelector('#fever').classList.contains('on')) return 'fever HUD not shown';
-      B.stun = 50; B.lastParryT = B.time - 9000; const s0 = B.stun; for (let i = 0; i < 60; i++) __tick(16); if (B.stun < s0) return 'stagger drained during fever';
-      while (B.state !== 'IDLE') { __tick(16); if (document.querySelector('#modal').hidden) __botStep(); }
-      const e0 = B.ehp; B.fvBashT = 0; onTap(); for (let i = 0; i < 12; i++) __tick(16);
-      if (!(B.ehp < e0)) return 'fever tap on an idle enemy did not bash'; if (B.stiffUntil > B.time) return 'fever bash caused stiffness';
-      const e1 = B.ehp; B.fever = B.time + 4000; let vt2 = 0; const p0 = B.parries; while (vt2 < 8000 && B.parries === p0) { __tick(16); vt2 += 16; if (document.querySelector('#modal').hidden) __botStep(); }
-      if (!(B.ehp < e1)) return 'fever parry did not counter-attack';
-      B.fever = 0; for (let i = 0; i < 20; i++) __tick(16); B.fvStreak = 5; hurt(5, null, false); if (B.fvStreak !== 0) return 'getting hit did not break the fever streak';
+      let atk = false; vt = 0; while (B.state === 'FEVER' && vt < 8000) { __tick(16); vt += 16; if (B.state === 'WINDUP') atk = true; }
+      if (atk) return 'enemy attacked during fever'; if (vt < 4000) return 'fever ended too early (' + vt + 'ms)';
+      if (!(e0 - B.ehp > B.wp.groggyTapDamage * 25)) return 'fever did not deal rapid damage (' + Math.round(e0 - B.ehp) + ')';
+      if ((R.fv || 0) !== 0 || fvReady()) return 'fever gauge not emptied after use';
+      R.fv = 0; B.combo = 0; feverParry(false); const g1 = R.fv; R.fv = 0; B.combo = 30; feverParry(false); if (!(R.fv > g1 * 1.8)) return 'combo does not speed up the fever gauge';
+      R.fv = 50; startFight(roomCfg(3, 'min'), true); if (R.fv !== 50) return 'fever gauge reset between gates';
+      R.fv = 0; for (let i = 0; i < 20; i++) __tick(16);
       endBattle(); startRun(3); startFight(roomCfg(3, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); while (B.state !== 'IDLE') __tick(16); B.ehp = B.emax = B.wp.groggyTapDamage * 60; B.stun = 100; for (let i = 0; i < 3; i++) __tick(16);
       if (B.state !== 'GROGGY') return 'no stun'; updHud(); const w0 = parseFloat(hud.eStun.style.width);
       for (let k = 0; k < 6; k++) { B.lastBashT = -1e9; groggyHit(); __tick(16); } lastHud = ''; updHud(); const w1 = parseFloat(hud.eStun.style.width);
@@ -476,7 +479,7 @@ const BOT = `(()=>{
       __bot.sig = undefined; endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '피버가 다음 전투로 안 넘어감 · 스테이지 음악 20곡 · 스테이지별 피로도', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
-      startRun(2); startFight(roomCfg(2, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); B.fever = B.time + 8000; for (let i = 0; i < 20; i++) __tick(16);
+      startRun(2); startFight(roomCfg(2, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); R.fv = FV_NEED; if (!feverStart()) return 'fever did not start'; for (let i = 0; i < 20; i++) __tick(16);
       if (!document.querySelector('#battle').classList.contains('fever')) return 'fever UI did not turn on';
       B.ehp = 0; B.pendingKO = true; for (let i = 0; i < 160; i++) __tick(16); closeModal();
       startFight(roomCfg(2, 'min'), true); for (let i = 0; i < 10; i++) __tick(16);
