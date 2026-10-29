@@ -1710,25 +1710,25 @@ function feverVoice(ctx,dest,t0){
   const sr=ctx.sampleRate,nb=ctx.createBuffer(1,sr,sr),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
   const out=ctx.createGain();out.gain.value=.9;
   const shaper=ctx.createWaveShaper(),cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/511.5-1;cv[i]=Math.tanh(x*2.6)}shaper.curve=cv;
-  const ring=ctx.createGain();ring.gain.value=.62;const rOsc=ctx.createOscillator(),rAmt=ctx.createGain();rOsc.frequency.value=48;rAmt.gain.value=.38;rOsc.connect(rAmt);rAmt.connect(ring.gain);
+  const ring=ctx.createGain();ring.gain.value=.62;const rOsc=ctx.createOscillator(),rAmt=ctx.createGain();rOsc.frequency.value=90;rAmt.gain.value=.38;rOsc.connect(rAmt);rAmt.connect(ring.gain);
   const dly=ctx.createDelay(1),fb=ctx.createGain(),wet=ctx.createGain();dly.delayTime.value=.13;fb.gain.value=.33;wet.gain.value=.42;
   const bus=ctx.createGain();bus.gain.value=1;bus.connect(ring);ring.connect(shaper);shaper.connect(out);shaper.connect(dly);dly.connect(fb);fb.connect(dly);dly.connect(wet);wet.connect(out);out.connect(dest);
   // formant bank
-  const F=[[280,620,10,1],[2250,1080,12,.55],[3000,2600,14,.3]].map(([fi,feo,q,g])=>{const f=ctx.createBiquadFilter();f.type='bandpass';f.Q.value=q;
-    f.frequency.setValueAtTime(fi,t0);f.frequency.setValueAtTime(fi,t0+.72);f.frequency.linearRampToValueAtTime(fi===280?250:900,t0+.79);f.frequency.linearRampToValueAtTime(feo,t0+.88);
+  const F=[[330,760,8,1],[2600,1250,10,.6],[3400,2950,12,.32]].map(([fi,feo,q,g])=>{const f=ctx.createBiquadFilter();f.type='bandpass';f.Q.value=q;
+    f.frequency.setValueAtTime(fi,t0);f.frequency.setValueAtTime(fi,t0+1.32);f.frequency.linearRampToValueAtTime(fi===330?300:1050,t0+1.39);f.frequency.linearRampToValueAtTime(feo,t0+1.48);
     const gg=ctx.createGain();gg.gain.value=g*4;f.connect(gg);gg.connect(bus);return f});
   // voice source: saw + octave-up layer, rising "피" then falling "버", with vibrato on the long vowel
-  const src=ctx.createGain();src.gain.setValueAtTime(0,t0);src.gain.linearRampToValueAtTime(.95,t0+.07);src.gain.setValueAtTime(.9,t0+.72);
-  src.gain.linearRampToValueAtTime(.22,t0+.79);src.gain.linearRampToValueAtTime(1,t0+.87);src.gain.linearRampToValueAtTime(.7,t0+1.1);src.gain.linearRampToValueAtTime(0,t0+1.38);
+  const src=ctx.createGain();src.gain.setValueAtTime(0,t0);src.gain.linearRampToValueAtTime(.95,t0+.07);src.gain.setValueAtTime(.9,t0+1.32);
+  src.gain.linearRampToValueAtTime(.22,t0+1.39);src.gain.linearRampToValueAtTime(1,t0+1.47);src.gain.linearRampToValueAtTime(.7,t0+1.7);src.gain.linearRampToValueAtTime(0,t0+1.98);
   F.forEach(f=>src.connect(f));
-  const vib=ctx.createOscillator(),vAmt=ctx.createGain();vib.frequency.value=5.6;vAmt.gain.setValueAtTime(0,t0);vAmt.gain.linearRampToValueAtTime(5,t0+.35);vAmt.gain.linearRampToValueAtTime(0,t0+.75);vib.connect(vAmt);
+  const vib=ctx.createOscillator(),vAmt=ctx.createGain();vib.frequency.value=5.6;vAmt.gain.setValueAtTime(0,t0);vAmt.gain.linearRampToValueAtTime(12,t0+.55);vAmt.gain.linearRampToValueAtTime(0,t0+1.35);vib.connect(vAmt);
   [[1,'sawtooth',.8,0],[2,'sawtooth',.32,6],[1,'square',.18,-8]].forEach(([m,type,lv,det])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.detune.value=det;g.gain.value=lv;
-    const f=o.frequency;f.setValueAtTime(118*m,t0);f.linearRampToValueAtTime(152*m,t0+.16);f.linearRampToValueAtTime(160*m,t0+.7);f.linearRampToValueAtTime(140*m,t0+.86);f.exponentialRampToValueAtTime(96*m,t0+1.35);
-    vAmt.connect(o.frequency);o.connect(g);g.connect(src);o.start(t0);o.stop(t0+1.45)});
+    const f=o.frequency;f.setValueAtTime(270*m,t0);f.linearRampToValueAtTime(350*m,t0+.16);f.linearRampToValueAtTime(375*m,t0+1.3);f.linearRampToValueAtTime(330*m,t0+1.46);f.exponentialRampToValueAtTime(230*m,t0+1.95);
+    vAmt.connect(o.frequency);o.connect(g);g.connect(src);o.start(t0);o.stop(t0+2.05)});
   // breath for ㅍ (aspirated burst) and a little air on ㅂ
-  [[0,.07,2600,.9],[.74,.05,1200,.25]].forEach(([at,len,fr,lv])=>{const n=ctx.createBufferSource(),hp=ctx.createBiquadFilter(),g=ctx.createGain();n.buffer=nb;hp.type='bandpass';hp.frequency.value=fr;hp.Q.value=.8;
+  [[0,.07,2600,.9],[1.34,.05,1200,.25]].forEach(([at,len,fr,lv])=>{const n=ctx.createBufferSource(),hp=ctx.createBiquadFilter(),g=ctx.createGain();n.buffer=nb;hp.type='bandpass';hp.frequency.value=fr;hp.Q.value=.8;
     g.gain.setValueAtTime(0,t0+at);g.gain.linearRampToValueAtTime(lv,t0+at+.008);g.gain.exponentialRampToValueAtTime(.001,t0+at+len);n.connect(hp);hp.connect(g);g.connect(bus);n.start(t0+at);n.stop(t0+at+len+.02)});
-  vib.start(t0);vib.stop(t0+1.45);rOsc.start(t0);rOsc.stop(t0+2.2);
+  vib.start(t0);vib.stop(t0+2.05);rOsc.start(t0);rOsc.stop(t0+2.8);
 }
 SFX.fever=()=>{if(!AC||!S.snd)return;feverVoice(AC,sfxBus,AC.currentTime+.03)};
 const sfx=(n,a,b)=>{try{SFX[n]&&SFX[n](a,b)}catch(e){}};
