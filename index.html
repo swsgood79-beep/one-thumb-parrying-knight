@@ -65,20 +65,20 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .vtitle{font-family:var(--f-display);font-size:26px;text-align:center;margin:6px 0 10px;letter-spacing:.5px}
 
 /* battle lobby view */
-.sidecol{position:absolute;top:4px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.sidecol{position:absolute;top:2px;display:flex;flex-direction:row;gap:2px;z-index:2}
 .sidecol.l{left:max(10px,env(safe-area-inset-left,0px))}
 .sidecol.r{right:max(10px,env(safe-area-inset-right,0px))}
-.sbtn{display:flex;flex-direction:column;align-items:center;gap:1px;width:48px}
-.sbtn .ic{width:38px;height:38px;border-radius:12px;border:3px solid var(--edge);background:linear-gradient(#574bb0,#352a7e);
+.sbtn{display:flex;flex-direction:column;align-items:center;gap:1px;width:44px}
+.sbtn .ic{width:34px;height:34px;border-radius:12px;border:3px solid var(--edge);background:linear-gradient(#574bb0,#352a7e);
   display:grid;place-items:center;box-shadow:inset 0 3px 0 rgba(255,255,255,.2),0 3px 0 var(--edge);font-family:var(--f-display);font-size:20px;position:relative}
 .sbtn .ic img{width:24px;height:24px}
-.sbtn span{font-size:12px}
+.sbtn span{font-size:11px}
 .sbtn .dot{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:var(--red);border:2px solid var(--edge)}
-.chapter{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding-top:4px}
+.chapter{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding-top:58px}
 .ch-ribbon{font-family:var(--f-display);font-size:13px;letter-spacing:1px;color:#fff;background:rgba(10,6,30,.7);box-shadow:inset 0 0 0 2px var(--stc,var(--gold));padding:3px 14px;border-radius:10px;border:2px solid var(--edge)}
 .ch-ribbon b{font-weight:400;font-size:20px;color:var(--stc,var(--gold))}
-.ch-title{font-family:var(--f-display);font-size:30px;font-weight:normal;margin:2px 0 10px;text-wrap:balance;text-align:center}
-.stagecard{position:relative;flex:1;min-height:120px;width:100%;max-width:330px;border-radius:22px;border:4px solid var(--edge);overflow:hidden;
+.ch-title{font-family:var(--f-display);font-size:28px;font-weight:normal;margin:2px 0 8px;text-wrap:balance;text-align:center}
+.stagecard{position:relative;flex:1;min-height:90px;width:100%;max-width:460px;border-radius:22px;border:4px solid var(--edge);overflow:hidden;
   box-shadow:0 0 0 3px #6b5fd6,0 0 40px rgba(140,110,255,.45),0 6px 0 3px var(--edge)}
 .stagecard canvas{position:absolute;inset:0;width:100%;height:100%}
 .stagecard .arrow{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:46px;border-radius:12px;border:3px solid var(--edge);
@@ -88,8 +88,10 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .boss-tag{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-family:var(--f-display);font-size:16px;letter-spacing:2px;padding:2px 14px;
   border-radius:10px;border:3px solid var(--edge);background:linear-gradient(#ff8a8a,var(--red-2));animation:pulse 1s infinite}
 .lock-tag{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;padding:3px 12px;border-radius:10px;background:rgba(10,6,30,.8)}
-.stageinfo{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:12px}
-.st-num{font-family:var(--f-display);font-size:22px}
+.stageinfo{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:10px}
+.st-name:empty{display:none}
+.ch-title .ststars{font-size:22px;vertical-align:middle;margin-left:4px}
+.st-num{font-family:var(--f-display);font-size:clamp(15px,5vw,22px);text-align:center}
 .st-name{font-size:16px;color:var(--muted)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 9px;border-radius:999px;background:rgba(8,5,25,.6);border:1px solid rgba(255,255,255,.1)}
@@ -1709,25 +1711,15 @@ const STAGE_COL={field:'#7be05a',forest:'#3fd08a',cave:'#c9a2ff',swamp:'#4fd8b8'
 const stageColor=i=>STAGE_COL[STAGES[i].theme]||'#ffc83a';
 function renderLobby(){
   const i=S.sel,st=STAGES[i],ch=chapterOf(i);
-  $('#chRibbon').innerHTML=`CHAPTER ${ch+1} · STAGE <b>${i+1}</b> · ★ ${totalStars()}`;$('#chTitle').textContent=REGIONS[i].name;
+  const sn=S.stars[i]||0;
+  $('#chRibbon').innerHTML=`CHAPTER ${ch+1} · STAGE <b>${i+1}</b> · ★ ${totalStars()}`;$('#chTitle').innerHTML=`${REGIONS[i].name} <span class="ststars">${'★'.repeat(sn)}<span class="e">${'★'.repeat(3-sn)}</span></span>`;
   document.documentElement.style.setProperty('--stc',stageColor(i));
-  $('#stNum').textContent=`${CH[ch].title} ${i%10+1}/10 · ${st.boss?'보스':'수문장'} ${st.name}`;{const sn=S.stars[i]||0;$('#stName').innerHTML=`<span class="ststars">${'★'.repeat(sn)}<span class="e">${'★'.repeat(3-sn)}</span></span><br>관문 5개 원정 · 2페이즈 보스${i<S.cleared&&sn<3?' · <b style="color:var(--gold)">별 3개에 도전!</b>':''}`}
+  $('#stNum').textContent=`${CH[ch].title} ${i%10+1}/10 · ${st.boss?'보스':'수문장'} ${st.name}`;$('#stName').innerHTML='';
   $('#bossTag').hidden=!st.boss;$('#clearTag').hidden=!(i<S.cleared);
   $('#stPrev').disabled=i<=0;$('#stNext').disabled=i>=Math.min(S.cleared,STAGES.length-1);
-  const chips=[`<span class="chip">${ic('heart')} 체력 ${fmt(st.hp)}</span>`,`<span class="chip">공격 ${st.atk}</span>`,`<span class="chip">${ic('coin')} ${fmt(st.gold)}</span>`];
-  chips.push(`<span class="chip" style="color:#ffe58a">★3 조건: 체력 ${Math.round(STAR_HP*100)}%↑ · 퍼펙트 ${Math.round(STAR_PERF*100)}%↑</span>`);
-  const PT=PARRY_TUNE[i];chips.splice(2,0,`<span class="chip" style="color:#ffe58a">패링 ${'★'.repeat(PT.stars)}${'☆'.repeat(5-PT.stars)}${S.assist?' (도우미)':''}</span>`);
-  const pn=new Set(POOLS[i].base.map(x=>x[0]));
-  if(pn.has('heavy'))chips.push(`<span class="chip warn">붉은 강공격</span>`);
-  if([...pn].some(n=>n.startsWith('chain')||n==='sync'||n.startsWith('riff')))chips.push(`<span class="chip" style="color:#ffe58a">♪ 연속 패링</span>`);
-  if([...pn].some(n=>PAT_INFO[n]&&PAT_INFO[n][1]==='action'))chips.push(`<span class="chip" style="color:#8fe86a">특수 동작</span>`);
-  if(pn.has('feint'))chips.push(`<span class="chip" style="color:#d6c2ff">? 페이크</span>`);
-  if(pn.has('hold'))chips.push(`<span class="chip" style="color:#9ad8ff">꾹 난타</span>`);
-  if(pn.has('rally'))chips.push(`<span class="chip" style="color:#e3a6ff">랠리</span>`);
-  if(st.boss)chips.push(`<span class="chip warn">기상 충격파</span>`);
-  {const h=HZ[st.hz];if(h)chips.unshift(`<span class="chip" style="color:${STAGE_COL[st.theme]}">지형: ${h.name}</span>`);const tr=TRAITS[EN[st.kind].trait];if(tr)chips.unshift(`<span class="chip" style="color:${tr[2]}">${st.name}: ${tr[0]}</span>`)}
-  if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승 · 시작 카드 ${streakCards()}${streakGold()?' · 골드 +'+Math.round(streakGold()*100)+'%':''}</span>`);
-  const eg=ENGRAVINGS.find(e=>e.boss&&e.from===i);if(eg&&!ownE(eg.id))chips.push(`<span class="chip" style="color:#e3c8ff">${ic('eng_'+eg.id)} ${eg.name} 획득</span>`);
+  const chips=[];
+  {const h=HZ[st.hz],tr=TRAITS[EN[st.kind].trait];if(tr)chips.push(`<span class="chip" style="color:${tr[2]}">특성: ${tr[0]}</span>`);if(h)chips.push(`<span class="chip" style="color:${STAGE_COL[st.theme]}">지형: ${h.name}</span>`)}
+  if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승 · 시작 카드 ${streakCards()}</span>`);
   $('#stChips').innerHTML=chips.join('');
   {const done=Math.min(S.cleared,STAGES.length);$('#mTxt').innerHTML=`정복 <b>${done}</b>/${STAGES.length} · 남은 스테이지 <em>${STAGES.length-done}</em> · ${CH[ch].title} ${Math.max(0,Math.min(10,done-ch*10))}/10`;
     $('#mSeg').innerHTML=CH.map((c,k)=>`<i class="${k===ch?'cur':''}" style="--c:${STAGE_COL[c.theme]}" title="${c.title}"><u style="width:${clamp(done-k*10,0,10)*10}%"></u></i>`).join('')}
