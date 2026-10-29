@@ -1704,26 +1704,26 @@ const SFX={
   shock(){tone(60,.5,'sawtooth',.22,-30);noise(.45,.35,0,160,{type:'lowpass',wet:.4})},
   heal(){[660,880,1100,1320].forEach((f,i)=>tone(f,.12,'sine',.08,0,i*.07,{wet:.5}))},
 };
-/* "피~버!" announcer voice, synthesized: glottal saw + octave layer through moving vowel formants (ㅍ → 이~~ → ㅂ → 어),
-   then ring-mod + soft clip + echo for a modulated, robot-announcer feel. Works on any AudioContext (also offline). */
+/* "피~버!" little-girl voice, synthesized: high, soft source through child-sized vowel formants (ㅍ → 이~~ → ㅂ → 어),
+   with a light ring-mod + soft clip + echo for a slightly modulated feel. Works on any AudioContext (also offline). */
 function feverVoice(ctx,dest,t0){
   const sr=ctx.sampleRate,nb=ctx.createBuffer(1,sr,sr),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
   const out=ctx.createGain();out.gain.value=.9;
-  const shaper=ctx.createWaveShaper(),cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/511.5-1;cv[i]=Math.tanh(x*2.6)}shaper.curve=cv;
-  const ring=ctx.createGain();ring.gain.value=.62;const rOsc=ctx.createOscillator(),rAmt=ctx.createGain();rOsc.frequency.value=90;rAmt.gain.value=.38;rOsc.connect(rAmt);rAmt.connect(ring.gain);
-  const dly=ctx.createDelay(1),fb=ctx.createGain(),wet=ctx.createGain();dly.delayTime.value=.13;fb.gain.value=.33;wet.gain.value=.42;
+  const shaper=ctx.createWaveShaper(),cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/511.5-1;cv[i]=Math.tanh(x*1.6)}shaper.curve=cv;
+  const ring=ctx.createGain();ring.gain.value=.86;const rOsc=ctx.createOscillator(),rAmt=ctx.createGain();rOsc.frequency.value=140;rAmt.gain.value=.14;rOsc.connect(rAmt);rAmt.connect(ring.gain);
+  const dly=ctx.createDelay(1),fb=ctx.createGain(),wet=ctx.createGain();dly.delayTime.value=.13;fb.gain.value=.33;wet.gain.value=.3;
   const bus=ctx.createGain();bus.gain.value=1;bus.connect(ring);ring.connect(shaper);shaper.connect(out);shaper.connect(dly);dly.connect(fb);fb.connect(dly);dly.connect(wet);wet.connect(out);out.connect(dest);
   // formant bank
-  const F=[[330,760,8,1],[2600,1250,10,.6],[3400,2950,12,.32]].map(([fi,feo,q,g])=>{const f=ctx.createBiquadFilter();f.type='bandpass';f.Q.value=q;
-    f.frequency.setValueAtTime(fi,t0);f.frequency.setValueAtTime(fi,t0+1.32);f.frequency.linearRampToValueAtTime(fi===330?300:1050,t0+1.39);f.frequency.linearRampToValueAtTime(feo,t0+1.48);
+  const F=[[420,920,7,1],[3150,1600,9,.6],[3950,3300,11,.3]].map(([fi,feo,q,g])=>{const f=ctx.createBiquadFilter();f.type='bandpass';f.Q.value=q;
+    f.frequency.setValueAtTime(fi,t0);f.frequency.setValueAtTime(fi,t0+1.32);f.frequency.linearRampToValueAtTime(fi===420?380:1300,t0+1.39);f.frequency.linearRampToValueAtTime(feo,t0+1.48);
     const gg=ctx.createGain();gg.gain.value=g*4;f.connect(gg);gg.connect(bus);return f});
   // voice source: saw + octave-up layer, rising "피" then falling "버", with vibrato on the long vowel
   const src=ctx.createGain();src.gain.setValueAtTime(0,t0);src.gain.linearRampToValueAtTime(.95,t0+.07);src.gain.setValueAtTime(.9,t0+1.32);
   src.gain.linearRampToValueAtTime(.22,t0+1.39);src.gain.linearRampToValueAtTime(1,t0+1.47);src.gain.linearRampToValueAtTime(.7,t0+1.7);src.gain.linearRampToValueAtTime(0,t0+1.98);
   F.forEach(f=>src.connect(f));
-  const vib=ctx.createOscillator(),vAmt=ctx.createGain();vib.frequency.value=5.6;vAmt.gain.setValueAtTime(0,t0);vAmt.gain.linearRampToValueAtTime(12,t0+.55);vAmt.gain.linearRampToValueAtTime(0,t0+1.35);vib.connect(vAmt);
-  [[1,'sawtooth',.8,0],[2,'sawtooth',.32,6],[1,'square',.18,-8]].forEach(([m,type,lv,det])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.detune.value=det;g.gain.value=lv;
-    const f=o.frequency;f.setValueAtTime(270*m,t0);f.linearRampToValueAtTime(350*m,t0+.16);f.linearRampToValueAtTime(375*m,t0+1.3);f.linearRampToValueAtTime(330*m,t0+1.46);f.exponentialRampToValueAtTime(230*m,t0+1.95);
+  const vib=ctx.createOscillator(),vAmt=ctx.createGain();vib.frequency.value=5.6;vAmt.gain.setValueAtTime(0,t0);vAmt.gain.linearRampToValueAtTime(18,t0+.55);vAmt.gain.linearRampToValueAtTime(0,t0+1.35);vib.connect(vAmt);
+  [[1,'triangle',.9,0],[1,'sawtooth',.35,5],[2,'sawtooth',.12,-6]].forEach(([m,type,lv,det])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.detune.value=det;g.gain.value=lv;
+    const f=o.frequency;f.setValueAtTime(460*m,t0);f.linearRampToValueAtTime(580*m,t0+.16);f.linearRampToValueAtTime(620*m,t0+1.3);f.linearRampToValueAtTime(560*m,t0+1.46);f.exponentialRampToValueAtTime(400*m,t0+1.95);
     vAmt.connect(o.frequency);o.connect(g);g.connect(src);o.start(t0);o.stop(t0+2.05)});
   // breath for ㅍ (aspirated burst) and a little air on ㅂ
   [[0,.07,2600,.9],[1.34,.05,1200,.25]].forEach(([at,len,fr,lv])=>{const n=ctx.createBufferSource(),hp=ctx.createBiquadFilter(),g=ctx.createGain();n.buffer=nb;hp.type='bandpass';hp.frequency.value=fr;hp.Q.value=.8;
