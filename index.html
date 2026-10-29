@@ -486,6 +486,34 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .skip{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));padding:6px 12px;border-radius:10px;background:rgba(0,0,0,.55);font-size:13px;border:2px solid rgba(255,255,255,.2)}
 
 /* ---------- modal ---------- */
+/* lobby v2: area name + stars on the picture, one colour per menu button */
+.stagecard{border-color:var(--edge);box-shadow:0 0 0 3px var(--stc,#6b5fd6),0 0 34px color-mix(in srgb,var(--stc,#8c6eff) 55%,transparent),0 6px 0 3px var(--edge)}
+.st-over{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;flex-direction:column;align-items:center;padding-top:8px;pointer-events:none;
+  background:linear-gradient(rgba(10,6,30,.55),transparent)}
+.st-over .ch-title{margin:0;font-size:clamp(22px,7vw,30px);line-height:1.1}
+.st-stars{display:flex;gap:6px;margin-top:4px}
+.st-stars i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:19px;line-height:1;color:#4a4080;
+  background:radial-gradient(circle at 40% 35%,#3a3170,#1e1844);border:3px solid var(--edge);box-shadow:0 2px 0 var(--edge)}
+.st-stars i.on{color:#fff6c0;background:radial-gradient(circle at 40% 35%,#fff3a0,#ffd23f 45%,#e08a00);text-shadow:0 1px 0 #8a4a00;box-shadow:0 2px 0 var(--edge),0 0 10px rgba(255,210,63,.8)}
+.stagecard .boss-tag{top:auto;bottom:10px;left:10px;transform:none;font-size:13px;padding:1px 10px}
+.stagecard .lock-tag{left:auto;right:10px;transform:none;font-size:12px}
+.ch-ribbon{background:var(--stc,var(--gold));color:#140f2c;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2),0 3px 0 var(--edge);text-shadow:none}
+.ch-ribbon b{color:#140f2c}
+.sbtn .ic{box-shadow:inset 0 3px 0 rgba(255,255,255,.35),inset 0 -4px 0 rgba(0,0,0,.2),0 3px 0 var(--edge)}
+.sbtn[data-act="news"] .ic{background:linear-gradient(#7fdcff,#2a8ad8)}
+.sbtn[data-act="daily"] .ic{background:linear-gradient(#ff9ec0,#e0406a)}
+.sbtn[data-act="missions"] .ic{background:linear-gradient(#9ff5a8,#2fa44a)}
+.sbtn[data-act="sound"] .ic{background:linear-gradient(#c8d0e8,#6a7396);color:#1a1440}
+.sbtn[data-act="pass"] .ic{background:linear-gradient(#ffe680,#e0a020)}
+.sbtn[data-act="challenge"] .ic{background:linear-gradient(#ffbc80,#e0602a)}
+.sbtn span{color:#fff}
+.lchip{background:var(--cc);color:#140f2c;border:2px solid var(--edge);font-family:var(--f-display);font-size:13px;padding:2px 10px 2px 3px;box-shadow:0 2px 0 var(--edge)}
+.lchip em{font-style:normal;font-family:var(--f-body);font-size:11px;background:rgba(20,15,44,.85);color:#fff;border-radius:999px;padding:1px 7px;margin-right:2px}
+.mtxt{text-shadow:0 1px 0 #000}
+.mseg i{background:#120d2a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.tabbar{background:linear-gradient(#352a76,#1c1446)}
+.tabbar button{color:#e6e0ff}
+.tabbar button:not(.on) img{filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
 /* world map */
 .mapbar{display:flex;align-items:center;gap:8px;width:100%;max-width:420px;margin-top:8px;padding-bottom:6px}
 .mapbtn{flex:none;padding:8px 12px;font-size:15px;border-radius:12px}
@@ -654,9 +682,9 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
         </div>
         <div class="chapter gut">
           <div class="ch-ribbon ol" id="chRibbon">CHAPTER 1</div>
-          <h1 class="ch-title ol" id="chTitle">마왕성 가는 길</h1>
           <div class="stagecard">
             <canvas id="prevCv"></canvas>
+            <div class="st-over"><h1 class="ch-title ol" id="chTitle">마왕성 가는 길</h1><div class="st-stars" id="stStars"></div></div>
             <button class="arrow l" id="stPrev" aria-label="이전 스테이지">◀</button>
             <button class="arrow r" id="stNext" aria-label="다음 스테이지">▶</button>
             <div class="boss-tag ol" id="bossTag" hidden>BOSS</div>
@@ -1712,13 +1740,13 @@ const stageColor=i=>STAGE_COL[STAGES[i].theme]||'#ffc83a';
 function renderLobby(){
   const i=S.sel,st=STAGES[i],ch=chapterOf(i);
   const sn=S.stars[i]||0;
-  $('#chRibbon').innerHTML=`CHAPTER ${ch+1} · STAGE <b>${i+1}</b> · ★ ${totalStars()}`;$('#chTitle').innerHTML=`${REGIONS[i].name} <span class="ststars">${'★'.repeat(sn)}<span class="e">${'★'.repeat(3-sn)}</span></span>`;
+  $('#chRibbon').innerHTML=`CHAPTER ${ch+1} · STAGE <b>${i+1}</b> · ★ ${totalStars()}`;$('#chTitle').textContent=REGIONS[i].name;$('#stStars').innerHTML=[0,1,2].map(k=>`<i class="${k<sn?'on':''}">★</i>`).join('');
   document.documentElement.style.setProperty('--stc',stageColor(i));
   $('#stNum').textContent=`${CH[ch].title} ${i%10+1}/10 · ${st.boss?'보스':'수문장'} ${st.name}`;$('#stName').innerHTML='';
   $('#bossTag').hidden=!st.boss;$('#clearTag').hidden=!(i<S.cleared);
   $('#stPrev').disabled=i<=0;$('#stNext').disabled=i>=Math.min(S.cleared,STAGES.length-1);
   const chips=[];
-  {const h=HZ[st.hz],tr=TRAITS[EN[st.kind].trait];if(tr)chips.push(`<span class="chip" style="color:${tr[2]}">특성: ${tr[0]}</span>`);if(h)chips.push(`<span class="chip" style="color:${STAGE_COL[st.theme]}">지형: ${h.name}</span>`)}
+  {const h=HZ[st.hz],tr=TRAITS[EN[st.kind].trait];if(tr)chips.push(`<span class="chip lchip" style="--cc:${tr[2]}"><em>특성</em>${tr[0]}</span>`);if(h)chips.push(`<span class="chip lchip" style="--cc:${STAGE_COL[st.theme]}"><em>지형</em>${h.name}</span>`)}
   if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승 · 시작 카드 ${streakCards()}</span>`);
   $('#stChips').innerHTML=chips.join('');
   {const done=Math.min(S.cleared,STAGES.length);$('#mTxt').innerHTML=`정복 <b>${done}</b>/${STAGES.length} · 남은 스테이지 <em>${STAGES.length-done}</em> · ${CH[ch].title} ${Math.max(0,Math.min(10,done-ch*10))}/10`;
