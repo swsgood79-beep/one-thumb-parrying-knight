@@ -72,8 +72,9 @@ const BOT = `(()=>{
     const page = await browser.newPage({ viewport: { width: 400, height: 800 } });
     page.on('pageerror', e => fails.push(`[지역${region + 1} #${run}] pageerror: ${e.message}`));
     await page.addInitScript(CLOCK);
-    await page.addInitScript(`localStorage.setItem('otpk-save-v1',JSON.stringify({intro:true,prologue:true,login:'guest',snd:true,bgm:true,vib:true,cleared:${region},sel:${region},
-      shStage:${Math.min(3, Math.floor(region / 3))},shLv:${Math.min(40, 4 + region * 3 + Math.floor(region / 3) * 10)},gems:999,energy:30,
+    const stage = Math.round(region * 11), shSt = [0, 5, 20, 40, 60, 80, 95].filter(r => r <= stage).length - 1, shMax = [10, 20, 30, 45, 60, 80, 100][shSt];
+    await page.addInitScript(`localStorage.setItem('otpk-save-v1',JSON.stringify({intro:true,prologue:true,login:'guest',snd:true,bgm:true,vib:true,cleared:${stage},sel:${stage},
+      shStage:${shSt},shLv:${Math.min(shMax, 4 + Math.round(stage * .95))},exp:${Math.round(30 * stage + 2 * stage * stage)},gems:999,energy:30,
       engr:['slime','goblin','bat','skull'],engrEq:['bat']${COLLECTOR?`,eng:${JSON.stringify(Object.fromEntries(['oak','copper','pebble','leaf','feather','clay','ember','dew','owl','honey','moon','tide','rock','phoenix','storm'].map((k,i)=>[k,{star:1+(i%3),shards:0}])))},engrEq:['phoenix','tide','honey']`:''}}))`);
     await page.goto(FILE);
     await page.addScriptTag({ content: BOT });
@@ -108,7 +109,7 @@ const BOT = `(()=>{
       if (!problem && !__bot.result) problem = 'run did not finish in 15 virtual minutes';
       return { problem, result: __bot.result, room: typeof R !== 'undefined' && R ? R.room : 'done', vt, gold: S.gold, minHp };
     }, { region, run, SKILL_: SKILL, STATS_: STATS });
-    const tag = `[지역${region + 1} #${run}]`;
+    const tag = `[스테이지${stage + 1} #${run}]`;
     if (res.problem) fails.push(`${tag} ${res.problem}`);
     console.log(`${tag} ${res.problem ? 'FAIL' : 'ok'} result=${res.result} virtual=${Math.round(res.vt / 1000)}s minHP=${Math.round(res.minHp * 100)}% ${res.problem || ''}`);
     await page.close();
@@ -291,7 +292,7 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '무리 관문 (4:1) · 피로도 가득 차면 패턴 끝에 기절', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); __bot.skill = 1; __bot.sig = 8; S.streak = 0;
-      startRun(6); R.room = 1; startFight(roomCfg(6, 'pack'), false); if (!B.pack || B.pack.length !== 4) return 'pack of 4 not created';
+      startRun(66); R.room = 1; startFight(roomCfg(66, 'pack'), false); if (!B.pack || B.pack.length !== 4) return 'pack of 4 not created';
       let vt = 0, backAtk = false; while (vt < 240000 && B.state !== 'VICTORY') { __tick(16); vt += 16; if (B.state === 'WINDUP' && B.packAtk > 0) backAtk = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (B.state !== 'VICTORY') return 'pack fight never finished (' + B.state + ', left ' + (B.pack && B.pack.length) + ')';
       if (B.packKills !== 3) return 'expected 3 front kills before the last one, got ' + B.packKills; if (!backAtk) return 'back members never attacked';
@@ -380,6 +381,47 @@ const BOT = `(()=>{
       if (r.err || !r.thrown || !r.next) return 'grab: not mashing should throw the knight, then the fight goes on ' + (r.err || JSON.stringify(r));
       for (let i = 0; i < POOLS.length; i++) if (!POOLS[i].base.some(([n]) => PAT_INFO[n] && PAT_INFO[n][1] === 'action')) return `stage ${i + 1} has no action attacks`;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '100 스테이지 · 챕터 지형 공격 · 몬스터 특성', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
+      if (STAGES.length !== 100 || REGIONS.length !== 100 || PARRY_TUNE.length !== 100 || POOLS.length !== 100) return 'tables are not 100 long';
+      for (let i = 0; i < 100; i++) { const st = STAGES[i];
+        if (!EN[st.kind]) return `stage ${i + 1}: unknown monster ${st.kind}`;
+        for (const k of [...REGIONS[i].min.map(m => m[0]), REGIONS[i].elite[0]]) { if (!EN[k]) return `stage ${i + 1}: unknown minion ${k}`; if (!EN[k].trait) return `${k} has no trait`; }
+        for (const [n] of POOLS[i].base.concat(POOLS[i].p2)) if (!PATMAKE[n]) return `stage ${i + 1}: pool has unknown pattern ${n}`;
+        if ((i % 10 === 4 || i % 10 === 9) !== !!st.boss) return `stage ${i + 1}: boss flag wrong`;
+        for (const ty of ['min', 'pack', 'elite', 'boss']) { const c = roomCfg(i, ty); if (!(c.hp > 0 && c.atk > 0)) return `stage ${i + 1} ${ty}: bad hp/atk`; } }
+      for (const k in MINION_POOLS) for (const [n] of MINION_POOLS[k]) if (!PATMAKE[n]) return `minion ${k} uses unknown pattern ${n}`;
+      if (!(STAGES[99].hp > STAGES[50].hp && STAGES[50].hp > STAGES[0].hp && STAGES[99].atk > STAGES[50].atk)) return 'difficulty does not grow';
+      const fight = (idx, type) => { endBattle(); startRun(idx); R.room = type === 'boss' ? 4 : 1; startFight(roomCfg(idx, type), false); B.ehp = B.emax = 1e6; B.php = B.pmax = 1e5; for (let i = 0; i < 200; i++) __tick(16); };
+      // map attacks: every chapter attack asks for its own move
+      const mapAtk = (idx, name, act) => { fight(idx, 'min'); HZ[B.hz].rate = 0; while (B.state !== 'IDLE') __tick(16); B.forcePat = name; B.idleDur = 0;
+        let g = 0; while (!(B.state === 'WINDUP' && B.atk.name === name) && g++ < 400) __tick(16); if (B.state !== 'WINDUP') return 'no attack'; B.atk.hz = B.hz;
+        let hits = 0; const h0 = window.hurt; window.hurt = function (d, l, gd) { if (!gd) hits++; return h0.apply(this, arguments); };
+        const s0 = B.stun, done = {}; g = 0; while (B.state === 'WINDUP' && g++ < 600) { act(B.atk.impact - B.time, done); __tick(16); }
+        window.hurt = h0; setGuard(false); const r = { hits, stun: B.stun - s0, grab: !!B.grab }; HZ[B.hz].rate = .15; return r; };
+      const guardIt = (d, done) => { if (!done.t && d <= 450) { done.t = 1; onTap(); } setGuard(d <= 280); };
+      const jumpIt = (d, done) => { if (!done.j && d <= 160) { done.j = 1; onTap(); onSwipeUp(); } };
+      const dodge = dir => (d, done) => { if (!done.s && d <= 160) { done.s = 1; onTap(); onSwipe(dir); } };
+      let r = mapAtk(24, 'hzRock', guardIt); if (r === 'no attack' || r.hits) return 'cave rockfall: guarding still got hit ' + JSON.stringify(r);
+      r = mapAtk(24, 'hzRock', dodge(-1)); if (!r.hits) return 'cave rockfall: a dodge avoided it';
+      r = mapAtk(14, 'hzVineL', dodge(-1)); if (r.hits) return 'forest vine: dodging the arrow way got hit';
+      r = mapAtk(14, 'hzVineR', dodge(-1)); if (!r.hits) return 'forest vine: dodging the wrong way was safe';
+      r = mapAtk(34, 'hzMud', dodge(1)); if (r.hits || r.grab) return 'swamp hand: dodge did not avoid it';
+      r = mapAtk(34, 'hzMud', guardIt); if (!r.grab) return 'swamp hand: guarding did not get grabbed';
+      for (const [idx, nm] of [[54, 'hzSnow'], [64, 'hzLava'], [74, 'hzWave']]) { r = mapAtk(idx, nm, jumpIt); if (r.hits) return nm + ': jumping still got hit'; r = mapAtk(idx, nm, guardIt); if (!r.hits) return nm + ': guarding avoided a jump attack'; }
+      r = mapAtk(84, 'hzBolt', guardIt); if (r.hits) return 'lightning: guarding still got hit';
+      fight(84, 'min'); B.st.stunMult = 1; r = mapAtk(84, 'hzBolt', guardIt);
+      // sand storm: dodge notes follow the wind
+      fight(44, 'min'); HZ.sand.rate = 0; B.wind = 1; B.forcePat = 'heavy'; B.firstAtk = false; while (B.state !== 'IDLE') __tick(16); B.idleDur = 0; let g = 0; while (!(B.state === 'WINDUP' && B.atk.name === 'heavy') && g++ < 400) { __tick(16); if (B.state === 'IDLE' && !B.forcePat) B.forcePat = 'heavy'; }
+      if (B.atk.notes[0].dir !== 1) return 'sand storm did not set the dodge direction';
+      // traits
+      fight(0, 'min'); if (EN[B.st.kind].trait !== 'regen') return 'slime is not regen'; B.ehp = B.emax * .5; B.eHitT = B.time - 9000; const e0 = B.ehp; for (let i = 0; i < 120; i++) __tick(16); if (!(B.ehp > e0)) return 'regen did not heal';
+      fight(7, 'elite'); R.gold = 1000; hurt(5, null, false); if (!(R.gold < 1000 && B.stolen > 0)) return 'thief did not steal'; B.stun = 100; enterGroggy(); if (R.gold !== 1000) return 'stolen gold not returned on stun';
+      fight(12, 'min'); if (EN[B.st.kind].trait !== 'poison') { fight(10, 'min'); } if (EN[B.st.kind].trait === 'poison') { B.php = 1000; hurt(5, null, false); const p0 = B.php; for (let i = 0; i < 80; i++) __tick(16); if (!(B.php < p0)) return 'poison did no damage over time'; }
+      fight(21, 'min'); if (EN[B.st.kind].trait !== 'revive') return 'skeleton is not revive (' + B.st.kind + ')'; B.ehp = 0; victory(); if (B.state === 'VICTORY' || !(B.ehp > 0)) return 'skeleton did not revive'; B.ehp = 0; victory(); if (B.state !== 'VICTORY') return 'revived twice'; for (let i = 0; i < 250; i++) __tick(16); closeModal();
+      fight(35, 'elite'); if (EN[B.st.kind].trait !== 'rage') return 'orc is not rage'; B.ehp = B.emax * .4; for (let i = 0; i < 30 && !B.raged; i++) __tick(16); if (!B.raged) return 'rage did not trigger (' + B.state + ')';
+      fight(51, 'min'); if (EN[B.st.kind].trait !== 'freeze') return 'ice spirit is not freeze (' + B.st.kind + ')'; hurt(5, null, false); if (!(B.parryLock > B.time + 300)) return 'freeze did not lock the knight';
+      endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '피버 타임 · 기절 게이지가 피해만큼 줄어듦', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; __bot.skill = 1; __bot.sig = 8;
       startRun(3); startFight(roomCfg(3, 'min'), false); B.ehp = B.emax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [['single', 1]] };
@@ -393,7 +435,7 @@ const BOT = `(()=>{
       const e1 = B.ehp; B.fever = B.time + 4000; let vt2 = 0; const p0 = B.parries; while (vt2 < 8000 && B.parries === p0) { __tick(16); vt2 += 16; if (document.querySelector('#modal').hidden) __botStep(); }
       if (!(B.ehp < e1)) return 'fever parry did not counter-attack';
       B.fever = 0; for (let i = 0; i < 20; i++) __tick(16); B.fvStreak = 5; hurt(5, null, false); if (B.fvStreak !== 0) return 'getting hit did not break the fever streak';
-      endBattle(); startRun(3); startFight(roomCfg(3, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); B.ehp = B.emax = B.wp.groggyTapDamage * 60; B.stun = 100; for (let i = 0; i < 3; i++) __tick(16);
+      endBattle(); startRun(3); startFight(roomCfg(3, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); while (B.state !== 'IDLE') __tick(16); B.ehp = B.emax = B.wp.groggyTapDamage * 60; B.stun = 100; for (let i = 0; i < 3; i++) __tick(16);
       if (B.state !== 'GROGGY') return 'no stun'; updHud(); const w0 = parseFloat(hud.eStun.style.width);
       for (let k = 0; k < 6; k++) { B.lastBashT = -1e9; groggyHit(); __tick(16); } lastHud = ''; updHud(); const w1 = parseFloat(hud.eStun.style.width);
       if (!(w1 < w0 - 5)) return `stun gauge did not shrink with damage (${w0} → ${w1})`;
@@ -408,9 +450,9 @@ const BOT = `(()=>{
       if (document.querySelectorAll('#fvMeter i.on').length) return 'fever meter leaked into the next fight';
       for (let i = 0; i < 10; i++) for (const k of ['st' + i, 'bs' + i]) { const sg = SONGS[k]; if (!sg || !sg._m.length || !sg._b.length) return 'song ' + k + ' missing';
         for (const n of sg._m.concat(sg._b)) if (n !== '.' && n !== '-' && !isFinite(nf(n))) return `song ${k} has a bad note ${n}`; }
-      if (roomCfg(4, 'boss').music !== 'bs4' || roomCfg(4, 'min').music !== 'st4') return 'stage music not wired';
+      for (const i of [4, 44, 99]) if (roomCfg(i, 'boss').music !== 'bs' + Math.floor(i / 10) || roomCfg(i, 'min').music !== 'st' + Math.floor(i / 10)) return 'chapter music not wired';
       const need = idx => { startRun(idx); const c = roomCfg(idx, 'boss'); startFight(c, false); const g = B.sh.stunDamage * B.st.stunMult * 1.3; endBattle(); return Math.ceil(100 / g); };
-      S.shLv = 4; S.shStage = 0; const n0 = need(0); S.shLv = 40; S.shStage = 3; const n9 = need(9); S.shLv = 1; S.shStage = 0;
+      S.shLv = 4; S.shStage = 0; const n0 = need(0); S.shLv = 40; S.shStage = 3; const n9 = need(99); S.shLv = 1; S.shStage = 0;
       if (n0 < 5 || n9 < 9 || n9 <= n0) return `perfect parries to stun: stage 1 = ${n0}, stage 10 = ${n9} (expected ~6 → ~11+)`;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '전투 중 새 패턴 안내 없음 · 패턴 도감 · FINISH', run: () => {
