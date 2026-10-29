@@ -306,18 +306,15 @@ const BOT = `(()=>{
       B.stun = 100; __tick(16); __tick(16); if (!B.finishReady) return 'full stagger mid-chain did not arm FINISH (' + B.state + ')';
       while (vt < 30000 && B.state === 'WINDUP') { __tick(16); vt += 16; __botStep(); } for (let i = 0; i < 30 && B.state !== 'GROGGY'; i++) __tick(16); if (B.state !== 'GROGGY') return 'no stun after the chain (' + B.state + ')';
       __bot.sig = undefined; return __errors.length ? 'error: ' + __errors[0] : null; } },
-    { name: '퍼펙트 게이지 카드: 게이지가 차야만 관문 사이에서 카드', run: () => {
-      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; __bot.skill = 1; __bot.sig = 8;
-      startRun(1); startFight(roomCfg(1, 'min'), false); R.cg = 0; cgDraw(); if (document.querySelector('#cGauge').hidden) return 'card gauge not shown';
-      B.ehp = 1; chip(5, 'x'); let vt = 0, sawCard = false;
-      while (vt < 6000) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden && h.startsWith('카드')) sawCard = true; if (B.state === 'WALK' || B.state === 'INTRO') break; }
-      if (sawCard) return 'a card was offered with an empty gauge';
-      cgAdd(cgNeed() + 1); if (R.cgReady !== 1) return 'full gauge did not make a card ready';
-      B.ehp = 1; chip(5, 'x'); vt = 0;
-      while (vt < 6000 && !sawCard) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden && h.startsWith('카드')) sawCard = true; }
-      if (!sawCard) return 'ready card was not offered between gates'; document.querySelector('[data-m="c0"]').click();
-      if (R.cgReady !== 0 || R.cgGot !== 1) return 'card count not consumed'; if (cgNeed() !== CG_BASE + CG_STEP) return 'next card should need more';
-      __bot.sig = undefined; for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
+    { name: '카드 시스템 제거: 관문 사이 카드 없음 · 상단은 피버 게이지', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 3; __bot.skill = 1; __bot.sig = 8;
+      startRun(1); for (let i = 0; i < 5; i++) __tick(16); if (!document.querySelector('#modal').hidden && /카드/.test(document.querySelector('#mbox').textContent)) return 'win streak still offers starting cards';
+      if (!document.querySelector('#cGauge').hidden) return 'card gauge still shown'; if (document.querySelector('#fGauge').hidden) return 'fever gauge not shown on top';
+      let sawCard = false, rooms = 0, vt = 0; const r0 = R;
+      while (vt < 400000 && R === r0 && R.room < 3) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.startsWith('카드')) sawCard = true; __botStep(); } else __botStep(); }
+      if (sawCard) return 'a card pick appeared between gates'; if (!(R && R.room >= 1)) return 'did not reach the next gates (' + (R && R.room) + ')';
+      if (!((R.fv || 0) > 0)) return 'fever gauge did not fill over the gates';
+      S.streak = 0; __bot.sig = undefined; for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '사람처럼 스와이프(터치→밀기)로 회피 공격 전부 피하기 · 기상 충격파', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;

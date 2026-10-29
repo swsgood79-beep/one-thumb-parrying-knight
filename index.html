@@ -353,7 +353,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .cgauge span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#fff;text-shadow:0 1px 0 #000}
 .cgauge.ready{animation:flash .4s infinite;border-color:#ffd23f}
 .gauges{display:flex;gap:4px;align-self:center;width:86%;margin:-1px 0 1px}
-.gauges .cgauge{flex:none;width:30%;margin:0;align-self:auto}.gauges .cgauge span{font-size:10px}
+.gauges .cgauge{display:none!important}.gauges .cgauge span{font-size:10px}
 .fgauge{position:relative;flex:1;height:16px;border-radius:6px;border:2px solid var(--edge);background:#140d2e;overflow:hidden}
 .fgauge i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff3b5c,#ff9b2f,#ffd23f);transition:width .15s}
 .fgauge span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#fff;text-shadow:0 1px 0 #000;font-family:var(--f-display)}
@@ -1117,7 +1117,7 @@ let R=null;
 const cardN=id=>R&&R.cards[id]||0;
 /* cards come from the perfect gauge: parries fill it across gates; each full gauge = one pick between gates.
    CARD_MODE='room' restores the old one-pick-per-gate flow. */
-const CARD_MODE='gauge',CG_BASE=90,CG_STEP=15;
+const CARD_MODE='off',CG_BASE=90,CG_STEP=15;   // cards removed from the game
 const cgOn=()=>CARD_MODE==='gauge'&&R&&!(R.rhythm||R.prologue||R.vault||R.trial);
 const cgNeed=()=>CG_BASE+CG_STEP*((R.cgGot||0)+(R.cgReady||0));
 function cgAdd(v,label){
@@ -1824,7 +1824,7 @@ function renderLobby(){
   $('#stPrev').disabled=i<=0;$('#stNext').disabled=i>=Math.min(S.cleared,STAGES.length-1);
   const chips=[];
   {const h=HZ[st.hz],tr=TRAITS[EN[st.kind].trait];if(tr)chips.push(`<span class="chip lchip" style="--cc:${tr[2]}"><em>특성</em>${tr[0]}</span>`);if(h)chips.push(`<span class="chip lchip" style="--cc:${STAGE_COL[st.theme]}"><em>지형</em>${h.name}</span>`)}
-  if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승 · 시작 카드 ${streakCards()}</span>`);
+  if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승${streakGold()?' · 골드 +'+Math.round(streakGold()*100)+'%':''}</span>`);
   $('#stChips').innerHTML=chips.join('');
   {const done=Math.min(S.cleared,STAGES.length);$('#mTxt').innerHTML=`정복 <b>${done}</b>/${STAGES.length} · 남은 스테이지 <em>${STAGES.length-done}</em> · ${CH[ch].title} ${Math.max(0,Math.min(10,done-ch*10))}/10`;
     $('#mSeg').innerHTML=CH.map((c,k)=>`<i class="${k===ch?'cur':''}" style="--c:${STAGE_COL[c.theme]}" title="${c.title}"><u style="width:${clamp(done-k*10,0,10)*10}%"></u></i>`).join('')}
@@ -2791,7 +2791,7 @@ function resolveImpact(){
       else{ok=true;if(a.name==='hzBolt')actOk('번개 흡수!','#ffe14d',1.4);else actOk('철벽!','#bfe6ff',.5);sfx('guard',S.shStage);sfx('clang',true);domShake(1);barShake('#pShBar');ripple('#8fd0ff')}}
     else hurt(atk*1.3*red,t<B.evadeUntil?'충격파는 못 피해! 꾹!':'짓눌렸다! 꾹 가드!')}
   else if(t<B.evadeUntil&&n.dir&&B.evadeDir!==n.dir)hurt(atk*1.2*red,'반대쪽!');
-  else if(t<B.evadeUntil){ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
+  else if(t<B.evadeUntil){if(n.type==='swipe')fvAdd(.8);ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
   else if(n.grab)grabStart(atk*red);
   else if(n.type==='swipe'&&a.kind==='barrage')hurt(atk*.35*red,'피격!');
   else if(n.type==='swipe'){if(B.guard){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 붕괴!')}else hurt(atk*1.4*red)}
@@ -2809,7 +2809,7 @@ function resolveImpact(){
   advanceNote(ok);
 }
 /* a special move landed (crush blocked, low sweep jumped) */
-function actOk(label,col,k){const[sx,sy]=shieldPos();B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*k);ftAt(label,B.kx+10,B.gy-40,'perfect');vib(15);
+function actOk(label,col,k){fvAdd(1);const[sx,sy]=shieldPos();B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*k);ftAt(label,B.kx+10,B.gy-40,'perfect');vib(15);
   vig('rgba(140,220,255,.55)',300);burstParts(sx+2,sy,10,[col,'#ffffff'],.1,.0002,.3);if(!midChain())B.hitstop=Math.max(B.hitstop,60);B.shake=2}
 /* grab: caught knights mash taps to break free before the throw */
 function grabStart(dmg){hurt(dmg*.3,'잡혔다!');if(B.state==='DEFEAT'||B.state==='VICTORY')return;
@@ -2823,7 +2823,7 @@ function grabEnd(ok){const g=B.grab;if(!g)return;B.grab=null;
   if(B.state==='IDLE'){B.stT=B.time;B.idleDur=500}}
 function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(220,480)*(1.05-TIER(B.idx)*.04)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?.75:1)}
 function enterGroggy(){
-  B.gTot=0;B.finishBonus=false;
+  B.gTot=0;B.finishBonus=false;fvAdd(6);
   if(B.stolen){R.gold+=B.stolen;ftAt(`+${B.stolen}G 되찾았다!`,B.kx+6,B.gy-52,'combo');sfx('coin');B.stolen=0}
   if(B.finishReady){B.finishReady=false;if(B.finishPerfect&&B.finishNotes>0){B.finishBonus=true;setTimeout(()=>{if(B.active&&B.state==='GROGGY')banner('PERFECT FINISH!','기절 시간 · 연타 피해 UP')},150)}}
   B.slam=false;
@@ -2939,14 +2939,14 @@ function drawKillOverlay(c,e){
 }
 /* FEVER = special move. Parries fill a run-wide gauge (faster at a high combo) — about once per expedition, around the boss gate.
    Full gauge: the pad turns rainbow; one tap unleashes ~4.5 s of automatic rapid strikes while the enemy can only take it. */
-const FV_NEED=140,FEVER_MS=4500;
+const FV_NEED=110,FEVER_MS=4500;
+function fvAdd(v){if(!R||!feverAllowed()||feverOn())return;const was=fvReady();R.fv=Math.min(FV_NEED,(R.fv||0)+v*(R.rooms&&R.rooms[R.room]==='danger'?1.5:1));
+  if(!was&&fvReady()){banner('FEVER 준비!','버튼을 탭하면 필살 연속 공격!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200)}fvMeter()}
 const feverOn=()=>B.state==='FEVER'&&B.fever>B.time;
 const feverAllowed=()=>!(R&&(R.rhythm||R.prologue||R.trial||R.vault||R.v2));
 const fvReady=()=>!!(B.active&&R&&feverAllowed()&&(R.fv||0)>=FV_NEED&&!feverOn());
-function feverParry(perfect){if(!R||!feverAllowed()||feverOn())return;const was=fvReady();
-  R.fv=Math.min(FV_NEED,(R.fv||0)+(perfect?1.5:1)*(1+Math.min(B.combo,30)/30));
-  if(!was&&fvReady()){banner('FEVER 준비!','버튼을 탭하면 필살 연속 공격!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200)}fvMeter()}
-function feverStart(){if(!fvReady())return false;R.fv=0;
+function feverParry(perfect){fvAdd((perfect?1.5:1)*(1+Math.min(B.combo,30)/30))}
+function feverStart(){if(!fvReady())return false;R.fv=0;track('fever');
   if(B.atk&&!B.atk.resolved){B.atk.resolved=true;B.atk.notes.forEach(n=>n.res=true)}B.guard=false;B.pendWhiff=0;B.grab=null;B.finishReady=false;B.cutChain=false;
   setState('FEVER');B.fever=B.time+FEVER_MS;B.fvNext=B.time+260;B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?.3:.5);
   banner('FEVER!!','필살 연속 공격!');sfx('combo');sfx('clang',true);flash('#ff9bd0',.7,320);zoom(1.15);domShake(2);vib([30,30,30,30,80]);Music.hype=true;Music.rate=Math.max(Music.rate,1.08);
@@ -3298,7 +3298,7 @@ function roomCleared(){
   R.parries+=B.parries;R.perfects+=B.perfects;R.tapN=(R.tapN||0)+(B.tapN||0);R.maxCombo=Math.max(R.maxCombo,B.maxCombo);
   ftAt(`+${g} 골드`,B.kx,B.gy-40,'clang');
   if(R.rooms[R.room]==='boss'){B.paused=true;return runComplete()}
-  B.paused=true;
+  B.paused=true;fvAdd(8);
   track('room');addPassXP(10);
   const go=()=>{B.paused=false;lastTs=0;setState('WALK');renderRunMap();cgDraw()};
   if(CARD_MODE==='room')pickCards(R.rooms[R.room]==='danger'?2:1,go);
@@ -3311,8 +3311,8 @@ function advanceRoom(){
 }
 function forkChoice(){
   modal(`<h2>갈림길</h2><p>길이 둘로 나뉘었다. 체력 <b style="color:var(--gold)">${R.hp}/${R.maxHp}</b></p>
-    <button class="card row fork" data-m="danger" style="width:100%;text-align:left"><div class="frame f3">${ic('skull')}</div><div class="info"><div class="nm">위험한 길</div><div class="ds">강한 적과 싸운다. 골드 2배 · 카드 게이지 1.5배</div></div></button>
-    <button class="card row fork" data-m="spring" style="width:100%;text-align:left"><div class="frame f2">${ic('potHp')}</div><div class="info"><div class="nm">안전한 길</div><div class="ds">회복의 샘에서 체력 40% 회복 · 카드 게이지 +30 · 쓰러진 용사를 만날지도?</div></div></button>`,
+    <button class="card row fork" data-m="danger" style="width:100%;text-align:left"><div class="frame f3">${ic('skull')}</div><div class="info"><div class="nm">위험한 길</div><div class="ds">강한 적과 싸운다. 골드 2배 · 피버 게이지 1.5배</div></div></button>
+    <button class="card row fork" data-m="spring" style="width:100%;text-align:left"><div class="frame f2">${ic('potHp')}</div><div class="info"><div class="nm">안전한 길</div><div class="ds">회복의 샘에서 체력 40% 회복 · 피버 게이지 +20% · 쓰러진 용사를 만날지도?</div></div></button>`,
   {danger:()=>{closeModal();R.rooms[R.room]='danger';startFight(roomCfg(R.idx,'danger'),true)},
    spring:()=>{closeModal();R.rooms[R.room]='spring';springEvent()}});
 }
@@ -3322,7 +3322,7 @@ function springEvent(){
   S.rescued=S.rescued||[];if(!S.rescued.includes(name))S.rescued.push(name);save();
   modal(`<h2>회복의 샘</h2><div class="rew"><div>${ic('heart')}+${heal}</div></div><p>맑은 샘물에 체력을 회복했다.<br>샘 옆에 쓰러져 있던 <b style="color:var(--gold)">${name}</b>을(를) 구했다!</p>
     <p style="font-size:14px">"싸구려 용사라고 비웃어서 미안했다... 이거라도 받아 줘."</p><div class="btns"><button class="btn g" data-m="ok">고마워!</button></div>`,
-  {ok:()=>{closeModal();if(CARD_MODE==='room')pickCards(1,()=>advanceRoom());else{R.cg=(R.cg||0)+30;while(R.cg>=cgNeed()){R.cg-=cgNeed();R.cgReady=(R.cgReady||0)+1}advanceRoom()}}});
+  {ok:()=>{closeModal();R.fv=Math.min(FV_NEED,(R.fv||0)+FV_NEED*.2);advanceRoom()}});
 }
 function pickCards(times,done){
   const avail=CARDS.filter(c=>!(c.id==='heal'&&R.hp>=R.maxHp));
@@ -3543,7 +3543,7 @@ const MISSIONS=[
   {id:'room',name:'원정 관문 돌파',goal:6,evt:'room'},
   {id:'run',name:'원정 완료',goal:1,evt:'run'},
   {id:'groggy',name:'적 기절시키기',goal:4,evt:'groggy'},
-  {id:'card',name:'카드 고르기',goal:4,evt:'card'},
+  {id:'fever',name:'피버 발동',goal:2,evt:'fever'},
   {id:'rhythm',name:'리듬 챌린지 플레이',goal:1,evt:'rhythm'},
   {id:'vault',name:'황금 고블린 금고 도전',goal:1,evt:'vault'},
 ];
@@ -3618,12 +3618,12 @@ function offlineCheck(force){
 setInterval(()=>{if(!document.hidden){S.lastSeen=Date.now();save()}},30000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden){S.lastSeen=Date.now();save()}else if(!B.active&&!$('#shell').hidden)offlineCheck()});
 /* win streak: consecutive successful expeditions grant a head start */
-const streakCards=()=>S.streak>=3?2:S.streak>=1?1:0;
+const streakCards=()=>0;
 const streakGold=()=>S.streak>=3?.2:S.streak>=2?.1:0;
 function breakStreak(done){
   if(!S.streak){done();return}
   const n=S.streak;
-  modal(`<h2 class="bad">연승이 끊겼어요</h2><p>${n}연승 보너스(시작 카드, 골드)가 사라져요.</p><div class="btns"><button class="btn y" data-m="keep">▶ 광고 보고 연승 지키기</button><button class="btn d" data-m="drop">괜찮아요</button></div>`,
+  modal(`<h2 class="bad">연승이 끊겼어요</h2><p>${n}연승 보너스(골드)가 사라져요.</p><div class="btns"><button class="btn y" data-m="keep">▶ 광고 보고 연승 지키기</button><button class="btn d" data-m="drop">괜찮아요</button></div>`,
   {keep:()=>{closeModal();simulateAd(()=>{toast(n+'연승을 지켰어요');done()},'연승 유지')},drop:()=>{S.streak=0;save();closeModal();done()}});
 }
 
