@@ -86,7 +86,7 @@ const BOT = `(()=>{
       const hm = document.querySelector('#mbox [data-m]'); if (hm) hm.click();
       document.querySelector('#startBtn').click();
       let lastT = -1, stillMs = 0, stateMs = 0, lastState = '', vt = 0, problem = null, winV = 0, winG = 0, winT0 = null;
-      const LIMIT = 15 * 60 * 1000;                                  // 15 virtual minutes per run
+      const LIMIT = 25 * 60 * 1000;                                  // 15 virtual minutes per run
       while (vt < LIMIT && !__bot.result) {
         __tick(16); vt += 16; __botStep(); if (typeof B !== 'undefined' && B.active && B.pmax && !(R && R.prologue)) minHp = Math.min(minHp, B.php / B.pmax);
         if (__errors.length) { problem = 'error: ' + __errors[0]; break; }

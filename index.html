@@ -823,17 +823,17 @@ const today=()=>new Date().toISOString().slice(0,10);
 /* one shield that evolves; stats are derived from level + evolution stage */
 const SHIELD_STAGES=[
   {name:'나무 방패',maxLv:10,win:0,stun:0,shield:0,bash:0,crit:0,groggy:0,slots:1,evoCost:0,req:0,desc:'금이 간 낡은 나무 방패. 그래도 이게 내 전부다.'},
-  {name:'무쇠 덧댄 방패',maxLv:20,win:40,stun:5,shield:25,bash:4,crit:.04,groggy:.3,slots:2,evoCost:200,req:5,desc:'나무 방패에 무쇠판을 덧댔다. 버리지 않았다.'},
-  {name:'기사단 문양 방패',maxLv:30,win:70,stun:10,shield:50,bash:8,crit:.08,groggy:.6,slots:3,evoCost:800,req:20,desc:'사자 문양이 새겨졌다. 이제 아무도 싸구려라 부르지 않는다.'},
-  {name:'성스러운 이지스',maxLv:45,win:110,stun:15,shield:80,bash:12,crit:.12,groggy:1,slots:3,evoCost:2500,req:40,desc:'처음 그 나무 방패가 빛을 머금은 전설이 되었다.'},
-  {name:'용비늘 방패',maxLv:60,win:130,stun:20,shield:110,bash:18,crit:.14,groggy:1.2,slots:3,evoCost:6000,req:60,desc:'화산의 드레이크 비늘을 덧댔다. 불길도 튕겨낸다.'},
-  {name:'천공의 방패',maxLv:80,win:150,stun:25,shield:140,bash:24,crit:.16,groggy:1.4,slots:3,evoCost:12000,req:80,desc:'구름 위에서 번개를 받아낸 방패. 은은하게 빛난다.'},
-  {name:'태초의 방패',maxLv:100,win:170,stun:30,shield:180,bash:32,crit:.2,groggy:1.6,slots:3,evoCost:25000,req:95,desc:'마왕성의 문턱에서 완성된, 세상에 단 하나뿐인 방패.'},
+  {name:'무쇠 덧댄 방패',maxLv:20,win:40,stun:5,shield:25,bash:4,crit:.04,groggy:.3,slots:2,evoCost:300,req:5,desc:'나무 방패에 무쇠판을 덧댔다. 버리지 않았다.'},
+  {name:'기사단 문양 방패',maxLv:30,win:70,stun:10,shield:50,bash:8,crit:.08,groggy:.6,slots:3,evoCost:1200,req:20,desc:'사자 문양이 새겨졌다. 이제 아무도 싸구려라 부르지 않는다.'},
+  {name:'성스러운 이지스',maxLv:45,win:110,stun:15,shield:80,bash:12,crit:.12,groggy:1,slots:3,evoCost:4000,req:40,desc:'처음 그 나무 방패가 빛을 머금은 전설이 되었다.'},
+  {name:'용비늘 방패',maxLv:60,win:130,stun:20,shield:110,bash:18,crit:.14,groggy:1.2,slots:3,evoCost:10000,req:60,desc:'화산의 드레이크 비늘을 덧댔다. 불길도 튕겨낸다.'},
+  {name:'천공의 방패',maxLv:80,win:150,stun:25,shield:140,bash:24,crit:.16,groggy:1.4,slots:3,evoCost:22000,req:80,desc:'구름 위에서 번개를 받아낸 방패. 은은하게 빛난다.'},
+  {name:'태초의 방패',maxLv:100,win:170,stun:30,shield:180,bash:32,crit:.2,groggy:1.6,slots:3,evoCost:48000,req:95,desc:'마왕성의 문턱에서 완성된, 세상에 단 하나뿐인 방패.'},
 ];
 function shieldStats(lv=S.shLv,st=S.shStage){const g=SHIELD_STAGES[st];return{name:g.name,
-  parryWindowBonus:Math.min(45,Math.round((g.win+lv)*.4))/1000,stunDamage:Math.round(25+(lv-1)*.6+g.stun*.5),maxShield:Math.round(100+(lv-1)*5+g.shield),
+  parryWindowBonus:Math.min(30,Math.round((g.win+lv)*.3))/1000,stunDamage:Math.round(25+(lv-1)*.6+g.stun*.5),maxShield:Math.round(100+(lv-1)*5+g.shield),
   groggyTapDamage:Math.round(4+(lv-1)*.8+g.bash),critRate:.05+g.crit+lv*.001,stunBonus:g.groggy,slots:g.slots}}
-const lvCost=lv=>Math.round(10+lv*lv*.8);
+const lvCost=lv=>Math.round(15+lv*lv*1.65);
 /* engravings work like relics: rarity (r 0-4), stars ★1-★5 (+25% effect per star), equipped in 1-3 slots,
    and every owned one adds to a collection bonus. Boss engravings come only from bosses. */
 const E_RAR=['일반','고급','희귀','영웅','전설'],E_RCOL=['#9aa3ad','#55c95f','#3f8cff','#b45cff','#ffb020'],E_RW=[1,2,3,5,8];
@@ -856,7 +856,7 @@ const ENGRAVINGS=[
   {id:'owl',r:1,name:'부엉이 각인',short:'판정 +10ms',glyph:'eye',col:'#e0c27a',fx:{winMs:10}},
   {id:'thorn',r:1,name:'가시 각인',short:'가드 반사',glyph:'star',col:'#7fae63',fx:{guardChip:.5}},
   {id:'wind',r:1,name:'바람 각인',short:'회피→피로도',glyph:'wing',col:'#bfe8ff',fx:{evadeStun:8}},
-  {id:'honey',r:1,name:'꿀 각인',short:'패링 시 회복',glyph:'drop',col:'#ffc83a',fx:{parryHealPct:1}},
+  {id:'honey',r:1,name:'꿀 각인',short:'패링 시 회복',glyph:'drop',col:'#ffc83a',fx:{parryHealPct:.6}},
   {id:'drum',r:1,name:'북 각인',short:'체인 보너스 +25%',glyph:'bell',col:'#ff8fc8',fx:{chainPct:25}},
   {id:'lucky',r:1,name:'행운 동전 각인',short:'골드 +12%',glyph:'coin',col:'#ffd23f',fx:{goldPct:12}},
   // 희귀
@@ -882,7 +882,7 @@ const ENGRAVINGS=[
   // 보스 (보스에게서만)
   {id:'slime',r:2,boss:true,from:4,name:'말랑 각인',short:'가드 소모 -35%',glyph:'slime',col:'#72e06a',fx:{guardDrain:35}},
   {id:'goblin',r:2,boss:true,from:9,name:'좀도둑 각인',short:'골드 +25%',glyph:'goblin',col:'#ffe14d',fx:{goldPct:25}},
-  {id:'bat',r:3,boss:true,from:24,name:'흡혈 각인',short:'패링 시 회복 4%',glyph:'bat',col:'#ff4d6d',fx:{parryHealPct:4}},
+  {id:'bat',r:3,boss:true,from:24,name:'흡혈 각인',short:'패링 시 회복 2.5%',glyph:'bat',col:'#ff4d6d',fx:{parryHealPct:2.5}},
   {id:'skull',r:3,boss:true,from:29,name:'뼈 파편 각인',short:'퍼펙트 반격 ×3',glyph:'skull',col:'#efe8d6',fx:{perfectChip:3}},
   {id:'orc',r:3,boss:true,from:34,name:'광폭 각인',short:'강타 +25%',glyph:'orc',col:'#ff7a2f',fx:{bashPct:25}},
   {id:'armor',r:3,boss:true,from:64,name:'강철 심장 각인',short:'체력 +30',glyph:'armor',col:'#7cf3ff',fx:{hpAdd:30}},
@@ -905,7 +905,7 @@ const ownE=id=>!!(S.eng&&S.eng[id]),starOf=id=>ownE(id)?S.eng[id].star:0,ownedCo
 const STAR_NEED=[0,2,4,8,15],STAR_GOLD=[0,200,500,1200,3000];
 const starCost=id=>{const st=starOf(id),r=ENGR[id].r;return{shards:STAR_NEED[st]||0,gold:Math.round((STAR_GOLD[st]||0)*(1+r*.5))}};
 /* sum of equipped effects, each scaled by its stars */
-function EFX(){const f={};(S.engrEq||[]).forEach(id=>{const e=ENGR[id];if(!e||!ownE(id))return;const m=1+.25*(starOf(id)-1);for(const k in e.fx)f[k]=(f[k]||0)+e.fx[k]*m});f.winMs=Math.min(25,f.winMs||0);return f}
+function EFX(){const f={};(S.engrEq||[]).forEach(id=>{const e=ENGR[id];if(!e||!ownE(id))return;const m=1+.25*(starOf(id)-1);for(const k in e.fx)f[k]=(f[k]||0)+e.fx[k]*m});f.winMs=Math.min(18,f.winMs||0);return f}
 /* collection bonus: every owned engraving counts, weighted by rarity and stars */
 function collectBonus(){let pts=0;for(const id in S.eng||{}){const e=ENGR[id];if(e)pts+=E_RW[e.r]*S.eng[id].star}return{pts,hp:Math.min(30,Math.floor(pts/3)),stun:Math.min(8,rnd1(pts*.1))}}
 function battleStats(){const b=shieldStats(),f=EFX(),c=collectBonus();
@@ -1068,16 +1068,16 @@ const MECH_LATE=[[['mechmix',.12],['dance',.12],['grabchain',.12],['crushjump',.
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const pickW=list=>{let r=Math.random()*list.reduce((a,b)=>a+b[1],0);for(const[n,w]of list){if((r-=w)<=0)return n}return list[0][0]};
 const OLD_TUNE=[
-  {win:210,late:100,jit:0,  lock:0,  cue:3,guide:1,  comboK:.9, lead:1500,ne:40,nl:30,stars:1},
-  {win:185,late:85,jit:.05,lock:120,cue:3,guide:1,  comboK:.85,lead:1400,ne:35,nl:27,stars:1},
-  {win:165,late:76,jit:.08,lock:180,cue:2,guide:1,  comboK:.8, lead:1200,ne:39,nl:27,stars:2},
-  {win:160,late:72, jit:.1, lock:200,cue:2,guide:.85,comboK:.75,lead:1100,ne:33,nl:24,stars:2},
-  {win:152,late:68, jit:.1, lock:220,cue:2,guide:.8, comboK:.75,lead:1000,ne:30,nl:21,stars:3},
-  {win:140,late:64, jit:.12,lock:240,cue:1,guide:.7, comboK:.72,lead:950, ne:27,nl:18,stars:3},
-  {win:132,late:60, jit:.12,lock:250,cue:1,guide:.6, comboK:.7, lead:900, ne:24,nl:18,stars:4},
-  {win:128,late:56, jit:.13,lock:260,cue:1,guide:.55,comboK:.7, lead:850, ne:24,nl:15,stars:4},
-  {win:120,late:52, jit:.14,lock:280,cue:0,guide:.45,comboK:.68,lead:800, ne:21,nl:15,stars:5},
-  {win:120,late:52, jit:.13,lock:280,cue:0,guide:.4, comboK:.7, lead:750, ne:21,nl:15,stars:5},
+  {win:200,late:95,jit:0,  lock:0,  cue:3,guide:1,  comboK:.9, lead:1500,ne:36,nl:26,stars:1},
+  {win:180,late:82,jit:.05,lock:130,cue:3,guide:1,  comboK:.85,lead:1380,ne:32,nl:24,stars:1},
+  {win:160,late:72,jit:.08,lock:180,cue:2,guide:1,  comboK:.8, lead:1200,ne:30,nl:22,stars:2},
+  {win:148,late:66,jit:.1, lock:210,cue:2,guide:.85,comboK:.75,lead:1080,ne:26,nl:20,stars:2},
+  {win:136,late:60,jit:.1, lock:230,cue:2,guide:.8, comboK:.75,lead:980, ne:22,nl:17,stars:3},
+  {win:124,late:54,jit:.12,lock:250,cue:1,guide:.7, comboK:.72,lead:900, ne:19,nl:15,stars:3},
+  {win:114,late:48,jit:.13,lock:270,cue:1,guide:.55,comboK:.7, lead:840, ne:16,nl:13,stars:4},
+  {win:106,late:44,jit:.14,lock:290,cue:1,guide:.5, comboK:.68,lead:780, ne:14,nl:12,stars:4},
+  {win:98, late:42,jit:.15,lock:310,cue:0,guide:.4, comboK:.66,lead:730, ne:12,nl:10,stars:5},
+  {win:94, late:40,jit:.15,lock:320,cue:0,guide:.35,comboK:.65,lead:680, ne:10,nl:10,stars:5},
 ];
 const NEAR_E=90,NEAR_L=70;
 const nearE=()=>(B.tune.ne??NEAR_E)+40*cardN('parry2'),nearL=()=>(B.tune.nl??NEAR_L)+30*cardN('parry2');
@@ -1096,7 +1096,7 @@ const OLD_REGIONS=[
 ];
 const ROOMS=['min','pack','fork','elite','boss'];
 const OLD_PACK_N=[2,2,3,3,3,3,4,4,4,4],PACK_GAP=15;
-const OLD_ATK_MUL=[1.3,1.25,1.25,1.15,1.2,1.2,1.25,1.25,1.3,1.12];
+const OLD_ATK_MUL=[1.3,1.35,1.4,1.45,1.5,1.55,1.6,1.65,1.7,1.8];
 const CARDS=[
   {id:'win',name:'예리한 눈',desc:'패링 판정 +40ms',ic:'bolt'},
   {id:'heal',name:'응급 처치',desc:'즉시 체력 50% 회복',ic:'potHp',once:true},
@@ -2330,15 +2330,16 @@ function lerpRow(rows,x){x=clamp(x,0,rows.length-1);const a=Math.floor(x),b=Math
 /* curves follow the player's expected growth: shield Lv ≈ 4+0.95×stage, player Lv from first-clear exp */
 const stageDmg=i=>6.4+.76*i+[0,4,8,12,18,24,32][[0,5,20,40,60,80,95].filter(r=>r<=i).length-1];
 /* monster HP is multiplied every stage: ×1.075 up to stage 20, ×1.04 to 60, ×1.025 after */
-const stageHp=i=>{let h=150;for(let k=1;k<=i;k++)h*=k<=20?1.075:k<=60?1.04:1.025;return h};
+/* boss hit ≈ player HP ÷ (7.5 at stage 1 → 3.3 at stage 100) */
+const stageHp=i=>{let h=160;for(let k=1;k<=i;k++)h*=k<=20?1.08:k<=60?1.045:1.025;return h};
 const STAGES=[],REGIONS=[],PARRY_TUNE=[],POOLS=[];
 for(let i=0;i<100;i++){const c=Math.floor(i/10),s=i%10,C=CH[c],tr=TIER(i),os=lerpRow(OLD_STAGES,tr);
   const mid=s===4,fin=s===9;let kind,name,line,p2='',taunt='';
   if(fin||mid)[kind,name,line,p2,taunt]=fin?C.boss:C.mid;
   else{const m=s===3||s===6||s===8?C.elites[s%3]:C.mobs[(s*5+1)%C.mobs.length];kind=m[0];name=(KEEPER[s]?KEEPER[s]+' ':'')+m[1];line=C.lines[s]}
-  STAGES.push({name,kind,theme:C.theme,ch:c,s,hz:C.hz,hp:Math.round(stageHp(i)*(fin?2.2:mid?1.6:1)),
-    atk:Math.round((100+1.5*i+.1*i*i)*(.1+.21*i/99)),windup:Math.round(os.windup*.7),heavy:os.heavy,combo:Math.round(os.combo),stunMult:+os.stunMult.toFixed(3),
-    gold:Math.round((60+28*i+.9*i*i)*(fin?2:mid?1.5:1)),boss:mid||fin,line,taunt,p2});
+  STAGES.push({name,kind,theme:C.theme,ch:c,s,hz:C.hz,hp:Math.round(stageHp(i)*(fin?2.5:mid?1.8:1)),
+    atk:Math.round((100+1.5*i+.1*i*i)/(7.5-4.2*Math.sqrt(i/99))/OLD_ATK_MUL[Math.min(9,Math.round(TIER(i)))]),windup:Math.round(os.windup*.7),heavy:os.heavy,combo:Math.round(os.combo),stunMult:+os.stunMult.toFixed(3),
+    gold:Math.round((50+18*i+.48*i*i)*(fin?2:mid?1.5:1)),boss:mid||fin,line,taunt,p2});
   REGIONS.push({name:C.areas[s],min:PAIRS[s].map(j=>C.mobs[j%C.mobs.length]),elite:C.elites[(s+1)%3]});
   const T=lerpRow(OLD_TUNE,tr);for(const k of['win','late','lock','cue','lead','ne','nl'])T[k]=Math.round(T[k]);T.stars=Math.max(1,Math.min(5,Math.round(T.stars)));T.jit=+T.jit.toFixed(3);PARRY_TUNE.push(T);
   const op=OLD_POOLS[Math.min(9,Math.round(tr))],m=MECH[c]||MECH_LATE,sig=SIG[kind]||[];
@@ -2363,7 +2364,7 @@ const HZEV={hzVineL:['가시 덩굴! ◀ 왼쪽으로','rgba(80,200,90,.8)'],hzV
 Object.assign(PATMAKE,{hzVineL:MP('hz',[[0,'L']],1.4),hzVineR:MP('hz',[[0,'R']],1.4),hzRock:MP('hz',[[0,'b']],1.5),hzMud:MP('hz',[[0,'k']],1.5),
   hzSnow:MP('hz',[[0,'j']],1.4),hzLava:MP('hz',[[0,'j']],1.5),hzWave:MP('hz',[[0,'j']],1.4),hzBolt:MP('hz',[[0,'b']],1.5)});
 /* guard drain scales with the shield: a guarded hit costs about 15% of a full shield at any stage */
-const drainK=()=>(hasT('burn')?1.6:1)*(B.hz==='lava'?1.4:1)*(B.st&&B.st.atk>0?Math.min(1,B.pshMax*.125/B.st.atk):1);
+const drainK=()=>(hasT('burn')?1.6:1)*(B.hz==='lava'?1.4:1)*(B.st&&B.st.atk>0?Math.min(1,B.pshMax*(.14+.18*((B.idx||0)/99))/B.st.atk):1);
 function hzStart(cfg){B.hz=(R&&!(R.prologue||R.rhythm||R.vault||R.trial||R.v2)&&HZ[cfg.hz])?cfg.hz:null;B.lastHz=false;B.wind=Math.random()<.5?-1:1;B.windT=4000+rnd(3000,6000);B.blizOn=false;B.blizT=rnd(5000,8000);
   B.raged=false;B.eRevived=false;B.stolen=0;B.poison=null;B.frozenUntil=0;
   if(B.hz==='wave')B.tune=Object.assign({},B.tune,{jit:(B.tune.jit||0)+.06})}
@@ -2432,7 +2433,7 @@ function startRun(idx){
 }
 const STUN_GAIN=.6;
 /* stagger resistance by stage: ~6 perfect parries to stun on stage 1, ~11 on stage 10 */
-const stagRes=()=>R&&!R.rhythm&&!R.prologue&&!R.trial&&!R.vault?1.4+.12*TIER(R.idx):1;
+const stagRes=()=>R&&!R.rhythm&&!R.prologue&&!R.trial&&!R.vault?1.4+.18*TIER(R.idx):1;
 function startFight(cfg,walkIn){
   if(cfg.label!=='시험'&&cfg.label!=='금고')cfg=Object.assign({},cfg,{stunMult:(cfg.stunMult||0)*STUN_GAIN/stagRes()*(R&&!R.prologue&&EN[cfg.kind]&&EN[cfg.kind].trait==='armored'?1.15:1)});
   B.fx=EFX();B.perfStreak=0;
@@ -2599,7 +2600,7 @@ function beginAttack(){
   let ambush=false;if(R&&R.v2){ambush=B.v2Ambush;B.v2Ambush=false;name=ambush?'single':v2Pick()}
   const P=PATMAKE[name](),beat=beatMs();
   let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?.88:1);if(ambush)lead=520;
-  if(!(R&&R.prologue)&&!ambush)lead=alignBeat(Math.max(lead,P.notes.length>1||P.kind==='hold'?600:(P.lead&&P.lead<.7?400:500)));
+  if(!(R&&R.prologue)&&!ambush){const minL=Math.round((P.notes.length>1||P.kind==='hold'?560:P.lead&&P.lead<.7?380:460)*(1-.28*((B.idx||0)/99)));lead=alignBeat(Math.max(lead,minL))}
   if(P.off)lead+=P.off*beat;
   if(hasT('swift')&&!hzA)lead=Math.max(420,lead-beat*.5);
   const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*beat,type:n.type,dur:(n.len||0)*beat,res:false,ghost:!!n.ghost,dir:n.dir||0,grab:!!n.grab}));
@@ -2767,7 +2768,7 @@ function hurt(dmg,label,guarded){
   if(R&&R.vault){vaultHurt(guarded);return}
   dmg=Math.max(1,Math.round(dmg));B.php-=dmg;
   if(!guarded&&B.php>0&&traitOn())traitHit(dmg);
-  if(!guarded&&B.push)pushAdd(-4);
+  if(!guarded&&B.push)pushAdd(-6);
   if(!guarded){B.pStreak=0;feverBreak();B.finishPerfect=false}
   if(!guarded){B.combo=0;B.kFlash=240;B.kFlashCol='#ff4d5e';B.shake=5;sfx('hurt');vib([100]);
     flash('#ff2b3b',.38,260);vig('rgba(255,30,50,.95)',500);domShake(2);zoom(1.05);barShake('#pHpBar');
@@ -2822,7 +2823,7 @@ function grabEnd(ok){const g=B.grab;if(!g)return;B.grab=null;
   if(ok){ftAt('탈출!',B.kx+10,B.gy-44,'perfect');sfx('combo');flash('#ffffff',.4,200);zoom(1.06);B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.4);B.ex=EX();B.eFlash=80}
   else{hurt(g.dmg,'내동댕이!');domShake(2)}
   if(B.state==='IDLE'){B.stT=B.time;B.idleDur=500}}
-function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(220,480)*(1.05-TIER(B.idx)*.04)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?.75:1)}
+function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(220,480)*(1.05-TIER(B.idx||0)*.065)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?.75:1)}
 function enterGroggy(){
   B.gTot=0;B.finishBonus=false;fvAdd(6);
   if(B.stolen){R.gold+=B.stolen;ftAt(`+${B.stolen}G 되찾았다!`,B.kx+6,B.gy-52,'combo');sfx('coin');B.stolen=0}
@@ -2833,7 +2834,7 @@ function enterGroggy(){
   track('groggy');
   if(B.fx.groggyShield){B.psh=B.pshMax;ftAt('실드 회복',B.kx,B.gy-36,'info')}
   if(R&&R.prologue&&B.tutStep===6)setTimeout(()=>{if(B.active&&B.state==='GROGGY')coachShow(6)},350);
-  setState('GROGGY');B.groggyDur=(2900+B.wp.stunBonus*600)*(feverOn()?1.5:1)*(B.finishBonus?1.3:1);B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?.18:B.st.label==='정예'||B.st.label==='위험'||B.st.label==='무리'?.35:.5)*(feverOn()?1.6:1)*(B.finishBonus?1.3:1);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
+  setState('GROGGY');B.groggyDur=(2900+B.wp.stunBonus*600)*(feverOn()?1.5:1)*(B.finishBonus?1.3:1);B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?Math.max(.09,.18-TIER(B.idx||0)*.009):B.st.label==='정예'||B.st.label==='위험'||B.st.label==='무리'?Math.max(.20,.35-TIER(B.idx||0)*.015):Math.max(.30,.50-TIER(B.idx||0)*.02))*(feverOn()?1.6:1)*(B.finishBonus?1.3:1);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
   if(R&&R.vault){B.groggyDur=2600+B.wp.stunBonus*500;B.groggyEnd=B.time+B.groggyDur}
   atkCue(true);slow(160,.2);zoom(1.16);flash('#fff3a0',.55,240);
   if(R&&R.vault)banner('털어라!','연타로 금화 주머니 흔들기!!');sfx('groggy');flash('#ffffff',.55,300);zoom(1.12);vib([30,40,30]);domShake(2);Music.hype=true;
@@ -2951,7 +2952,7 @@ const fvReady=()=>!!(B.active&&R&&feverAllowed()&&(R.fv||0)>=FV_NEED&&!feverOn()
 function feverParry(perfect){fvAdd((perfect?1.5:1)*(1+Math.min(B.combo,30)/30))}
 function feverStart(){if(!fvReady())return false;R.fv=0;track('fever');
   if(B.atk&&!B.atk.resolved){B.atk.resolved=true;B.atk.notes.forEach(n=>n.res=true)}B.guard=false;B.pendWhiff=0;B.grab=null;B.finishReady=false;B.cutChain=false;
-  setState('FEVER');B.fever=B.time+FEVER_MS;B.fvT0=B.time;B.fvNext=B.time+230;B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?.3:.5);B.fvK=null;B.fvLeap=false;B.fvFin=false;B.fvPush=0;slow(220,.25);
+  setState('FEVER');B.fever=B.time+FEVER_MS;B.fvT0=B.time;B.fvNext=B.time+230;B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?Math.max(.14,.25-TIER(B.idx||0)*.012):.40);B.fvK=null;B.fvLeap=false;B.fvFin=false;B.fvPush=0;slow(220,.25);
   banner('FEVER!!','필살 연속 공격!');sfx('combo');sfx('clang',true);flash('#ff9bd0',.7,320);zoom(1.15);domShake(2);vib([30,30,30,30,80]);Music.hype=true;Music.rate=Math.max(Music.rate,1.08);
   B.parts.push({ring:true,x:B.kx,y:B.gy-14,r:4,vr:.16,life:520,col:'#ff5bb5'},{ring:true,x:B.kx,y:B.gy-14,r:2,vr:.1,life:420,col:'#ffd23f'});burstParts(B.kx,B.gy-14,30,['#ff5bb5','#ffd23f','#4fb8ff','#5fd23a'],.16,.0002,.45);
   feverHud();return true}
@@ -3886,14 +3887,14 @@ const EX=()=>B.pack?packX(B.packAtk):B.ex0+(B.push||0);
 const packX=i=>B.ex0+i*PACK_GAP;
 const wallX=()=>B.W-8;
 function pushAdd(v){
-  if(!pushOn()||B.state==='GROGGY'||B.slam)return;const k=pushMax()/12;
+  if(!pushOn()||B.state==='GROGGY'||B.slam)return;const k=pushMax()/(12*(1+Math.max(0,(B.idx||0)-3)*.018));
   B.push=clamp(B.push+v*k,0,pushMax());if(v>0){B.pushT=B.time;for(let i=0;i<3;i++)B.parts.push({x:B.ex+B.E.scale*4+rnd(-2,2),y:B.gy-1,vx:rnd(.01,.05),vy:rnd(-.04,-.01),g:.0002,life:rnd(250,420),col:'#c9b48a',sz:1})}
   if(v>0&&B.push>=pushMax())wallSlam();
 }
 function pushTick(dt,t){
   if(!pushOn()||!B.push||B.state==='GROGGY')return;
   if(B.pushBack){B.push=Math.max(0,B.push-dt*.015);if(!B.push)B.pushBack=false}
-  else if((B.state==='IDLE'||B.state==='WINDUP')&&t-B.pushT>1500)B.push=Math.max(0,B.push-dt*.002);
+  else if((B.state==='IDLE'||B.state==='WINDUP')&&t-B.pushT>1100)B.push=Math.max(0,B.push-dt*.0045);
 }
 function wallSlam(){
   B.push=pushMax();B.slam=true;B.stun=100;B.slams++;cgAdd(12);track('groggy');
