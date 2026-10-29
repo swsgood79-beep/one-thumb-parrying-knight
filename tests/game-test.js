@@ -421,8 +421,10 @@ const BOT = `(()=>{
         for (const k of [...REGIONS[i].min.map(m => m[0]), REGIONS[i].elite[0]]) { if (!EN[k]) return `stage ${i + 1}: unknown minion ${k}`; if (!EN[k].trait) return `${k} has no trait`; }
         for (const [n] of POOLS[i].base.concat(POOLS[i].p2)) if (!PATMAKE[n]) return `stage ${i + 1}: pool has unknown pattern ${n}`;
         if ((i % 10 === 4 || i % 10 === 9) !== !!st.boss) return `stage ${i + 1}: boss flag wrong`;
+        if (i % 10 && REGIONS[i].min.map(m => m[0]).join() === REGIONS[i - 1].min.map(m => m[0]).join()) return `stage ${i + 1} has the same minions as stage ${i}`;
         for (const ty of ['min', 'pack', 'elite', 'boss']) { const c = roomCfg(i, ty); if (!(c.hp > 0 && c.atk > 0)) return `stage ${i + 1} ${ty}: bad hp/atk`; } }
       for (const k in MINION_POOLS) for (const [n] of MINION_POOLS[k]) if (!PATMAKE[n]) return `minion ${k} uses unknown pattern ${n}`;
+      for (let i = 1; i < 100; i++) { const a = stageHp(i), b = stageHp(i - 1); if (!(a > b * 1.02)) return `HP does not grow by a rate at stage ${i + 1}`; }
       if (!(STAGES[99].hp > STAGES[50].hp && STAGES[50].hp > STAGES[0].hp && STAGES[99].atk > STAGES[50].atk)) return 'difficulty does not grow';
       const fight = (idx, type) => { endBattle(); startRun(idx); R.room = type === 'boss' ? 4 : 1; startFight(roomCfg(idx, type), false); B.ehp = B.emax = 1e6; B.php = B.pmax = 1e5; for (let i = 0; i < 200; i++) __tick(16); };
       // map attacks: every chapter attack asks for its own move
@@ -448,11 +450,11 @@ const BOT = `(()=>{
       if (B.atk.notes[0].dir !== 1) return 'sand storm did not set the dodge direction';
       // traits
       fight(0, 'min'); if (EN[B.st.kind].trait !== 'regen') return 'slime is not regen'; B.ehp = B.emax * .5; B.eHitT = B.time - 9000; const e0 = B.ehp; for (let i = 0; i < 120; i++) __tick(16); if (!(B.ehp > e0)) return 'regen did not heal';
-      fight(7, 'elite'); R.gold = 1000; hurt(5, null, false); if (!(R.gold < 1000 && B.stolen > 0)) return 'thief did not steal'; B.stun = 100; enterGroggy(); if (R.gold !== 1000) return 'stolen gold not returned on stun';
-      fight(12, 'min'); if (EN[B.st.kind].trait !== 'poison') { fight(10, 'min'); } if (EN[B.st.kind].trait === 'poison') { B.php = 1000; hurt(5, null, false); const p0 = B.php; for (let i = 0; i < 80; i++) __tick(16); if (!(B.php < p0)) return 'poison did no damage over time'; }
-      fight(21, 'min'); if (EN[B.st.kind].trait !== 'revive') return 'skeleton is not revive (' + B.st.kind + ')'; B.ehp = 0; victory(); if (B.state === 'VICTORY' || !(B.ehp > 0)) return 'skeleton did not revive'; B.ehp = 0; victory(); if (B.state !== 'VICTORY') return 'revived twice'; for (let i = 0; i < 250; i++) __tick(16); closeModal();
-      fight(35, 'elite'); if (EN[B.st.kind].trait !== 'rage') return 'orc is not rage'; B.ehp = B.emax * .4; for (let i = 0; i < 30 && !B.raged; i++) __tick(16); if (!B.raged) return 'rage did not trigger (' + B.state + ')';
-      fight(51, 'min'); if (EN[B.st.kind].trait !== 'freeze') return 'ice spirit is not freeze (' + B.st.kind + ')'; hurt(5, null, false); if (!(B.parryLock > B.time + 300)) return 'freeze did not lock the knight';
+      fight(REGIONS.findIndex(r => EN[r.elite[0]].trait === 'thief'), 'elite'); if (EN[B.st.kind].trait !== 'thief') return 'no thief elite found'; R.gold = 1000; hurt(5, null, false); if (!(R.gold < 1000 && B.stolen > 0)) return 'thief did not steal'; B.stun = 100; enterGroggy(); if (R.gold !== 1000) return 'stolen gold not returned on stun';
+      fight(REGIONS.findIndex(r => EN[r.min[1][0]].trait === 'poison'), 'min'); if (EN[B.st.kind].trait === 'poison') { B.php = 1000; hurt(5, null, false); const p0 = B.php; for (let i = 0; i < 80; i++) __tick(16); if (!(B.php < p0)) return 'poison did no damage over time'; }
+      fight(REGIONS.findIndex(r => EN[r.min[1][0]].trait === 'revive'), 'min'); if (EN[B.st.kind].trait !== 'revive') return 'skeleton is not revive (' + B.st.kind + ')'; B.ehp = 0; victory(); if (B.state === 'VICTORY' || !(B.ehp > 0)) return 'skeleton did not revive'; B.ehp = 0; victory(); if (B.state !== 'VICTORY') return 'revived twice'; for (let i = 0; i < 250; i++) __tick(16); closeModal();
+      fight(REGIONS.findIndex(r => EN[r.elite[0]].trait === 'rage'), 'elite'); if (EN[B.st.kind].trait !== 'rage') return 'orc is not rage'; B.ehp = B.emax * .4; for (let i = 0; i < 30 && !B.raged; i++) __tick(16); if (!B.raged) return 'rage did not trigger (' + B.state + ')';
+      fight(REGIONS.findIndex(r => EN[r.min[1][0]].trait === 'freeze'), 'min'); if (EN[B.st.kind].trait !== 'freeze') return 'ice spirit is not freeze (' + B.st.kind + ')'; hurt(5, null, false); if (!(B.parryLock > B.time + 300)) return 'freeze did not lock the knight';
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '피버 타임 · 기절 게이지가 피해만큼 줄어듦', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; __bot.skill = 1; __bot.sig = 8;

@@ -1369,6 +1369,63 @@ const TRAIT_OF={slimeB:'regen',slimeP:'regen',slime:'regen',slimeK:'regen',magma
   firesp:'burn',sala:'burn',drake:'burn',icesp:'freeze',iceQ:'freeze',ghost:'ghostly',ghostCap:'ghostly',pirate:'thief',imp:'ghostly',
   worm:'burrow',kraken:'grabby',boltsp:'shock',griffon:'shock',demon:'cursed'};
 for(const k in TRAIT_OF)if(EN[k])EN[k].trait=TRAIT_OF[k];
+
+/* more monsters per chapter: recoloured cousins with their own trait, so every stage of a chapter meets a different line-up */
+const VARS={
+  slimeY:['slime',{G:'#ffd84a',g:'#fff4b0',d:'#d9a520',K:'#4a3a00',E:'#4a3a00',m:'#4a3a00'},{},'regen'],
+  boarS:['wolf',{F:'#8a5a32',f:'#c9915a',E:'#1a1226',m:'#fff6dd'},{},'rage'],
+  boar:['wolf',{F:'#6b3a1a',f:'#a8703a',E:'#ff4d4d',m:'#fff6dd'},{acc:['horns']},'rage'],
+  beeS:['harpy',{W:'#e8f2ff',B:'#ffd23f',b:'#3a2a00',H:'#ffd23f',E:'#1a1226',Y:'#3a2a00'},{},'swift'],
+  goblinM:['goblin',{D:'#3a6ad9',d:'#2a4aa0'},{weapon:'staff',ranged:true,acc:['ears','hat']},'poison'],
+  shroomB:['shroom',{R:'#3a7ad9',w:'#d0f0ff'},{},'freeze'],
+  owl:['harpy',{W:'#8a6a4a',B:'#6b4a2a',b:'#e8d4b0',H:'#8a6a4a',E:'#ffd23f',Y:'#e0a020'},{},'swift'],
+  treantS:['lavaG',{G:'#6b4a2a',g:'#5fae5b',E:'#9be86a',m:'#3a2a1a',c:'#9be86a'},{},'regen'],
+  treant:['lavaG',{G:'#4a321a',g:'#3f8a3a',E:'#ffe14d',m:'#2a1a0a',c:'#7fe08a'},{acc:['horns']},'regen'],
+  spiderB:['spider',{B:'#2a5a2a',b:'#9be86a',E:'#ffe14d',m:'#f3e2b8',L:'#1a3a1a'},{},'poison'],
+  ratS:['wolf',{F:'#6a6080',f:'#a89fc0',E:'#ff4d4d',m:'#ffffff'},{},'swift'],
+  slimeC:['slime',{G:'#7a5ab0',g:'#c9a6ff',d:'#4a3080',K:'#1a0a30',E:'#ffe14d',m:'#1a0a30'},{},'regen'],
+  skelA:['skeleton',{E:'#7cf3ff',D:'#8a8296',d:'#5a5468'},{weapon:'staff',ranged:true},'revive'],
+  crystalS:['icesp',{F:'#c98bff',f:'#7a3fb0',w:'#ffffff',E:'#2a0a3a',m:'#2a0a3a'},{},'shock'],
+  skelMage:['skeleton',{D:'#3a1d5c',d:'#5a2d82',E:'#b44cff'},{acc:['hat'],weapon:'staff',ranged:true},'revive'],
+  crystalG:['lavaG',{G:'#8a7ab0',g:'#e0c8ff',E:'#ff5bd8',m:'#3a2a5a',c:'#ffffff'},{},'armored'],
+  frog:['slime',{G:'#6a9a3a',g:'#c4f0a0',d:'#3a6a1a',K:'#1a2a0a',E:'#ff4d4d',m:'#1a2a0a'},{},'poison'],
+  leech:['worm',{W:'#4a5a3a',w:'#2a3a1a',m:'#8a1a1a',E:'#ffe14d'},{scale:2},'grabby'],
+  ghostB:['ghost',{W:'#a8e8c8',w:'#6ab89a',E:'#1a3a2a',m:'#1a3a2a'},{},'ghostly'],
+  crocS:['wolf',{F:'#4a7a3a',f:'#a8c88a',E:'#ffe14d',m:'#ffffff'},{},'armored'],
+  croc:['wolf',{F:'#3a5a2a',f:'#8aa86a',E:'#ff4d4d',m:'#ffffff'},{acc:['horns']},'armored'],
+  bogShaman:['goblin',{F:'#5a8a5a',f:'#3f6a3f',E:'#ffe14d',D:'#5a2d82',d:'#3f1d5e'},{acc:['ears','hat'],weapon:'staff',ranged:true},'poison'],
+  cobra:['worm',{W:'#d9b040',w:'#8a6a1a',m:'#ff4d6d',E:'#1a1226'},{scale:2},'poison'],
+  vulture:['harpy',{W:'#5a3a2a',B:'#3a2a1a',b:'#e8d4b0',H:'#ff9b7a',E:'#1a1226',Y:'#e8d4b0'},{},'swift'],
+  sandS:['icesp',{F:'#e8c27a',f:'#c49a5a',w:'#fff6d0',E:'#5a3a1a',m:'#5a3a1a'},{},'ghostly'],
+  banditK:['bandit',{D:'#7a3fb0',d:'#ffd23f'},{acc:['bandana','crown'],weapon:'axe'},'thief'],
+  sandG:['lavaG',{G:'#d9b07a',g:'#fff0c0',E:'#3a1a00',m:'#8a5a2a',c:'#ffd23f'},{},'armored'],
+  slimeI:['slime',{G:'#bfe6ff',g:'#ffffff',d:'#6ab0e0',K:'#1a3a5a',E:'#1a3a5a',m:'#1a3a5a'},{},'freeze'],
+  snowowl:['harpy',{W:'#ffffff',B:'#e8f0fa',b:'#c9d8ec',H:'#ffffff',E:'#ffd23f',Y:'#3a3a4a'},{},'swift'],
+  icebat:['batS',{W:'#9ad8ff',B:'#4bb6ff',E:'#ffffff'},{},'freeze'],
+  iceKnight:['armor',{F:'#9ad8ff',f:'#6ab0e0',D:'#bfe6ff',d:'#4bb6ff',L:'#2f7fff',E:'#ffffff'},{},'armored'],
+  swolfA:['wolf',{F:'#c9d8ec',f:'#ffffff',E:'#ff3b3b',m:'#ffffff'},{acc:['horns']},'freeze'],
+  fbat:['batS',{W:'#ff7a2f',B:'#a3123a',E:'#ffe14d'},{},'burn'],
+  impF:['imp',{F:'#ff9b2f',f:'#d9532b',D:'#5a1a00',d:'#3a0e00'},{},'burn'],
+  ashW:['wolf',{F:'#4a4250',f:'#8a8296',E:'#ff5b1f',m:'#ffb020'},{},'burn'],
+  salaK:['wolf',{F:'#a3123a',f:'#ff7a2f',E:'#ffe14d',m:'#ffe14d'},{acc:['horns']},'burn'],
+  fireMage:['witch',{F:'#ffd0b0',f:'#e0a080',E:'#ff3b1f',D:'#a3123a',d:'#5a0a1a',L:'#3a0a10'},{},'burn'],
+  eel:['worm',{W:'#3a6ad9',w:'#ffe14d',m:'#1a1a3a',E:'#ffe14d'},{scale:2},'shock'],
+  gull:['harpy',{W:'#c9d6ea',B:'#e8eef7',b:'#ffffff',H:'#e8eef7',E:'#ff4d4d',Y:'#ffb020'},{},'ghostly'],
+  skelG:['skeleton',{D:'#3a4a7a',d:'#ffd23f',E:'#ff9b2f'},{acc:['bandana'],weapon:'staff',ranged:true},'revive'],
+  crabK:['crab',{C:'#a3123a',B:'#7a1a2a',b:'#ff6b4a',E:'#ffe14d',m:'#1a0a0a'},{acc:['crown']},'armored'],
+  ghostS:['ghost',{W:'#9a8ab8',w:'#6a5a8a',E:'#ff3b3b',m:'#1a0a2a'},{},'ghostly'],
+  slimeS:['slime',{G:'#ffffff',g:'#ffffff',d:'#c9d8ec',K:'#3a4a6a',E:'#3a4a6a',m:'#3a4a6a'},{},'regen'],
+  eagle:['harpy',{W:'#6a4a2a',B:'#4a2a1a',b:'#ffffff',H:'#ffffff',E:'#1a1226',Y:'#ffd23f'},{},'swift'],
+  windsp:['icesp',{F:'#a8f0d8',f:'#5fd2a8',w:'#ffffff',E:'#1a3a2a',m:'#1a3a2a'},{},'swift'],
+  angelK:['armor',{F:'#fff6d0',f:'#e0c27a',D:'#ffffff',d:'#ffd23f',L:'#e0a020',E:'#4bb6ff'},{acc:['helm','plume'],weapon:'bigsword'},'armored'],
+  harpyA:['harpy',{W:'#ff7a5a',B:'#c23a3a',b:'#ffd6c4',H:'#ffd6c4',E:'#3a1a1a',Y:'#ffd23f'},{},'swift'],
+  hound:['wolf',{F:'#2a1a2a',f:'#5a2a3a',E:'#ff3b1f',m:'#ff9b2f'},{},'burn'],
+  houndK:['wolf',{F:'#1a0a1a',f:'#7a1a2a',E:'#ffe14d',m:'#ff9b2f'},{acc:['horns']},'burn'],
+  wraith:['ghost',{W:'#7a5a9a',w:'#4a3a6a',E:'#ff3b3b',m:'#1a0a2a'},{},'ghostly'],
+  darkMage:['witch',{F:'#9a8ab8',f:'#6a5a8a',E:'#ff3b5c',D:'#1a1a2a',d:'#0a0a1a',L:'#0a0a1a'},{},'poison'],
+  lich:['skeleton',{D:'#3a1d5c',d:'#ffd23f',E:'#7cf3ff'},{acc:['cape','crown'],weapon:'staff',ranged:true},'revive'],
+};
+for(const k in VARS){const[b,pal,o,tr]=VARS[k];EN[k]=variant(b,pal,o);EN[k].trait=tr;TRAIT_OF[k]=tr}
 const TRAITS={regen:['재생','공격받지 않으면 체력이 차올라요 · 쉬지 말고 몰아쳐요','#7fe08a'],thief:['도둑','맞으면 골드를 훔쳐가요 · 기절시키면 되찾아요','#ffd23f'],
   swift:['날쌤','공격 사이 쉬는 시간이 짧아요','#bfe8ff'],poison:['독','맞으면 3초 동안 중독돼요','#9be86a'],revive:['부활','한 번 쓰러져도 다시 일어나요','#efe8d6'],
   rage:['분노','체력이 절반 아래면 더 세고 빨라져요','#ff7a2f'],armored:['단단함','연타 피해 -30% · 대신 패링 피로도 +15%','#aab4bf'],burn:['화염','가드하면 실드가 더 빨리 녹아요','#ff9b2f'],
@@ -2171,6 +2228,7 @@ const SIG={
   griffon:[['dance',.2],['mechmix',.15],['sweepX',.15],['crushjump',.15]],
 };
 for(const k in SIG)if(!MINION_POOLS[k])MINION_POOLS[k]=SIG[k].concat([['single',.2]]);
+for(const k in VARS)if(!MINION_POOLS[k])MINION_POOLS[k]=(MINION_POOLS[VARS[k][0]]||[['single',1]]).slice();
 
 /* ===================== 100 stages = 10 chapters × 10 =====================
    each chapter has its own map (theme + map trait) and its own monsters. stage 5 = mid-boss, stage 10 = chapter boss,
@@ -2238,21 +2296,39 @@ const CH=[
     boss:['demon','마왕','마왕! 공주님을 돌려받으러 왔다. 이 방패 하나로!','방패 하나로 여기까지 오다니... 이제 진짜 절망을 보여주마!','용사 백 명이 왔다 갔다. 넌 고작 방패 하나냐?'],
     lines:['모든 저주가 이곳에 모여 있다.','해자 아래에서 뭔가 꿈틀거린다.','경비병들이 끝없이 나온다.','...여기서 쓰러진 용사들의 방패가 보여.','','책들이 저절로 넘어간다.','임프들이 낄낄거린다.','왕좌가 보인다. 공주님!','마지막 문이다. 숨을 고르자.','']},
 ];
+
+/* each chapter: 6 minion kinds and 3 elites. Stages pick different pairs so no two stages of a chapter look the same */
+const ROSTER=[
+  [[['slimeB','파란 슬라임'],['slimeP','분홍 슬라임'],['goblinS','고블린 졸개'],['slimeY','노랑 슬라임'],['boarS','아기 멧돼지'],['beeS','왕벌']],[['goblin','고블린 척후병'],['boar','성난 멧돼지'],['goblinM','고블린 주술사']]],
+  [[['shroom','독버섯'],['wolf','숲 늑대'],['spider','숲 거미'],['shroomB','얼음 버섯'],['owl','숲 올빼미'],['treantS','묘목 정령']],[['wolfA','우두머리 늑대'],['spiderB','맹독 거미'],['treant','고목 정령']]],
+  [[['batS','동굴 박쥐'],['skelS','뼈다귀 졸개'],['ratS','동굴 쥐'],['slimeC','동굴 슬라임'],['skelA','해골 궁수'],['crystalS','수정 정령']],[['skeleton','해골 검사'],['skelMage','해골 마법사'],['crystalG','수정 골렘']]],
+  [[['bogS','늪 도깨비'],['orcS','오크 졸개'],['frog','독두꺼비'],['leech','늪 거머리'],['ghostB','물귀신'],['crocS','새끼 악어']],[['orc','오크 광전사'],['croc','늪 악어'],['bogShaman','늪 주술사']]],
+  [[['scorp','사막 전갈'],['mummy','미라'],['bandit','모래 도적'],['cobra','사막 코브라'],['vulture','독수리'],['sandS','신기루 정령']],[['mummyL','미라 근위병'],['banditK','도적 두목'],['sandG','모래 골렘']]],
+  [[['swolf','눈 늑대'],['icesp','얼음 정령'],['yetiS','꼬마 설인'],['slimeI','얼음 슬라임'],['snowowl','눈 올빼미'],['icebat','얼음 박쥐']],[['yeti','설인'],['iceKnight','얼음 기사'],['swolfA','설원의 늑대왕']]],
+  [[['firesp','불꽃 정령'],['sala','불도마뱀'],['magma','용암 슬라임'],['fbat','화염 박쥐'],['impF','불꽃 임프'],['ashW','잿빛 늑대']],[['lavaG','용암 골렘'],['salaK','불도마뱀 우두머리'],['fireMage','화염 술사']]],
+  [[['skelP','해골 선원'],['ghost','유령'],['crab','집게 게'],['eel','전기 장어'],['gull','유령 갈매기'],['skelG','해골 포수']],[['pirate','유령 해적'],['crabK','왕게'],['ghostS','원혼']]],
+  [[['harpy','하피'],['boltsp','번개 정령'],['gargoyle','가고일'],['slimeS','구름 슬라임'],['eagle','폭풍 독수리'],['windsp','바람 정령']],[['tgolem','천둥 골렘'],['angelK','천공 기사'],['harpyA','하피 전사']]],
+  [[['guardS','마왕성 경비병'],['imp','임프'],['armorS','녹슨 갑옷'],['hound','지옥견'],['wraith','망령'],['darkMage','흑마법사']],[['armor','저주 갑옷 기사'],['houndK','지옥견 우두머리'],['lich','리치']]],
+];
+CH.forEach((c,i)=>{c.mobs=ROSTER[i][0];c.elites=ROSTER[i][1];c.elite=c.elites[0]});
+const PAIRS=[[0,1],[2,3],[4,5],[1,2],[3,4],[5,0],[0,3],[1,4],[2,5],[3,0]];
 const CHAPTERS=CH.map((c,i)=>({from:i*10,title:c.title}));
 const TIER=i=>i*9/99;   // 0..9 on the old 10-stage difficulty scale
 function lerpRow(rows,x){x=clamp(x,0,rows.length-1);const a=Math.floor(x),b=Math.min(rows.length-1,a+1),f=x-a,o={};
   for(const k in rows[a])o[k]=typeof rows[a][k]==='number'&&typeof rows[b][k]==='number'?rows[a][k]+(rows[b][k]-rows[a][k])*f:rows[a][k];return o}
 /* curves follow the player's expected growth: shield Lv ≈ 4+0.95×stage, player Lv from first-clear exp */
 const stageDmg=i=>6.4+.76*i+[0,4,8,12,18,24,32][[0,5,20,40,60,80,95].filter(r=>r<=i).length-1];
+/* monster HP is multiplied every stage: ×1.075 up to stage 20, ×1.04 to 60, ×1.025 after */
+const stageHp=i=>{let h=150;for(let k=1;k<=i;k++)h*=k<=20?1.075:k<=60?1.04:1.025;return h};
 const STAGES=[],REGIONS=[],PARRY_TUNE=[],POOLS=[];
 for(let i=0;i<100;i++){const c=Math.floor(i/10),s=i%10,C=CH[c],tr=TIER(i),os=lerpRow(OLD_STAGES,tr);
   const mid=s===4,fin=s===9;let kind,name,line,p2='',taunt='';
   if(fin||mid)[kind,name,line,p2,taunt]=fin?C.boss:C.mid;
-  else{const m=s===3||s===6||s===8?C.elite:C.mobs[s%C.mobs.length];kind=m[0];name=(KEEPER[s]?KEEPER[s]+' ':'')+m[1];line=C.lines[s]}
-  STAGES.push({name,kind,theme:C.theme,ch:c,s,hz:C.hz,hp:Math.round(stageDmg(i)*(12.5+.55*i)*(fin?1.8:mid?1.4:1)),
-    atk:Math.round((100+1.5*i+.1*i*i)*(.1+.21*i/99)),windup:Math.round(os.windup),heavy:os.heavy,combo:Math.round(os.combo),stunMult:+os.stunMult.toFixed(3),
+  else{const m=s===3||s===6||s===8?C.elites[s%3]:C.mobs[(s*5+1)%C.mobs.length];kind=m[0];name=(KEEPER[s]?KEEPER[s]+' ':'')+m[1];line=C.lines[s]}
+  STAGES.push({name,kind,theme:C.theme,ch:c,s,hz:C.hz,hp:Math.round(stageHp(i)*(fin?2.2:mid?1.6:1)),
+    atk:Math.round((100+1.5*i+.1*i*i)*(.1+.21*i/99)),windup:Math.round(os.windup*.7),heavy:os.heavy,combo:Math.round(os.combo),stunMult:+os.stunMult.toFixed(3),
     gold:Math.round((60+28*i+.9*i*i)*(fin?2:mid?1.5:1)),boss:mid||fin,line,taunt,p2});
-  REGIONS.push({name:C.areas[s],min:C.mobs,elite:C.elite});
+  REGIONS.push({name:C.areas[s],min:PAIRS[s].map(j=>C.mobs[j%C.mobs.length]),elite:C.elites[(s+1)%3]});
   const T=lerpRow(OLD_TUNE,tr);for(const k of['win','late','lock','cue','lead','ne','nl'])T[k]=Math.round(T[k]);T.stars=Math.max(1,Math.min(5,Math.round(T.stars)));T.jit=+T.jit.toFixed(3);PARRY_TUNE.push(T);
   const op=OLD_POOLS[Math.min(9,Math.round(tr))],m=MECH[c]||MECH_LATE,sig=SIG[kind]||[];
   POOLS.push({base:op.base.concat(m[0],sig),p2:op.p2.concat(m[1],sig.map(([n,w])=>[n,w*1.3]))});
@@ -2331,10 +2407,10 @@ function roomCfg(idx,type){
   const st=STAGES[idx],rg=REGIONS[idx],T=PARRY_TUNE[idx],k=R?R.room:0;
   if(type==='boss')return{kind:st.kind,name:st.name,scale:Math.max(EN[st.kind].scale,3),hp:st.hp*BOSS_HP_MUL,atk:st.atk*atkMul(idx),windup:st.windup,stunMult:st.stunMult,gold:st.gold*.6,
     theme:st.theme,hz:st.hz,boss:!!st.boss,music:'bs'+st.ch,pool:POOLS[idx],tune:T,line:st.line,taunt:st.taunt||'',label:'보스'};
-  if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.5:.45),atk:st.atk*.88*atkMul(idx),windup:st.windup,
+  if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.6:.55),atk:st.atk*.88*atkMul(idx),windup:st.windup,
     stunMult:st.stunMult*1.05,gold:st.gold*.32*(type==='danger'?2:1),theme:st.theme,hz:st.hz,boss:false,music:'st'+st.ch,pool:{base:(MINION_POOLS[kind]||[]).concat(POOLS[idx].base)},tune:T,line:'',label:type==='danger'?'위험':'정예'}}
   const[kind,name]=rg.min[k%rg.min.length];
-  return{kind,name,scale:EN[kind].scale,hp:Math.max(18,st.hp*.22),atk:st.atk*(TIER(idx)>=3?.75:.65)*atkMul(idx),windup:st.windup*1.08,stunMult:st.stunMult*1.15,gold:st.gold*.18,theme:st.theme,hz:st.hz,boss:false,music:'st'+st.ch,
+  return{kind,name,scale:EN[kind].scale,hp:Math.max(30,st.hp*.3),atk:st.atk*(TIER(idx)>=3?.75:.65)*atkMul(idx),windup:st.windup*1.08,stunMult:st.stunMult*1.15,gold:st.gold*.18,theme:st.theme,hz:st.hz,boss:false,music:'st'+st.ch,
     pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)])},tune:Object.assign({},T,{win:T.win+20,late:T.late+10,ne:T.ne+10,nl:T.nl+8}),line:k===0?st.line:'',taunt:'',label:'졸개'};
 }
 function startRun(idx){
@@ -2466,8 +2542,8 @@ function update(dt){
       if(n.type==='hold')holdUpdate(n,t);
       else if(!n.res&&t>=a.impact+(n.type==='tap'?pWin().l+nearL():40))resolveImpact();
       break}
-    case 'STRIKE':{const p=clamp((t-B.stT)/320,0,1);if(!B.E.ranged&&!(B.atk&&(B.atk.kind==='orb'||B.atk.kind==='barrage'||B.atk.hz)))B.ex=lerp(B.kx0+14+B.E.scale*4,EX(),ease(p));if(t-B.stT>320)nextAfterAttack();break}
-    case 'RECOIL':{const q=clamp((t-B.stT)/380,0,1);B.ex=lerp(B.recoilFrom,EX()+Math.min(6,pushMax()-B.push),ease(q));if(t-B.stT>380){if(B.stun>=100)enterGroggy();else nextAfterAttack()}break}
+    case 'STRIKE':{const p=clamp((t-B.stT)/260,0,1);if(!B.E.ranged&&!(B.atk&&(B.atk.kind==='orb'||B.atk.kind==='barrage'||B.atk.hz)))B.ex=lerp(B.kx0+14+B.E.scale*4,EX(),ease(p));if(t-B.stT>260)nextAfterAttack();break}
+    case 'RECOIL':{const q=clamp((t-B.stT)/300,0,1);B.ex=lerp(B.recoilFrom,EX()+Math.min(6,pushMax()-B.push),ease(q));if(t-B.stT>300){if(B.stun>=100)enterGroggy();else nextAfterAttack()}break}
     case 'GROGGY':B.ex=lerp(B.ex,EX()+Math.min(2,pushMax()-B.push),Math.min(1,dt*.01));if(t>=B.groggyEnd)endGroggy();break;
     case 'BOSSIN':bossInTick(t-B.stT);break;
     case 'TRANSFORM':B.ex=lerp(B.ex,EX(),Math.min(1,dt*.01));
@@ -2511,7 +2587,7 @@ function beginAttack(){
   let ambush=false;if(R&&R.v2){ambush=B.v2Ambush;B.v2Ambush=false;name=ambush?'single':v2Pick()}
   const P=PATMAKE[name](),beat=beatMs();
   let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?.88:1);if(ambush)lead=520;
-  if(!(R&&R.prologue)&&!ambush)lead=alignBeat(Math.max(lead,P.notes.length>1||P.kind==='hold'?700:(P.lead&&P.lead<.7?420:560)));
+  if(!(R&&R.prologue)&&!ambush)lead=alignBeat(Math.max(lead,P.notes.length>1||P.kind==='hold'?600:(P.lead&&P.lead<.7?400:500)));
   if(P.off)lead+=P.off*beat;
   if(hasT('swift')&&!hzA)lead=Math.max(420,lead-beat*.5);
   const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*beat,type:n.type,dur:(n.len||0)*beat,res:false,ghost:!!n.ghost,dir:n.dir||0,grab:!!n.grab}));
@@ -2733,7 +2809,7 @@ function grabEnd(ok){const g=B.grab;if(!g)return;B.grab=null;
   if(ok){ftAt('탈출!',B.kx+10,B.gy-44,'perfect');sfx('combo');flash('#ffffff',.4,200);zoom(1.06);B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.4);B.ex=EX();B.eFlash=80}
   else{hurt(g.dmg,'내동댕이!');domShake(2)}
   if(B.state==='IDLE'){B.stT=B.time;B.idleDur=500}}
-function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(450,900)*(TIER(B.idx)<2?1.15:1.1-TIER(B.idx)*.05)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?.75:1)}
+function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(220,480)*(1.05-TIER(B.idx)*.04)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?.75:1)}
 function enterGroggy(){
   B.gTot=0;B.finishBonus=false;
   if(B.stolen){R.gold+=B.stolen;ftAt(`+${B.stolen}G 되찾았다!`,B.kx+6,B.gy-52,'combo');sfx('coin');B.stolen=0}
