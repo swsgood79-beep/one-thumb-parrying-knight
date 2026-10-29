@@ -2589,7 +2589,8 @@ function holdHit(){
   if(B.guard&&B.psh>0){B.psh-=drainK()*atk*1.1*(1-Math.min(.6,(B.fx.guardDrain||0)/100))*Math.max(.3,1-.55*cardN('grip'));B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.05);
     sfx('guard',S.shStage);vib(12);B.shake=1.5;burstParts(sx+2,sy+rnd(-3,3),3,['#bfe6ff','#ffffff'],.07,.0002,.2);barShake('#pShBar');
     if(B.psh<=0){B.psh=0;B.guard=false;a.holdOk=false;guardBreak()}}
-  else{a.holdOk=false;hurt(atk*(1-B.ar.dmgReduce),null,false)}
+  else{const n=curNote();if(n&&n.type==='hold'&&B.time<n.t+200)return;   // grace: the shield is still coming up
+    a.holdOk=false;hurt(atk*(1-B.ar.dmgReduce),null,false)}
 }
 function shieldPos(){return[B.kx+10,B.gy-14]}
 function onTap(){
@@ -2611,7 +2612,8 @@ function onTap(){
   if(B.disarm){ftThrottle('방패가 없어! 방패 쪽으로 회피!',B.kx,B.gy-40,'warn');return}
   setKPose('parry');
   if(B.state==='WINDUP'&&!B.atk.resolved){const n=curNote();
-    if(n.type==='hold'||n.type==='block'||n.type==='jump')return;
+    if(n.type==='hold'||n.type==='block'){if(ptrs.size||spaceDown)setGuard(true);return}
+    if(n.type==='jump')return;
     if(n.type==='swipe'){B.parryLock=t+(midChain()?120:300);sfx('whiff');ftThrottle(B.atk.kind==='smash'&&!B.atk.heavy?'위로 스와이프해 밀쳐!':'막을 수 없어! 스와이프!',B.kx,B.gy-40,'warn');return}
     const w=pWin(),early=B.atk.impact-t;
     if(early<=w.e&&early>=-w.l){parrySuccess(early,w.e);return}
@@ -2619,7 +2621,7 @@ function onTap(){
     if(early<=w.e+ne&&early>=-w.l-nl){parryBlock();return}
     B.parryLock=t+(midChain()?Math.min(B.tune.lock,120):B.tune.lock);sfx('whiff');ftThrottle(early>0?'너무 빨라!':'늦었다!',B.kx,B.gy-40,'info');missPenalty(.15);B.pStreak=0;feverBreak();return;
   }
-  B.parryLock=t+180;sfx('whiff');if(t-(B.lastParryT||-1e9)>250&&t>=(B.mashGrace||0))B.pendWhiff=t+120;   // judged a whiff only if no swipe follows (every swipe starts with a touch)
+  B.parryLock=t+180;sfx('whiff');if(t-(B.lastParryT||-1e9)>250&&t>=(B.mashGrace||0))B.pendWhiff=t+200;   // judged a whiff only if no swipe follows (every swipe starts with a touch)
 }
 /* an empty swing locks every action for 0.3 s */
 function stiffen(){if(R&&(R.rhythm||R.prologue))return;const t=B.time;B.stiffUntil=t+300;B.parryLock=Math.max(B.parryLock,t+300);B.evadeCd=Math.max(B.evadeCd,t+300);B.guard=false;B.pStreak=0;
@@ -2790,7 +2792,7 @@ function onSwipe(dir){
   if(B.tutWait==='swipe')coachHide();
   B.evadeUntil=B.time+430;B.evadeCd=B.time+650+(B.hz==='mud'?150:0);B.evadeT=B.time;B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
 }
-function setGuard(on){if(!B.active)return;if(on&&(B.grab||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
+function setGuard(on){if(!B.active)return;if(on&&B.pendWhiff){B.pendWhiff=0}if(on&&(B.grab||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
   if(on&&!B.guard){sfx('guard',0);vib(10)}B.guard=on}
 function victory(){
   if(reviveCheck())return;

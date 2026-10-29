@@ -228,7 +228,7 @@ const BOT = `(()=>{
       if (!B.slams) return 'wall slam never happened (push ' + B.push + '/' + pushMax() + ')';
       for (let i = 0; i < 300 && B.state !== 'GROGGY'; i++) __tick(16); if (B.state !== 'GROGGY') return 'wall slam did not stun (state ' + B.state + ')';
       for (let i = 0; i < 600 && B.state !== 'IDLE'; i++) __tick(16);
-      const s0 = B.psh; B.lastParryT = -1e9; B.mashGrace = 0; onTap(); for (let i = 0; i < 10; i++) __tick(16); if (!(B.psh < s0)) return 'tapping with no attack did not cost shield';
+      const s0 = B.psh; B.lastParryT = -1e9; B.mashGrace = 0; onTap(); for (let i = 0; i < 16; i++) __tick(16); if (!(B.psh < s0)) return 'tapping with no attack did not cost shield';
       if (!(B.stiffUntil > B.time)) return 'empty tap did not stiffen'; const ev = B.evadeT; onSwipe(-1); if (B.evadeT !== ev) return 'could dodge while stiff';
       __bot.sig = undefined;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
@@ -384,6 +384,22 @@ const BOT = `(()=>{
         let w = 0; while (w++ < 300 && B.state !== 'WINDUP') __tick(16); o.next = B.state === 'WINDUP'; });
       if (r.err || !r.thrown || !r.next) return 'grab: not mashing should throw the knight, then the fight goes on ' + (r.err || JSON.stringify(r));
       for (let i = 0; i < POOLS.length; i++) if (!POOLS[i].base.some(([n]) => PAT_INFO[n] && PAT_INFO[n][1] === 'action')) return `stage ${i + 1} has no action attacks`;
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '난타(파란 긴 노트): 실제 터치로 미리/박에 맞춰/살짝 늦게 눌러도 성공', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
+      const pad = document.querySelector('#pad'), r = pad.getBoundingClientRect(), ev = (type, id) => pad.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true }));
+      for (const [label, when] of [['미리(공격 전 대기 중)', 'idle'], ['박에 맞춰', 0], ['살짝 늦게', -90], ['한참 미리', 500]]) {
+        startRun(33); R.room = 1; startFight(roomCfg(33, 'min'), false); B.ehp = B.emax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [['hold', 1]] }; B.firstAtk = false;
+        let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16); HZ[B.hz] && (HZ[B.hz].rate = 0);
+        let hits = 0; const h0 = window.hurt; window.hurt = function (d, l, gd) { if (!gd) hits++; return h0.apply(this, arguments); };
+        let down = false; const id = 7 + Math.floor(Math.random() * 1000);
+        if (when === 'idle') { B.idleDur = B.time - B.stT + 250; ev('pointerdown', id); down = true; }
+        g = 0; while (!(B.state === 'WINDUP' && B.atk.name === 'hold') && g++ < 400) __tick(16);
+        const n = B.atk.notes[0];
+        while (B.state === 'WINDUP' && g++ < 2000) { if (!down && when !== 'idle' && B.time >= n.t - when) { ev('pointerdown', id); down = true; } __tick(16); }
+        const ok = B.atk && B.atk.holdOk; ev('pointerup', id); window.hurt = h0; HZ[B.hz] && (HZ[B.hz].rate = .14);
+        if (!ok || hits) return `hold pressed ${label}: failed (holdOk ${ok}, hits ${hits}, stiff ${B.stiffUntil > 0})`;
+        endBattle(); }
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '보스 등장 연출: 경고 → 실루엣 → 공개 → 전투 시작 · 탭 건너뛰기', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; window.__noBossIntro = false;
