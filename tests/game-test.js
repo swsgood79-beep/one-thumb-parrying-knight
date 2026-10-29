@@ -463,7 +463,7 @@ const BOT = `(()=>{
       let g = 0; while (B.state !== 'WINDUP' && g++ < 400) __tick(16); const e0 = B.ehp; onTap(); if (B.state !== 'FEVER') return 'tap did not unleash fever (' + B.state + ')';
       if (!document.querySelector('#fever').classList.contains('on')) return 'fever HUD not shown';
       let atk = false; vt = 0; while (B.state === 'FEVER' && vt < 8000) { __tick(16); vt += 16; if (B.state === 'WINDUP') atk = true; }
-      if (atk) return 'enemy attacked during fever'; if (vt < 1800 || vt > 3200) return 'fever should last about 2.3s (' + vt + 'ms)';
+      if (atk) return 'enemy attacked during fever'; if (vt < 2800 || vt > 4300) return 'fever (1s cut-in + 2.3s strikes) should last about 3.3s (' + vt + 'ms)';
       if (!(e0 - B.ehp > B.wp.groggyTapDamage * 25)) return 'fever did not deal rapid damage (' + Math.round(e0 - B.ehp) + ')';
       if ((R.fv || 0) !== 0 || fvReady()) return 'fever gauge not emptied after use';
       R.fv = 0; B.combo = 0; feverParry(false); const g1 = R.fv; R.fv = 0; B.combo = 30; feverParry(false); if (!(R.fv > g1 * 1.8)) return 'combo does not speed up the fever gauge';
