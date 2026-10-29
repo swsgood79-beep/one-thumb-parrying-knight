@@ -484,6 +484,46 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .skip{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));padding:6px 12px;border-radius:10px;background:rgba(0,0,0,.55);font-size:13px;border:2px solid rgba(255,255,255,.2)}
 
 /* ---------- modal ---------- */
+/* world map */
+.mapbar{display:flex;align-items:center;gap:8px;width:100%;max-width:420px;margin-top:8px;padding-bottom:6px}
+.mapbtn{flex:none;padding:8px 12px;font-size:15px;border-radius:12px}
+.mprog{flex:1;min-width:0;cursor:pointer}
+.mtxt{font-family:var(--f-display);font-size:13px;color:#fff;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtxt b{color:var(--gold);font-weight:400}.mtxt em{font-style:normal;color:#ff9bb0}
+.mseg{display:flex;gap:2px;height:10px}
+.mseg i{flex:1;border-radius:3px;background:#2a2352;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.mseg i u{position:absolute;left:0;top:0;bottom:0;background:var(--c)}
+.mseg i.cur{box-shadow:0 0 0 2px #fff}
+#wmap{position:absolute;inset:0;z-index:45;background:#0d0a20;display:flex;flex-direction:column}
+#wmap[hidden]{display:none}
+.wm-head{flex:none;display:flex;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top,0px)) 14px 10px;background:linear-gradient(#1f1844,#140f2c);box-shadow:0 2px 0 #3b3277;z-index:5}
+.wm-head h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:22px;color:var(--gold)}
+.wm-head .wm-sum{flex:1;font-size:13px;color:#d9d2ff;line-height:1.3}.wm-head .wm-sum b{color:#fff;font-weight:400;font-family:var(--f-display)}
+.wm-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.wm-world{position:relative;width:100%;max-width:520px;margin:0 auto}
+.wm-band{position:absolute;left:0;right:0;background-size:100% 100%;image-rendering:pixelated}
+.wm-band::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(8,5,24,.25),rgba(8,5,24,.5))}
+.wm-band.lock::after{background:rgba(8,5,24,.72)}
+.wm-band+.wm-band{border-bottom:3px solid #0d0a20}
+.wm-label{position:absolute;left:10px;right:10px;top:8px;z-index:2;display:flex;align-items:flex-start;gap:8px}
+.wm-label .t{font-family:var(--f-display);font-size:18px;color:#fff;text-shadow:0 2px 0 #000}
+.wm-label .t small{display:block;font-family:inherit;font-size:12px;color:var(--c)}
+.wm-label .d{margin-left:auto;text-align:right;font-size:11px;color:#e8e2ff;text-shadow:0 1px 0 #000;max-width:46%}
+.wm-svg{position:absolute;left:0;top:0;z-index:2;pointer-events:none}
+.wm-node{position:absolute;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:14px;z-index:3;
+  border:3px solid #1a1226;background:#3a3170;color:#cfc8f5;cursor:pointer;padding:0;box-shadow:0 3px 0 rgba(0,0,0,.45)}
+.wm-node.done{background:var(--gold);color:#3a2a00}
+.wm-node.next{background:#fff;color:#140f2c;animation:wmpulse .9s infinite alternate}
+.wm-node.lock{background:#241d44;color:#5d5690;cursor:default}
+.wm-node.boss{width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:14px;font-size:16px}
+.wm-node.boss.lock{background:#3a1d2e;color:#8a5a70}
+.wm-node.sel{box-shadow:0 0 0 4px var(--c),0 0 16px var(--c)}
+.wm-node b{position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-weight:400;font-size:10px;color:#ffd23f;white-space:nowrap;text-shadow:0 1px 0 #000;letter-spacing:-1px}
+.wm-node img{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);height:34px;image-rendering:pixelated;pointer-events:none;filter:drop-shadow(0 2px 0 rgba(0,0,0,.5))}
+.wm-node.lock img{filter:brightness(.25)}
+.wm-me{position:absolute;z-index:4;height:44px;margin:-70px 0 0 -40px;image-rendering:pixelated;pointer-events:none;animation:wmbob .6s infinite alternate}
+@keyframes wmpulse{from{box-shadow:0 0 0 3px rgba(255,255,255,.3),0 0 10px #fff}to{box-shadow:0 0 0 7px rgba(255,255,255,.15),0 0 22px #fff}}
+@keyframes wmbob{to{transform:translateY(-4px)}}
 #modal{position:absolute;inset:0;z-index:50;background:rgba(6,3,20,.72);display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));animation:fade .15s}
 .mbox{width:100%;max-width:360px;max-height:100%;overflow-y:auto;border-radius:24px;border:4px solid var(--edge);background:linear-gradient(#4a3fa6,#2a2170);
   box-shadow:inset 0 4px 0 rgba(255,255,255,.18),0 8px 0 var(--edge);padding:18px 16px 16px;text-align:center;animation:pop .22s ease-out}
@@ -576,7 +616,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
             <div class="st-name" id="stName"></div>
             <div class="chips" id="stChips"></div>
           </div>
-          <div class="dots" id="dots"></div>
+          <div class="mapbar"><button class="btn b mapbtn" id="mapBtn">지도</button><div class="mprog" id="mProg"><div class="mtxt" id="mTxt"></div><div class="mseg" id="mSeg"></div></div></div>
         </div>
         <div class="startrow gut">
           <button class="btn y start" id="startBtn"><span class="ol">원정 시작</span><small><img class="px" data-icon="bolt" alt="">5 소모</small></button>
@@ -659,6 +699,8 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
     <button class="skip" id="sSkip">건너뛰기 ▶▶</button>
   </section>
 
+  <div id="wmap" hidden><div class="wm-head"><h2>월드맵</h2><div class="wm-sum" id="wmSum"></div><button class="btn r" id="wmClose" style="padding:8px 14px">닫기</button></div>
+    <div class="wm-scroll" id="wmScroll"><div class="wm-world" id="wmWorld"></div></div></div>
   <div id="modal" hidden><div class="mbox" id="mbox"></div></div>
   <div id="toast"></div>
 </div>
@@ -1615,7 +1657,7 @@ const STAGE_COL={field:'#7be05a',forest:'#3fd08a',cave:'#c9a2ff',swamp:'#4fd8b8'
 const stageColor=i=>STAGE_COL[STAGES[i].theme]||'#ffc83a';
 function renderLobby(){
   const i=S.sel,st=STAGES[i],ch=chapterOf(i);
-  $('#chRibbon').innerHTML=`CHAPTER ${ch+1} · STAGE <b>${i+1}</b> / ${STAGES.length} · ★ ${totalStars()}/${STAGES.length*3}`;$('#chTitle').textContent=REGIONS[i].name;
+  $('#chRibbon').innerHTML=`CHAPTER ${ch+1} · STAGE <b>${i+1}</b> · ★ ${totalStars()}`;$('#chTitle').textContent=REGIONS[i].name;
   document.documentElement.style.setProperty('--stc',stageColor(i));
   $('#stNum').textContent=`${CH[ch].title} ${i%10+1}/10 · ${st.boss?'보스':'수문장'} ${st.name}`;{const sn=S.stars[i]||0;$('#stName').innerHTML=`<span class="ststars">${'★'.repeat(sn)}<span class="e">${'★'.repeat(3-sn)}</span></span><br>관문 5개 원정 · 2페이즈 보스${i<S.cleared&&sn<3?' · <b style="color:var(--gold)">별 3개에 도전!</b>':''}`}
   $('#bossTag').hidden=!st.boss;$('#clearTag').hidden=!(i<S.cleared);
@@ -1635,7 +1677,8 @@ function renderLobby(){
   if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승 · 시작 카드 ${streakCards()}${streakGold()?' · 골드 +'+Math.round(streakGold()*100)+'%':''}</span>`);
   const eg=ENGRAVINGS.find(e=>e.boss&&e.from===i);if(eg&&!ownE(eg.id))chips.push(`<span class="chip" style="color:#e3c8ff">${ic('eng_'+eg.id)} ${eg.name} 획득</span>`);
   $('#stChips').innerHTML=chips.join('');
-  $('#dots').innerHTML=STAGES.slice(ch*10,ch*10+10).map((s,j)=>{const k=ch*10+j;return`<i class="${[k<S.cleared?'done':'',k===i?'cur':'',s.boss?'boss':''].join(' ')}">${k+1}${S.stars[k]?`<b>${'★'.repeat(S.stars[k])}</b>`:''}</i>`}).join('');
+  {const done=Math.min(S.cleared,STAGES.length);$('#mTxt').innerHTML=`정복 <b>${done}</b>/${STAGES.length} · 남은 스테이지 <em>${STAGES.length-done}</em> · ${CH[ch].title} ${Math.max(0,Math.min(10,done-ch*10))}/10`;
+    $('#mSeg').innerHTML=CH.map((c,k)=>`<i class="${k===ch?'cur':''}" style="--c:${STAGE_COL[c.theme]}" title="${c.title}"><u style="width:${clamp(done-k*10,0,10)*10}%"></u></i>`).join('')}
   const left=HEROES_LEFT[S.cleared];
   const msgs=[];const R=mulberry(S.cleared*31+3);
   for(let k=0;k<4;k++){const n=HERO_NAMES[Math.floor(R()*HERO_NAMES.length)];const s=Math.min(STAGES.length,S.cleared+1+Math.floor(R()*3));
@@ -1930,6 +1973,40 @@ const ACTIONS={
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.closest('#modal'))return;ensureAudio();sfx('ui');const f=ACTIONS[b.dataset.act];f&&f(b)});
 $('#tabbar').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;ensureAudio();sfx('ui');setTab(b.dataset.tab)});
+/* world map: every stage on one winding road, stage 1 at the bottom, the demon castle on top */
+const WM_GAP=70,WM_HEAD=74,WM_PAD=70;
+const wmY=k=>WM_PAD+k*WM_GAP+Math.floor(k/10)*WM_HEAD;   // distance from the map's bottom
+const wmH=()=>wmY(STAGES.length-1)+WM_HEAD+60;
+const wmBg=c=>memo('wmbg'+c,()=>buildBg(128,240,CH[c].theme,c*10,228).toDataURL());
+const wmSpr=k=>memo('wmsp'+k,()=>{const sp=getEnemy(k,0),c=mk(sp.width,sp.height),g=c.getContext('2d');g.translate(sp.width,0);g.scale(-1,1);g.drawImage(sp,0,0);return c.toDataURL()});
+const wmMe=()=>memo('wmme'+S.shStage+(S.skin||'')+(S.plume||''),()=>{const c=mk(26,22),g=c.getContext('2d');drawKnight(g,12,21,{t:0,scale:1,...KV()});return c.toDataURL()});
+function openMap(){
+  const W=Math.min(520,$('#app').clientWidth||400),H=wmH(),done=Math.min(S.cleared,STAGES.length),bot=y=>H-y;
+  const xOf=k=>Math.round(W/2+W*.3*Math.sin(k*.72+.4));
+  let h='',pts=[];
+  CH.forEach((c,ci)=>{const y0=bot(wmY(ci*10+9)+WM_HEAD-6),y1=bot(wmY(ci*10)-WM_PAD+4),lock=ci*10>done,hz=HZ[c.hz],got=clamp(done-ci*10,0,10);
+    h+=`<div class="wm-band${lock?' lock':''}" style="top:${y0}px;height:${y1-y0}px;background-image:url(${wmBg(ci)})"></div>
+      <div class="wm-label" style="top:${y0+8}px;--c:${STAGE_COL[c.theme]}"><div class="t">${lock?'🔒 ':''}${c.title}<small>CHAPTER ${ci+1} · ${ci*10+1}~${ci*10+10} · ${got}/10</small></div>
+      <div class="d">${hz?'지형: '+hz.name:'지형 효과 없음'}<br>보스 ${STAGES[ci*10+9].name}</div></div>`});
+  for(let k=0;k<STAGES.length;k++){const st=STAGES[k],x=xOf(k),y=bot(wmY(k)),c=STAGE_COL[st.theme];pts.push([x,y]);
+    const cls=['wm-node',k<done?'done':k===done?'next':'lock',st.boss?'boss':'',k===S.sel?'sel':''].join(' ');
+    h+=`<button class="${cls}" data-k="${k}" style="left:${x}px;top:${y}px;--c:${c}" aria-label="스테이지 ${k+1}">${st.boss&&k<=done?`<img src="${wmSpr(st.kind)}" alt="">`:''}${k+1}${S.stars[k]?`<b>${'★'.repeat(S.stars[k])}</b>`:''}</button>`}
+  {const x=xOf(S.sel),y=bot(wmY(S.sel));h+=`<img class="wm-me" src="${wmMe()}" style="left:${x}px;top:${y}px" alt="">`}
+  const line=a=>a.map(p=>p.join(',')).join(' ');
+  h+=`<svg class="wm-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${line(pts)}" fill="none" stroke="rgba(10,6,30,.75)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="${line(pts)}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="4" stroke-dasharray="2 9" stroke-linecap="round"/>
+    ${done>0?`<polyline points="${line(pts.slice(0,Math.min(done+1,pts.length)))}" fill="none" stroke="#ffd23f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`:''}</svg>`;
+  const wd=$('#wmWorld');wd.style.width=W+'px';wd.style.height=H+'px';wd.innerHTML=h;
+  $('#wmSum').innerHTML=`정복 <b>${done}</b>/${STAGES.length} · 남은 <b style="color:#ff9bb0">${STAGES.length-done}</b><br>★ ${totalStars()}/${STAGES.length*3}`;
+  $('#wmap').hidden=false;sfx('ui');
+  const sc=$('#wmScroll');sc.scrollTop=Math.max(0,bot(wmY(S.sel))-sc.clientHeight/2);
+}
+function closeMap(){$('#wmap').hidden=true}
+$('#wmWorld').addEventListener('click',e=>{const b=e.target.closest('.wm-node');if(!b)return;const k=+b.dataset.k;
+  if(k>Math.min(S.cleared,STAGES.length-1)){toast('앞 스테이지를 먼저 깨야 열려요');sfx('whiff');return}
+  S.sel=k;save();sfx('ui');closeMap();renderLobby()});
+$('#wmClose').onclick=()=>{sfx('ui');closeMap()};
+$('#mapBtn').onclick=openMap;$('#mProg').onclick=openMap;$('#chRibbon').onclick=openMap;
 $('#stPrev').onclick=()=>{if(S.sel>0){S.sel--;save();sfx('ui');renderLobby()}};
 $('#stNext').onclick=()=>{if(S.sel<Math.min(S.cleared,STAGES.length-1)){S.sel++;save();sfx('ui');renderLobby()}};
 $('#avatarBtn').onclick=()=>setTab('equip');

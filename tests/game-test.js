@@ -288,7 +288,11 @@ const BOT = `(()=>{
       if (S.gems - g0 < 15) return 'star gems not granted (' + (S.gems - g0) + ')';
       S.sel = 2; tab = 'battle'; showShell(); for (let i = 0; i < 30; i++) __tick(16);
       if (!document.querySelector('#chRibbon').textContent.includes('★')) return 'lobby star total missing';
-      if (!document.querySelector('#dots i:nth-child(3) b')) return 'stage dot stars missing';
+      openMap(); if (!document.querySelector('#wmap .wm-node[data-k="2"] b')) return 'map node stars missing';
+      if (document.querySelectorAll('#wmap .wm-node').length !== STAGES.length) return 'map does not show every stage';
+      if (!/남은 스테이지/.test(document.querySelector('#mTxt').textContent)) return 'lobby does not show stages left';
+      document.querySelector('#wmap .wm-node[data-k="1"]').click(); if (S.sel !== 1 || !document.querySelector('#wmap').hidden) return 'tapping a cleared map node did not select it';
+      openMap(); const lk = document.querySelector(`#wmap .wm-node[data-k="${Math.min(S.cleared + 1, STAGES.length - 1)}"]`); lk.click(); if (document.querySelector('#wmap').hidden) return 'a locked node closed the map'; closeMap();
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '무리 관문 (4:1) · 피로도 가득 차면 패턴 끝에 기절', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); __bot.skill = 1; __bot.sig = 8; S.streak = 0;
