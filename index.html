@@ -2902,6 +2902,8 @@ function defeat(){if(B.state==='DEFEAT')return;B.fever=0;feverHud();setState('DE
 function drawImpact(c,f,t){const q=clamp((t-f.t0)/f.dur,0,1);
   if(f.kind==='slash'){const L=Math.round(f.len*(q<.35?q/.35:1)),w=q<.5?2:1,ca=Math.cos(f.ang),sa=Math.sin(f.ang),from=q>.5?Math.round(-L+(q-.5)*4*L):-L;
     for(let i=from;i<=L;i++)px(c,Math.round(f.x+ca*i),Math.round(f.y+sa*i),w,w,Math.abs(i)>L*.6?'#ffe14d':'#ffffff')}
+  else if(f.kind==='fsl'){const L=f.len*(q<.22?q/.22:1),ca=Math.cos(f.ang),sa=Math.sin(f.ang);c.globalAlpha=q<.45?1:Math.max(0,1-(q-.45)/.55);
+    for(let i=-L;i<=L;i++){const x=Math.round(f.x+ca*i),y=Math.round(f.y+sa*i),ed=Math.abs(i)/L,w=ed>.82?1:f.w;px(c,x-(w>>1),y-(w>>1),w,w,f.col);if(ed<.72)px(c,x,y,1,1,'#ffffff')}c.globalAlpha=1}
   else if(f.kind==='pow'){const r=Math.round(3+ease(q)*f.r),r0=Math.round(r*(.3+q*.5));for(let k=0;k<8;k++){const a=k*Math.PI/4+f.ang,col=k%2?'#ffe14d':'#ffffff',rr=k%2?r*.7:r;
       for(let s=r0;s<rr;s++)px(c,Math.round(f.x+Math.cos(a)*s),Math.round(f.y+Math.sin(a)*s),1,1,col)}
     if(q<.3){px(c,Math.round(f.x)-2,Math.round(f.y)-2,5,5,'#ffffff')}}
@@ -2939,7 +2941,7 @@ function drawKillOverlay(c,e){
 }
 /* FEVER = special move. Parries fill a run-wide gauge (faster at a high combo) — about once per expedition, around the boss gate.
    Full gauge: the pad turns rainbow; one tap unleashes ~4.5 s of automatic rapid strikes while the enemy can only take it. */
-const FV_NEED=110,FEVER_MS=4500;
+const FV_NEED=110,FEVER_MS=2300;
 function fvAdd(v){if(!R||!feverAllowed()||feverOn())return;const was=fvReady();R.fv=Math.min(FV_NEED,(R.fv||0)+v*(R.rooms&&R.rooms[R.room]==='danger'?1.5:1));
   if(!was&&fvReady()){banner('FEVER 준비!','버튼을 탭하면 필살 연속 공격!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200)}fvMeter()}
 const feverOn=()=>B.state==='FEVER'&&B.fever>B.time;
@@ -2948,13 +2950,35 @@ const fvReady=()=>!!(B.active&&R&&feverAllowed()&&(R.fv||0)>=FV_NEED&&!feverOn()
 function feverParry(perfect){fvAdd((perfect?1.5:1)*(1+Math.min(B.combo,30)/30))}
 function feverStart(){if(!fvReady())return false;R.fv=0;track('fever');
   if(B.atk&&!B.atk.resolved){B.atk.resolved=true;B.atk.notes.forEach(n=>n.res=true)}B.guard=false;B.pendWhiff=0;B.grab=null;B.finishReady=false;B.cutChain=false;
-  setState('FEVER');B.fever=B.time+FEVER_MS;B.fvNext=B.time+260;B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?.3:.5);
+  setState('FEVER');B.fever=B.time+FEVER_MS;B.fvT0=B.time;B.fvNext=B.time+230;B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?.3:.5);B.fvK=null;B.fvLeap=false;B.fvFin=false;B.fvPush=0;slow(220,.25);
   banner('FEVER!!','필살 연속 공격!');sfx('combo');sfx('clang',true);flash('#ff9bd0',.7,320);zoom(1.15);domShake(2);vib([30,30,30,30,80]);Music.hype=true;Music.rate=Math.max(Music.rate,1.08);
   B.parts.push({ring:true,x:B.kx,y:B.gy-14,r:4,vr:.16,life:520,col:'#ff5bb5'},{ring:true,x:B.kx,y:B.gy-14,r:2,vr:.1,life:420,col:'#ffd23f'});burstParts(B.kx,B.gy-14,30,['#ff5bb5','#ffd23f','#4fb8ff','#5fd23a'],.16,.0002,.45);
   feverHud();return true}
-function feverTick(t){B.ex=lerp(B.ex,EX()+3,.2);if(t>=B.fever){feverEnd();return}
-  if(t>=B.fvNext){B.fvNext=t+85;B.fvHits++;const big=B.fvHits%7===0;feverStrike(big?2.2:1.1,big?'강타':'');if(B.fvHits%3===0)fvMeter()}}
-function feverEnd(){B.fever=0;Music.hype=false;Music.rate=B.phase2?1.12:1;
+/* fever choreography: ignition → teleport slash flurry around the enemy (speeds up, every 5th a heavy) → leap and X finisher */
+const FV_SLOTS=[[-1.05,0],[-.55,-1.15],[.85,-.75],[1.05,.15],[-.15,-1.5],[-.95,-.55]];
+const FV_COLS=['#ff3b5c','#ff9b2f','#ffd23f','#5fd23a','#3a9dff','#b45cff'];
+function fvSlot(i){const[ax,ay]=FV_SLOTS[i%FV_SLOTS.length],sc=B.E.scale;return{x:B.ex+ax*sc*7,y:B.gy+Math.min(0,ay*sc*12)}}
+function fvTeleport(x,y){const k=B.fvK;B.fvK={x0:k?k.x:B.kx,y0:k?k.y:B.gy,x,y,t:B.time};B.parts.push({ring:true,x:B.fvK.x0,y:B.fvK.y0-10,r:2,vr:.08,life:220,col:'#ffffff'})}
+function fvSlash(len,ang,w,col,dur=170){addFx('fsl',B.ex,B.gy-B.E.scale*10,{len,ang,w,col,dur})}
+function feverTick(t){const e=t-B.fvT0;B.ex=lerp(B.ex,EX()+3+(B.fvPush||0),.25);B.fvPush=(B.fvPush||0)*.9;if(t>=B.fever){feverEnd();return}
+  if(e<220)return;
+  if(e<1700){if(t<B.fvNext)return;const n=B.fvHits++,big=n%5===4,gap=Math.max(55,115-n*4);B.fvNext=t+gap;
+    const sl=fvSlot(n);fvTeleport(sl.x,sl.y);const ang=Math.atan2(B.gy-B.E.scale*10-sl.y+(sl.y<B.gy?6:0),B.ex-sl.x)+rnd(-.5,.5);
+    fvSlash(big?40:26+n,ang,big?4:3,FV_COLS[n%6]);if(big){fvSlash(36,ang+1.3,3,'#ffffff');addFx('burst',B.ex,B.gy-B.E.scale*10,{dur:260})}
+    feverStrike(big?3.4:2.1,big?'강타':'');B.fvPush=big?6:2;
+    if(big){B.hitstop=Math.max(B.hitstop,40);flash('#ffffff',.35,120);zoom(1.09);B.shake=Math.max(B.shake,4.5);domShake(1)}
+    if(n%3===0)fvMeter();return}
+  if(!B.fvLeap){B.fvLeap=true;fvTeleport(B.ex-B.E.scale*3,B.gy-B.E.scale*12-30);slow(260,.3);zoom(1.14);sfx('windup');
+    burstParts(B.ex,B.gy-B.E.scale*12-26,16,FV_COLS,.12,.0001,.35);ftAt('피니시!',B.W/2,B.H*.3,'perfect');return}
+  if(!B.fvFin&&e>=1950){B.fvFin=true;fvTeleport(B.ex-B.E.scale*6,B.gy);
+    fvSlash(64,-.78,5,'#ffd23f',320);fvSlash(64,.78,5,'#ff5bd8',320);fvSlash(46,-.78,2,'#ffffff',320);fvSlash(46,.78,2,'#ffffff',320);addFx('burst',B.ex,B.gy-B.E.scale*10,{dur:420});
+    const d0=B.ehp;feverStrike(16,'FEVER FINISH');B.fvPush=16;B.hitstop=Math.max(B.hitstop,90);flash('#ffffff',.85,260);zoom(1.2);B.shake=8;domShake(3);vib([60,30,160]);sfx('ko');sfx('groggy');
+    B.parts.push({ring:true,x:B.ex,y:B.gy-B.E.scale*10,r:4,vr:.22,life:600,col:'#ffd23f'},{ring:true,x:B.ex,y:B.gy-B.E.scale*10,r:2,vr:.15,life:500,col:'#ff5bd8'});
+    burstParts(B.ex,B.gy-B.E.scale*10,60,FV_COLS.concat(['#ffffff']),.22,.0003,.5);
+    const d=Math.round(d0-B.ehp);if(d>0)ftAt(`FEVER FINISH ${fmt(d)}`,B.W/2,B.H*.3,'crit')}}
+/* where the knight is during fever: dashing between slots with a rainbow trail */
+function fvKnightPos(t){const k=B.fvK;if(B.state!=='FEVER'||!k)return null;const q=clamp((t-k.t)/45,0,1);return{x:lerp(k.x0,k.x,ease(q)),y:lerp(k.y0,k.y,ease(q)),q,k,flip:k.x>B.ex+2}}
+function feverEnd(){B.fever=0;B.fvK=null;Music.hype=false;Music.rate=B.phase2?1.12:1;
   if(B.state==='FEVER'){if(B.fvDmg>0)ftAt(`FEVER 피해 ${fmt(Math.round(B.fvDmg))}`,B.W/2,B.H*.34,'combo');setState('IDLE');B.idleDur=500}feverHud()}
 function feverStrike(mult,label){
   const now=performance.now();if(label==='추가'){if(now-(B.fvBashT||0)<70)return;B.fvBashT=now}
@@ -2976,6 +3000,7 @@ function fvMeter(){const m=document.getElementById('fvMeter');if(m)m.innerHTML='
 function feverHud(){fvMeter();const el=document.getElementById('fever');if(!el)return;const on=B.active&&feverOn()&&B.state!=='VICTORY'&&B.state!=='DEFEAT';el.classList.toggle('on',on);$('#battle').classList.toggle('fever',on);
   if(on){document.getElementById('feverT').textContent=Math.ceil((B.fever-B.time)/1000)+'초';el.style.setProperty('--hb',(hudBottom()+2)+'px')}}
 function drawFeverFrame(c,t){if(!feverOn())return;const q=(B.fever-B.time)/FEVER_MS;
+  {const cx=B.ex,cy=B.gy-B.E.scale*10;c.fillStyle='rgba(255,255,255,.55)';for(let i=0;i<14;i++){const a=Math.random()*Math.PI*2,r0=26+Math.random()*20,r1=r0+20+Math.random()*40;for(let r=r0;r<r1;r+=2)c.fillRect(Math.round(cx+Math.cos(a)*r),Math.round(cy+Math.sin(a)*r),1,1)}}
   c.fillStyle=`hsla(${(t/8)%360},90%,60%,.07)`;c.fillRect(0,0,B.W,B.H);
   for(let i=0;i<B.W;i+=3){const h=4+Math.round((Math.sin(t/90+i*.7)+1)*3+Math.random()*2);c.fillStyle=i%2?'rgba(255,90,180,.5)':'rgba(255,200,60,.45)';c.fillRect(i,B.H-h,2,h)}
   for(let i=0;i<6;i++){const x=Math.round((t/6+i*(B.W/6))%B.W);c.fillStyle=`hsla(${(t/4+i*60)%360},100%,70%,.55)`;c.fillRect(x,B.H-3,6,3);c.fillRect(B.W-x-6,0,6,2)}
@@ -3106,15 +3131,20 @@ function draw(){
   const ed=B.evadeDir>0?-1:1,jy=t-B.jumpT<430?Math.round(Math.sin((t-B.jumpT)/430*Math.PI)*14):0;if(B.grab)kx+=Math.round(rnd(-1,1));
   if(kp==='evade'){c.globalAlpha=.35;drawKnight(c,kx+8*ed,gy,{t,...KV(),pose:'evade',flash:'#8fd0ff'});c.globalAlpha=.18;drawKnight(c,kx+14*ed,gy,{t,...KV(),pose:'evade',flash:'#8fd0ff'});c.globalAlpha=1}
   drawLooseShield(c,t);
-  if(B.state!=='VICTORY'&&t-B.fvDash<200){const q=(t-B.fvDash)/200,reach=Math.max(0,B.ex-B.kx-B.E.scale*6-6)*Math.sin(q*Math.PI);
+  const fk=fvKnightPos(t);let fkFlip=false;
+  if(fk){fkFlip=fk.flip;for(let g=3;g>=1;g--){const qq=clamp(fk.q-g*.22,0,1);if(t-fk.k.t>160)break;c.globalAlpha=.16*g;
+      drawKnight(c,lerp(fk.k.x0,fk.k.x,qq),lerp(fk.k.y0,fk.k.y,qq),{t,...KV(),pose:'attack',swing:B.swing,flash:FV_COLS[(B.fvHits+g)%6]})}c.globalAlpha=1;kx=fk.x;kp='attack'}
+  if(B.state!=='VICTORY'&&B.state!=='FEVER'&&t-B.fvDash<200){const q=(t-B.fvDash)/200,reach=Math.max(0,B.ex-B.kx-B.E.scale*6-6)*Math.sin(q*Math.PI);
     c.globalAlpha=.35;drawKnight(c,kx+reach*.4,gy,{t,...KV(),pose:'attack',swing:B.swing,flash:'#ff9bd0'});c.globalAlpha=.6;drawKnight(c,kx+reach*.7,gy,{t,...KV(),pose:'attack',swing:B.swing,flash:'#ffd23f'});c.globalAlpha=1;
     kx+=reach;kp='attack'}
+  const kgy=fk?Math.round(fk.y):gy;c.save();if(fkFlip){c.translate(2*Math.round(kx),0);c.scale(-1,1)}
   if(feverOn()&&B.state!=='DEFEAT'){const cols=['#ff5b7a','#ffd23f','#5fd23a','#4fb8ff','#c37bff'],col=cols[Math.floor(t/80)%5];
-    for(const[ox,oy]of[[-1,0],[1,0],[0,-1],[0,1]])drawKnight(c,kx+ox,gy+oy,{t,...KV(),walk:kp==='walk',pose:kp==='walk'?'idle':kp,pp:since/200,swing:B.swing,flash:col});
+    for(const[ox,oy]of[[-1,0],[1,0],[0,-1],[0,1]])drawKnight(c,kx+ox,kgy+oy,{t,...KV(),walk:kp==='walk',pose:kp==='walk'?'idle':kp,pp:since/200,swing:B.swing,flash:col});
     if(Math.random()<.5)B.parts.push({x:kx+rnd(-7,7),y:gy-rnd(0,24),vx:rnd(-.01,.01),vy:-rnd(.02,.05),life:rnd(300,500),col:cols[Math.floor(Math.random()*5)],sz:1})}
   if(B.state==='DEFEAT'){c.save();c.translate(Math.round(kx),gy);c.rotate(-1.4*clamp((t-B.stT)/300,0,1));drawKnight(c,0,0,{t,...KV(),pose:'hurt',flash:kflash});c.restore()}
   else{if(jy){c.globalAlpha=.25;drawKnight(c,kx,gy-Math.round(jy*.5),{t,...KV(),pose:'idle',flash:'#d6ffc0'});c.globalAlpha=1}
-    drawKnight(c,kx,gy-jy,{t,...KV(),...(B.disarm?{s:null}:{}),walk:kp==='walk',pose:kp==='walk'?'idle':kp,pp:since/200,swing:B.swing,flash:B.grab&&Math.floor(t/90)%2?'#ff9b2f':kflash,raise:B.state==='VICTORY'})}
+    drawKnight(c,kx,kgy-jy,{t,...KV(),...(B.disarm?{s:null}:{}),walk:kp==='walk',pose:kp==='walk'?'idle':kp,pp:since/200,swing:B.swing,flash:B.grab&&Math.floor(t/90)%2?'#ff9b2f':kflash,raise:B.state==='VICTORY'})}
+  c.restore();
   if(B.grab){const g=B.grab,w=22,x=Math.round(B.kx-w/2+4),y=gy-42;px(c,x-1,y-1,w+2,6,K);px(c,x,y,Math.round(w*g.cnt/g.need),3,'#ffd23f');px(c,x,y+3,Math.round(w*clamp((g.until-t)/1700,0,1)),1,'#ff9b2f')}
   drawHazard(c,t);
   if(B.guard){const[sx,sy]=shieldPos();pixCircle(c,sx+1,sy,9+Math.sin(t/80),'rgba(120,200,255,.75)');pixCircle(c,sx+1,sy,11+Math.sin(t/80),'rgba(120,200,255,.3)')}
