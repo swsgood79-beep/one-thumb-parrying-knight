@@ -164,7 +164,7 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '각인 유물: 상자 · 별 강화 · 수집 보너스 · 효과', run: () => {
       S.gems = 99999; S.gold = 999999; const hp0 = hpMax();
-      for (let i = 0; i < 6; i++) { openBox(10); closeModal(); }
+      for (let i = 0; i < 6; i++) { openBox(10); if (document.querySelector('#gacha').hidden) return 'box opening show did not start'; gSkip(); if (document.querySelectorAll('#gCards .gcard.flip').length !== 10) return 'skip did not reveal all 10 cards'; gClose(); closeModal(); }
       if (ownedCount() < 15) return 'too few engravings after 60 draws: ' + ownedCount();
       const rar = new Set(Object.keys(S.eng).map(id => ENGR[id].r)); if (!rar.has(0) || !rar.has(1) || !rar.has(2)) return 'rarity spread missing';
       if (ENGRAVINGS.some(e => e.boss && S.eng[e.id] && S.cleared <= e.from)) return 'boss engraving came out of a box';

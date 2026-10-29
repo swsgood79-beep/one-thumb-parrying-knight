@@ -524,6 +524,55 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .wm-me{position:absolute;z-index:4;height:44px;margin:-70px 0 0 -40px;image-rendering:pixelated;pointer-events:none;animation:wmbob .6s infinite alternate}
 @keyframes wmpulse{from{box-shadow:0 0 0 3px rgba(255,255,255,.3),0 0 10px #fff}to{box-shadow:0 0 0 7px rgba(255,255,255,.15),0 0 22px #fff}}
 @keyframes wmbob{to{transform:translateY(-4px)}}
+/* engraving box opening */
+#gacha{position:absolute;inset:0;z-index:70;background:radial-gradient(circle at 50% 45%,#2a1d5a,#07040f 72%);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;user-select:none;-webkit-user-select:none;transition:background .4s}
+#gacha[hidden]{display:none}
+#gacha.dark{background:radial-gradient(circle at 50% 45%,#0c0818,#000 60%)}
+#gcv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.g-rays{position:absolute;left:50%;top:45%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;background:repeating-conic-gradient(var(--rc) 0 5deg,transparent 5deg 15deg);opacity:0;transition:opacity .5s;
+  animation:gspin 9s linear infinite;-webkit-mask-image:radial-gradient(circle,#000 0,transparent 55%);mask-image:radial-gradient(circle,#000 0,transparent 55%);z-index:1;pointer-events:none}
+#gacha.rays .g-rays{opacity:.5}
+.g-title{position:absolute;top:13%;z-index:6;font-family:var(--f-display);font-size:24px;color:#fff;text-shadow:0 3px 0 #000}
+.g-box{position:relative;z-index:3;cursor:pointer;margin-bottom:8vh}
+.g-box img{width:160px;image-rendering:pixelated;display:block;filter:drop-shadow(0 0 var(--gs,6px) var(--gc,#ffffff)) drop-shadow(0 0 var(--gs,6px) var(--gc,#ffffff));transition:filter .3s}
+.g-box.idle{animation:gbob 1.1s ease-in-out infinite alternate}
+.g-box.sh1{animation:gsh .09s 4}.g-box.sh2{animation:gsh2 .07s 8}.g-box.sh3{animation:gsh2 .05s infinite}
+.g-box.lev{animation:glev 1s ease-in forwards}
+.g-box.gone{animation:gpop .3s forwards}
+.g-ring{position:absolute;left:50%;top:41%;width:24px;height:24px;margin:-12px;border-radius:50%;border:5px solid var(--rc);z-index:4;animation:gring .8s ease-out forwards;pointer-events:none;box-shadow:0 0 18px var(--rc)}
+.g-beam{position:absolute;left:50%;top:0;bottom:0;width:140px;margin-left:-70px;background:linear-gradient(90deg,transparent,var(--rc),#fff,var(--rc),transparent);opacity:0;animation:gbeam 1.1s ease-out forwards;z-index:2;pointer-events:none}
+.g-flash{position:absolute;inset:0;background:#fff;z-index:8;animation:gflash .7s forwards;pointer-events:none}
+.g-big{position:absolute;top:20%;z-index:7;font-family:var(--f-display);font-size:46px;color:var(--rc);text-shadow:0 0 18px var(--rc),0 4px 0 #000,2px 0 0 #000,-2px 0 0 #000;animation:gslam .9s cubic-bezier(.2,1.6,.4,1) both;pointer-events:none;white-space:nowrap}
+.g-big small{display:block;text-align:center;font-size:18px;color:#fff}
+.g-hint{position:absolute;bottom:13%;z-index:6;font-family:var(--f-display);font-size:20px;color:#fff;text-shadow:0 2px 0 #000;animation:gblink 1s infinite;pointer-events:none}
+.g-btns{position:absolute;bottom:6%;z-index:6;display:flex;gap:10px}
+.g-skip{position:absolute;top:max(12px,env(safe-area-inset-top,0px));right:12px;z-index:9;padding:6px 12px}
+.g-cards{position:relative;z-index:6;display:grid;gap:6px;grid-template-columns:repeat(5,minmax(0,1fr));width:min(94vw,470px)}
+.g-cards .dcard{min-width:0;overflow:hidden}.g-cards .dcard b{max-width:100%;word-break:keep-all;text-align:center;line-height:1.1}
+.g-cards.one{grid-template-columns:1fr;width:150px}
+.gcard{aspect-ratio:3/4;cursor:pointer;animation:gdeal .45s cubic-bezier(.2,1.4,.4,1) backwards}
+.gcard .in{position:relative;width:100%;height:100%;transition:transform .22s ease-in}
+.gcard.half .in{transform:scaleX(0)}
+.gcard .gbk,.gcard .gft{position:absolute;inset:0;border-radius:12px}
+.gcard .gft{display:none}.gcard.flip .gft{display:block;animation:gfront .3s ease-out}.gcard.flip .gbk{display:none}
+@keyframes gfront{from{transform:scaleX(0)}}
+.gcard .gbk{display:grid;place-items:center;background:repeating-linear-gradient(45deg,#2f2566 0 6px,#251d55 6px 12px);border:3px solid var(--rc);box-shadow:0 0 calc(4px + var(--lv)*7px) var(--rc);font-family:var(--f-display);font-size:30px;color:var(--rc);text-shadow:0 0 10px var(--rc)}
+.gcard .gft .dcard{height:100%;box-sizing:border-box;justify-content:center;animation:none;padding:6px 2px}
+.g-cards:not(.one) .dcard .frame{width:40px;height:40px}.g-cards:not(.one) .dcard b{font-size:11px}.g-cards:not(.one) .dcard small,.g-cards:not(.one) .dcard em{font-size:10px}
+.g-cards.one .dcard .frame{width:72px;height:72px}.g-cards.one .dcard .frame img{width:52px;height:52px}.g-cards.one .dcard b{font-size:17px}
+.gcard.tease .in{animation:gsh .08s infinite}
+@keyframes gspin{to{transform:rotate(360deg)}}
+@keyframes gbob{to{transform:translateY(-10px)}}
+@keyframes gsh{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-5px,1px) rotate(-4deg)}75%{transform:translate(5px,-1px) rotate(4deg)}}
+@keyframes gsh2{0%,100%{transform:translate(0,0) rotate(0) scale(1.04)}25%{transform:translate(-8px,2px) rotate(-7deg) scale(1.06)}75%{transform:translate(8px,-2px) rotate(7deg) scale(1.06)}}
+@keyframes glev{0%{transform:translateY(0)}60%{transform:translateY(-40px) scale(1.15)}70%{transform:translate(-3px,-42px) scale(1.18)}80%{transform:translate(3px,-44px) scale(1.2)}90%{transform:translate(-3px,-46px) scale(1.22)}100%{transform:translate(0,-48px) scale(1.25)}}
+@keyframes gpop{to{transform:scale(1.8);opacity:0}}
+@keyframes gring{to{transform:scale(28);opacity:0;border-width:1px}}
+@keyframes gbeam{0%{opacity:0;transform:scaleX(.2)}25%{opacity:.9;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.6)}}
+@keyframes gflash{from{opacity:1}to{opacity:0}}
+@keyframes gslam{0%{transform:scale(3);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes gblink{50%{opacity:.35}}
+@keyframes gdeal{from{transform:translateY(-40vh) scale(.4) rotate(-20deg);opacity:0}}
 #modal{position:absolute;inset:0;z-index:50;background:rgba(6,3,20,.72);display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));animation:fade .15s}
 .mbox{width:100%;max-width:360px;max-height:100%;overflow-y:auto;border-radius:24px;border:4px solid var(--edge);background:linear-gradient(#4a3fa6,#2a2170);
   box-shadow:inset 0 4px 0 rgba(255,255,255,.18),0 8px 0 var(--edge);padding:18px 16px 16px;text-align:center;animation:pop .22s ease-out}
@@ -701,6 +750,9 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 
   <div id="wmap" hidden><div class="wm-head"><h2>월드맵</h2><div class="wm-sum" id="wmSum"></div><button class="btn r" id="wmClose" style="padding:8px 14px">닫기</button></div>
     <div class="wm-scroll" id="wmScroll"><div class="wm-world" id="wmWorld"></div></div></div>
+  <div id="gacha" hidden><canvas id="gcv"></canvas><div class="g-rays"></div><div class="g-title" id="gTitle"></div>
+    <div class="g-box" id="gBox"><img alt=""></div><div class="g-cards" id="gCards"></div><div class="g-hint" id="gHint"></div><div class="g-btns" id="gBtns"></div>
+    <button class="btn d g-skip" id="gSkip">건너뛰기</button></div>
   <div id="modal" hidden><div class="mbox" id="mbox"></div></div>
   <div id="toast"></div>
 </div>
@@ -3264,12 +3316,69 @@ const runWeights=i=>[Math.max(30,60-3*i),28,10+1.5*i,2+i,.3+.25*i];
 function drawCard(res){const e=ENGR[res.id];
   return `<div class="dcard r${e.r}"><div class="frame f${e.r}">${ic('eng_'+e.id)}</div><b>${e.name.replace(' 각인','')}</b><small>${E_RAR[e.r]}</small>
     <em>${res.kind==='new'?'NEW!':res.kind==='shard'?'조각 +1':'+'+res.gold+'G'}</em></div>`}
-function showDraws(list,title='각인 획득!'){
+function drawsModal(list,title='각인 획득!'){
   const best=Math.max(...list.map(x=>ENGR[x.id].r));save();refreshTop();
   if(best>=3){flashScreen();sfx('groggy')}else sfx('buy');
   modal(`<h2>${title}</h2><div class="dgrid">${list.map(drawCard).join('')}</div><p style="font-size:12px">같은 각인을 또 얻으면 조각이 되고, 조각을 모으면 별을 올릴 수 있어요</p>
     <div class="btns"><button class="btn g" data-m="x">확인</button></div>`);
 }
+/* ---- box opening show: tap the box 3 times (its glow climbs toward the best rarity), it bursts by rarity, then flip the cards ---- */
+const G={on:false,parts:[],bolts:0,raf:0};
+function showDraws(list,title='각인 획득!'){save();refreshTop();
+  const best=Math.max(...list.map(x=>ENGR[x.id].r)),el=$('#gacha');
+  Object.assign(G,{on:true,sid:(G.sid||0)+1,list,title,best,taps:0,stage:'box',parts:[],bolts:0,flipped:0,busy:false});
+  el.hidden=false;el.className='';el.style.setProperty('--rc',E_RCOL[0]);
+  $('#gTitle').textContent=title;$('#gHint').textContent=list.length>1?`${list.length}개 · 상자를 탭!`:'상자를 탭해서 열기!';$('#gBtns').innerHTML='';$('#gCards').innerHTML='';
+  const bx=$('#gBox');bx.hidden=false;bx.className='g-box idle';bx.querySelector('img').src=iconURL.chest;bx.style.setProperty('--gc','#ffffff');bx.style.setProperty('--gs','6px');
+  const cv=$('#gcv'),r=el.getBoundingClientRect();cv.width=Math.round(r.width);cv.height=Math.round(r.height);
+  cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(gLoop);sfx('ui');
+}
+function gFx(cls,col,extra=''){const d=document.createElement('div');d.className=cls;d.style.setProperty('--rc',col);d.innerHTML=extra;$('#gacha').appendChild(d);setTimeout(()=>d.remove(),1600);return d}
+function gSparks(n,col,o={}){const cv=$('#gcv'),x=o.x??cv.width/2,y=o.y??cv.height*.41;
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=(o.v||4)*(.4+Math.random());G.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(o.up||1),g:o.g??.12,life:0,max:40+Math.random()*50,col:Array.isArray(col)?col[i%col.length]:col,sz:o.sz||(2+Math.random()*3),coin:o.coin})}}
+function gRain(n){const cv=$('#gcv');for(let i=0;i<n;i++)G.parts.push({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.6,vx:(Math.random()-.5)*.6,vy:2+Math.random()*3,g:.04,life:0,max:220,col:'#ffd23f',sz:6,coin:true})}
+function gLoop(){if(!G.on)return;const cv=$('#gcv'),g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);
+  if(G.bolts>0){G.bolts--;if(G.bolts%4<2){g.strokeStyle='#e8c8ff';g.lineWidth=3;g.shadowColor='#b45cff';g.shadowBlur=14;for(let b=0;b<2;b++){let x=cv.width*(.25+Math.random()*.5),y=0;g.beginPath();g.moveTo(x,y);while(y<cv.height*.41){x+=(Math.random()-.5)*50;y+=20+Math.random()*25;g.lineTo(x,y)}g.stroke()}g.shadowBlur=0}}
+  G.parts=G.parts.filter(p=>p.life<p.max&&p.y<cv.height+30);
+  for(const p of G.parts){p.life++;p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;const a=Math.max(0,1-p.life/p.max);g.globalAlpha=a;
+    if(p.coin){const w=Math.abs(Math.sin(p.life/6))*p.sz+1;g.fillStyle='#7a4a00';g.fillRect(p.x-w-1,p.y-p.sz-1,w*2+2,p.sz*2+2);g.fillStyle=p.col;g.fillRect(p.x-w,p.y-p.sz,w*2,p.sz*2)}
+    else{g.fillStyle=p.col;g.fillRect(p.x-p.sz/2,p.y-p.sz/2,p.sz,p.sz)}}
+  g.globalAlpha=1;G.raf=requestAnimationFrame(gLoop)}
+function gTap(){if(G.stage!=='box'||G.busy)return;G.taps++;const bx=$('#gBox'),lv=Math.min(G.best,G.taps===1?1:G.taps===2?2:G.best),col=E_RCOL[lv];
+  if(G.taps<3){bx.className='g-box '+(G.taps===1?'sh1':'sh2');void bx.offsetWidth;bx.style.setProperty('--gc',col);bx.style.setProperty('--gs',(6+G.taps*6)+'px');
+    sfx('clang',G.taps>1);gSparks(8+G.taps*8,['#ffffff',col],{v:3});$('#gHint').textContent=G.taps===1?'한 번 더!':'마지막 한 번!';
+    if(G.taps===2&&G.best>=3){$('#gacha').classList.add('dark');sfx('warn')}
+    const sid=G.sid;setTimeout(()=>{if(G.sid===sid&&G.stage==='box'&&G.taps<3)bx.className='g-box sh3'},600);return}
+  gOpen()}
+/* the burst grows with the best rarity inside */
+function gOpen(){const sid=G.sid;G.stage='open';G.busy=true;const r=G.best,col=E_RCOL[r],el=$('#gacha'),bx=$('#gBox');$('#gHint').textContent='';el.style.setProperty('--rc',col);
+  const pre=r>=4?1300:r>=3?700:0;
+  if(r>=4){el.classList.add('dark');bx.style.setProperty('--gc',col);bx.style.setProperty('--gs','26px');bx.className='g-box lev';sfx('windup');setTimeout(()=>sfx('warn'),500)}
+  else if(r>=3){bx.style.setProperty('--gc',col);bx.style.setProperty('--gs','22px');bx.className='g-box sh3';G.bolts=40;sfx('shock')}
+  setTimeout(()=>{if(!G.on||G.sid!==sid)return;bx.className='g-box gone';
+    gFx('g-ring',col);
+    if(r===0){gSparks(14,['#ffffff','#9aa3ad'],{v:3});sfx('buy')}
+    if(r===1){gSparks(30,['#ffffff','#55c95f','#b8ffc0'],{v:4.5});sfx('coin');sfx('buy')}
+    if(r===2){gFx('g-beam',col);gSparks(50,['#ffffff','#3f8cff','#9ad8ff'],{v:6});sfx('combo');domShake(1)}
+    if(r>=3){gFx('g-flash','#fff');gFx('g-beam',col);setTimeout(()=>gFx('g-ring',col),150);el.classList.add('rays');gSparks(r>=4?130:80,r>=4?['#ffffff','#ffd23f','#ffb020','#fff3a0']:['#ffffff','#b45cff','#e3a6ff'],{v:r>=4?9:7});
+      gFx('g-big',col,r>=4?'전설!!<small>LEGENDARY</small>':'영웅!<small>EPIC</small>');sfx('crit',3);sfx('groggy');domShake(2);vib(r>=4?[80,40,80,40,200]:[60,40,120]);
+      if(r>=4){setTimeout(()=>gFx('g-ring',col),300);gRain(60);sfx('win')}}
+    setTimeout(()=>{if(G.sid===sid&&G.stage==='open')gDeal()},r>=3?650:350)},pre)}
+function gDeal(){if(!G.on)return;G.stage='cards';G.busy=false;$('#gBox').hidden=true;const one=G.list.length===1,box=$('#gCards');box.className='g-cards'+(one?' one':'');
+  box.innerHTML=G.list.map((res,i)=>{const e=ENGR[res.id];return`<div class="gcard" data-i="${i}" style="--rc:${E_RCOL[e.r]};--lv:${e.r};animation-delay:${i*60}ms"><div class="in"><div class="gbk">?</div><div class="gft">${drawCard(res)}</div></div></div>`}).join('');
+  if(one){$('#gHint').textContent='';const sid=G.sid;setTimeout(()=>{if(G.sid===sid)gFlip(0)},G.best>=3?900:450);if(G.best>=3)box.firstChild.classList.add('tease')}
+  else{$('#gHint').textContent='카드를 탭해서 뒤집기';$('#gBtns').innerHTML='<button class="btn y" id="gAll">모두 열기</button>';$('#gAll').onclick=()=>{const sid=G.sid;G.list.forEach((_,i)=>setTimeout(()=>{if(G.sid===sid)gFlip(i)},i*130))}}}
+function gFlip(i,now){const c=$('#gCards').children[i];if(!c||c.classList.contains('flip'))return;const was=c.classList.contains('half');c.classList.remove('tease');
+  if(now){c.classList.remove('half');c.classList.add('flip');if(was)return}else{if(was)return;c.classList.add('half');setTimeout(()=>{c.classList.remove('half');c.classList.add('flip')},220)}G.flipped++;
+  const r=ENGR[G.list[i].id].r,b=c.getBoundingClientRect(),o=$('#gacha').getBoundingClientRect(),at={x:b.left-o.left+b.width/2,y:b.top-o.top+b.height/2};
+  if(r>=3){gSparks(r>=4?50:30,r>=4?['#ffd23f','#ffffff']:['#b45cff','#ffffff'],Object.assign({v:5},at));sfx('crit',2);if(G.list.length>1)gFx('g-ring',E_RCOL[r]).style.top=at.y+'px'}else if(r>=2){gSparks(14,['#3f8cff','#ffffff'],Object.assign({v:3.5},at));sfx('coin')}else sfx('ui');
+  if(G.flipped>=G.list.length){const sid=G.sid;setTimeout(()=>{if(G.sid===sid)gDone()},400)}}
+function gDone(){if(!G.on||G.stage==='done')return;G.stage='done';$('#gHint').textContent='';$('#gBtns').innerHTML='<button class="btn g" id="gOk" style="min-width:140px">확인</button>';$('#gOk').onclick=gClose}
+function gClose(){G.on=false;cancelAnimationFrame(G.raf);$('#gacha').hidden=true;$('#gCards').innerHTML='';if(tab==='shop')renderShop();if(tab==='forge'&&typeof renderForge==='function')renderForge()}
+function gSkip(){if(G.stage==='box'||G.stage==='open'){G.stage='open';G.busy=false;gDeal()}const n=G.list.length;for(let i=0;i<n;i++)gFlip(i,true);gDone()}
+$('#gBox').addEventListener('click',gTap);
+$('#gCards').addEventListener('click',e=>{const c=e.target.closest('.gcard');if(c&&G.stage==='cards')gFlip(+c.dataset.i)});
+$('#gSkip').onclick=gSkip;
 function flashScreen(){const f=document.createElement('div');f.style.cssText='position:absolute;inset:0;background:#fff;z-index:70;pointer-events:none;transition:opacity .5s';$('#app').appendChild(f);requestAnimationFrame(()=>{f.style.opacity=0});setTimeout(()=>f.remove(),600)}
 function openBox(n){
   const cost=n===10?BOX10_PRICE:BOX_PRICE;if(S.gems<cost){toast('보석이 부족해요 (보스 첫 클리어 · 주간 상자 · 패스에서 획득)');return}
