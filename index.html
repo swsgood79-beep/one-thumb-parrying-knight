@@ -1744,6 +1744,7 @@ const STAGE_MUSIC=[
 STAGE_MUSIC.forEach((m,i)=>{SONGS['st'+i]=makeSong(Object.assign({seed:101+i*17},m));
   SONGS['bs'+i]=makeSong(Object.assign({},m,{seed:557+i*29,bpm:m.bpm+12,lv:.075,dr:i<3?'KhSKKhSh':i<7?'KhSKKhSS':'KKSSKKSS',bass:i%2?'drive':'oct',prog:m.prog.slice(1).concat(m.prog[0]),
     rhy:m.rhy.map(r=>r.replace(/\./g,(c,k)=>k%2?'x':'.'))}))});
+SONGS.prologue=makeSong({seed:913,root:57,mode:'harm',bpm:126,prog:[0,5,3,4],bass:'drive',dr:'KhSKKhSh',lv:.12,rhy:['x.xx.xx.','x-x.xxx.','xx.x-x.x','x.x.xx-x']});
 for(const k in SONGS){const s=SONGS[k];s._c=s.ch.map(c=>c.split(' ').map(nf));s._m=s.mel.split(/\s+/).filter(x=>x&&x!=='|');s._b=s.bass.split(/\s+/).filter(x=>x&&x!=='|')}
 const Music={cur:null,step:0,next:0,timer:0,hype:false,rate:1,beats:[]};
 function playMusic(name){if(Music.cur===name)return;Music.cur=name;Music.step=0;Music.next=0;Music.beats=[];Music.last=null;if(!Music.timer)Music.timer=setInterval(schedMusic,25)}
@@ -2460,7 +2461,7 @@ function renderRunMap(){
   const icon={min:'swords',pack:'skull',fork:'gift',spring:'potHp',danger:'skull',elite:'skull',boss:'crown'};
   $('#runMap').innerHTML=R.rooms.map((r,i)=>`<i class="${i<R.room?'done':i===R.room?'cur':''} ${r==='boss'?'boss':''}">${ic(icon[r]||'swords')}</i>`).join('<b></b>');
 }
-function endBattle(){B.fever=0;feverHud();B.bossIn=null;$('#cine').classList.remove('bossin');$('#cine').querySelectorAll('.bwarn').forEach(x=>x.remove());const dt0=document.getElementById('dmgTot');if(dt0)dt0.classList.remove('on','fin');$('#cine').classList.remove('on');cineText('');atkCue(false);Music.rate=1;R=null;B.active=false;cancelAnimationFrame(B.raf);B.guard=false;fx.innerHTML='';Music.hype=false;showShell()}
+function endBattle(){if(R&&R.prologue)duckMusic(MUS_VOL);B.fever=0;feverHud();B.bossIn=null;$('#cine').classList.remove('bossin');$('#cine').querySelectorAll('.bwarn').forEach(x=>x.remove());const dt0=document.getElementById('dmgTot');if(dt0)dt0.classList.remove('on','fin');$('#cine').classList.remove('on');cineText('');atkCue(false);Music.rate=1;R=null;B.active=false;cancelAnimationFrame(B.raf);B.guard=false;fx.innerHTML='';Music.hype=false;showShell()}
 function showShell(){setTimeout(()=>{if(!offlineShown){offlineShown=true;offlineCheck()}},400);$('#battle').hidden=true;$('#story').hidden=true;$('#title').hidden=true;$('#shell').hidden=false;refreshTop();drawAvatar();setTab(tab==='battle'?'battle':tab);playMusic('lobby');duckMusic(MUS_VOL)}
 function setState(s){B.state=s;B.stT=B.time}
 function setKPose(p){B.kPose=p;B.kPoseT=B.time}
@@ -2992,10 +2993,13 @@ function drawBits(c,x,y,rows,col,t){for(const[ox,oy]of[[-1,0],[1,0],[0,-1],[0,1]
   rows.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')px(c,x+i,y+j,1,1,j===0||Math.floor(t/120)%2&&j===1?'#ffffff':col)})}
 function drawHoldMark(c,x,y,t){const s=Math.floor(t/60)%2;px(c,x-6,y-1,13,7,K);px(c,x-5,y,11,5,s?'#4bb6ff':'#9ad8ff');px(c,x-1,y+1,3,3,'#ffffff')}
 /* rhythm lane along the ground: notes slide toward the knight's shield */
+/* 5×5 white signs inside lane notes: which way to dodge, jump, guard or slip a grab */
+const LANE_GLYPH={L:['..#..','.##..','#####','.##..','..#..'],R:['..#..','..##.','#####','..##.','..#..'],S:['#...#','##.##','#####','##.##','#...#'],
+  J:['..#..','.###.','#.#.#','..#..','..#..'],B:['#####','#####','#####','.###.','..#..'],H:['#.#.#','#.#.#','#####','#####','.###.']};
 function drawLane(c,t){
   const live=B.state==='WINDUP'||B.state==='IDLE'||B.state==='RECOIL'||B.state==='STRIKE';if(!live||(R&&R.prologue&&B.state!=='WINDUP'))return;
   const jx=Math.round(B.kx0+10),y=B.gy+8,v=.07,lead=B.tune.lead*(B.blizOn?.55:B.hz==='rock'?.85:1);
-  c.fillStyle='rgba(10,6,30,.55)';c.fillRect(jx-6,y-5,B.W-jx+6,11);
+  c.fillStyle='rgba(10,6,30,.6)';c.fillRect(jx-7,y-6,B.W-jx+7,13);
   {const bp=clamp(1-(t-(B.beatT||-1e9))/140,0,1);if(bp>0)pixCircle(c,jx,y,6+bp*2,B.beatDown?'rgba(255,225,77,.8)':'rgba(255,255,255,.5)')}
   const a=B.atk;if(B.state!=='WINDUP'||!a||!a.notes){pixCircle(c,jx,y,4,'rgba(255,255,255,.6)');return}
   const near=a.impact-t<120&&curNote().type==='tap';
@@ -3005,11 +3009,11 @@ function drawLane(c,t){
     if(n.type==='hold'){const x2=Math.round(jx+(n.t+n.dur-t)*v);const xa=Math.max(jx,x);c.fillStyle=K;c.fillRect(xa-1,y-3,x2-xa+3,7);c.fillStyle='#4bb6ff';c.fillRect(xa,y-2,x2-xa+1,5);c.fillStyle='#bfe6ff';c.fillRect(xa,y-2,x2-xa+1,1);continue}
     if(x>B.W+4)continue;
     const col=hidden?'#8a7fb8':n.grab?'#ff9b2f':n.type==='swipe'?'#ff4d5e':n.type==='block'?'#4bb6ff':n.type==='jump'?'#5fd23a':'#ffe14d';
+    const gl=hidden?null:n.grab?'H':n.type==='swipe'?(n.dir<0?'L':n.dir>0?'R':'S'):n.type==='block'?'B':n.type==='jump'?'J':null;
+    if(gl){px(c,x-5,y-5,11,11,K);px(c,x-4,y-4,9,9,col);px(c,x-4,y-4,9,1,'rgba(255,255,255,.45)');px(c,x-4,y+4,9,1,'rgba(0,0,0,.3)');
+      LANE_GLYPH[gl].forEach((r,j)=>{for(let i=0;i<5;i++)if(r[i]==='#'){px(c,x-2+i,y-1+j,1,1,'rgba(0,0,0,.45)');px(c,x-2+i,y-2+j,1,1,'#ffffff')}});continue}
     px(c,x-3,y-1,7,3,K);px(c,x-1,y-3,3,7,K);px(c,x-2,y-2,5,5,K);
     px(c,x-2,y,5,1,col);px(c,x-1,y-1,3,3,col);px(c,x,y-2,1,5,col);
-    if(n.type==='swipe'&&n.dir){px(c,x,y,1,1,'#fff');px(c,x+n.dir,y,1,1,'#fff');px(c,x+n.dir*2,y,1,1,'#fff')}
-    else if(n.type==='swipe'&&!n.grab){px(c,x-1,y,1,1,'#fff');px(c,x+1,y,1,1,'#fff')}
-    else if(n.type==='jump'){px(c,x,y-2,1,3,'#fff')}else if(n.type==='block'){px(c,x-1,y,3,1,'#fff')}
     if(hidden)px(c,x,y,1,1,'#ffffff')}
 }
 function draw(){
@@ -3659,9 +3663,9 @@ function tutParried(kind){ // kind: 'parry' | 'block' | 'hit'
 }
 function startPrologue(){
   R={idx:99,room:4,rooms:ROOMS.slice(),maxHp:999,hp:999,cards:{},gold:0,revived:true,parries:0,perfects:0,maxCombo:0,prologue:true};
-  const cfg=Object.assign(roomCfg(99,'boss'),{music:'st0',hp:99999,stunMult:0,windup:1150,pool:{base:[['single',1]]},
+  const cfg=Object.assign(roomCfg(99,'boss'),{music:'prologue',hp:99999,stunMult:0,windup:1150,pool:{base:[['single',1]]},
     tune:{win:420,late:200,jit:0,lock:0,cue:3,guide:1,lead:1600,stars:1},line:'(꿈속) 이 빛나는 방패라면... 마왕도 막을 수 있어!',taunt:'어리석은 용사여. 그 방패로 몇 번이나 버틸 수 있을까?'});
-  startFight(cfg,false);
+  startFight(cfg,false);duckMusic(Math.min(1,MUS_VOL*1.5));
   $('#bStage').textContent='PROLOGUE';$('#runMap').innerHTML='';$('#eName').innerHTML='마왕 <em>꿈</em>';banner('PROLOGUE','꿈속의 마왕');
   B.tutStep=0;B.tutShown0=false;B.tutFreeze=false;B.tutWait=null;B.introDur=2600;
 }
