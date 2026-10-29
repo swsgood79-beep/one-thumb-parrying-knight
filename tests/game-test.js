@@ -17,7 +17,7 @@ const FILE = 'file://' + path.resolve(__dirname, '..', opt('file', 'index.html')
 // virtual clock: rAF, timers and performance.now all advance only when __tick() is called
 const CLOCK = `(()=>{
   let now=0,id=0;const raf=new Map(),timers=new Map();
-  window.__noTips=true;window.__errors=[];addEventListener('error',e=>__errors.push(String(e.message||e.error)));
+  window.__noTips=true;window.__noBossIntro=true;window.__errors=[];addEventListener('error',e=>__errors.push(String(e.message||e.error)));
   const ce=console.error.bind(console);console.error=(...a)=>{__errors.push('console.error: '+a.map(String).join(' '));ce(...a)};
   addEventListener('unhandledrejection',e=>__errors.push('promise: '+e.reason));
   performance.now=()=>now;
@@ -79,7 +79,7 @@ const BOT = `(()=>{
     await page.goto(FILE);
     await page.addScriptTag({ content: BOT });
     const res = await page.evaluate(({ region, run, SKILL_, STATS_ }) => {
-      __seed(region * 100 + run + 7); __bot.skill = SKILL_; __bot.noRevive = STATS_; let minHp = 1;
+      window.__noBossIntro = false; __seed(region * 100 + run + 7); __bot.skill = SKILL_; __bot.noRevive = STATS_; let minHp = 1;
       for (let i = 0; i < 120; i++) __tick(16);                    // opening plays
       document.querySelector('#sSkip').click(); __tick(16);
       document.querySelector('#tStart').click(); for (let i = 0; i < 30; i++) __tick(16);
@@ -385,6 +385,18 @@ const BOT = `(()=>{
       if (r.err || !r.thrown || !r.next) return 'grab: not mashing should throw the knight, then the fight goes on ' + (r.err || JSON.stringify(r));
       for (let i = 0; i < POOLS.length; i++) if (!POOLS[i].base.some(([n]) => PAT_INFO[n] && PAT_INFO[n][1] === 'action')) return `stage ${i + 1} has no action attacks`;
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '보스 등장 연출: 경고 → 실루엣 → 공개 → 전투 시작 · 탭 건너뛰기', run: () => {
+      for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; window.__noBossIntro = false;
+      startRun(24); R.room = 4; startFight(roomCfg(24, 'boss'), false);
+      if (B.state !== 'BOSSIN' || !document.querySelector('#cine .bwarn')) return 'boss entrance did not start with a warning';
+      let g = 0, sawSil = false; while (B.state === 'BOSSIN' && g++ < 400) { __tick(16); if (B.bossIn && !B.bossIn.shown && B.time - B.stT > 1200) sawSil = true; if (B.bossIn && B.bossIn.shown && !document.querySelector('#cineText').classList.contains('show')) return 'no name card after reveal'; }
+      if (!sawSil) return 'no silhouette walk-in'; if (B.state !== 'IDLE') return 'fight did not start after the entrance (' + B.state + ')';
+      if (document.querySelector('#cine').classList.contains('on')) return 'letterbox stayed on';
+      let w = 0; while (B.state !== 'WINDUP' && w++ < 300) __tick(16); if (B.state !== 'WINDUP') return 'boss never attacked after the entrance';
+      endBattle(); startRun(21); R.room = 4; startFight(roomCfg(21, 'boss'), false); if (B.state !== 'BOSSIN' || document.querySelector('#cine .bwarn')) return 'keeper should get the short entrance';
+      for (let i = 0; i < 40; i++) __tick(16); onTap(); __tick(16); if (B.state !== 'IDLE') return 'tap did not skip the entrance';
+      endBattle(); startRun(24); R.room = 1; startFight(roomCfg(24, 'min'), false); if (B.state === 'BOSSIN') return 'minion got a boss entrance';
+      endBattle(); window.__noBossIntro = true; return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '100 스테이지 · 챕터 지형 공격 · 몬스터 특성', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
       if (STAGES.length !== 100 || REGIONS.length !== 100 || PARRY_TUNE.length !== 100 || POOLS.length !== 100) return 'tables are not 100 long';
