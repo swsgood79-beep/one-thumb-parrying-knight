@@ -2380,13 +2380,14 @@ function lerpRow(rows,x){x=clamp(x,0,rows.length-1);const a=Math.floor(x),b=Math
 const stageDmg=i=>6.4+.76*i+[0,4,8,12,18,24,32][[0,5,20,40,60,80,95].filter(r=>r<=i).length-1];
 /* monster HP is multiplied every stage: ×1.075 up to stage 20, ×1.04 to 60, ×1.025 after */
 /* boss hit ≈ player HP ÷ (7.5 at stage 1 → 3.3 at stage 100) */
+const hpBoost=i=>1.5*(1+i/60);   // all monsters: ×1.5 (stage 1) → ×3 (60) → ×4 (100)
 const stageHp=i=>{let h=160;for(let k=1;k<=i;k++)h*=k<=20?1.08:k<=60?1.045:1.025;return h};
 const STAGES=[],REGIONS=[],PARRY_TUNE=[],POOLS=[];
 for(let i=0;i<100;i++){const c=Math.floor(i/10),s=i%10,C=CH[c],tr=TIER(i),os=lerpRow(OLD_STAGES,tr);
   const mid=s===4,fin=s===9;let kind,name,line,p2='',taunt='';
   if(fin||mid)[kind,name,line,p2,taunt]=fin?C.boss:C.mid;
   else{const m=s===3||s===6||s===8?C.elites[s%3]:C.mobs[(s*5+1)%C.mobs.length];kind=m[0];name=(KEEPER[s]?KEEPER[s]+' ':'')+m[1];line=C.lines[s]}
-  STAGES.push({name,kind,theme:C.theme,ch:c,s,hz:C.hz,hp:Math.round(stageHp(i)*(fin?2.5:mid?1.8:1)),
+  STAGES.push({name,kind,theme:C.theme,ch:c,s,hz:C.hz,hp:Math.round(stageHp(i)*hpBoost(i)*(fin?2.5:mid?1.8:1)),
     atk:Math.round((100+1.5*i+.1*i*i)/(7.5-4.2*Math.sqrt(i/99))/OLD_ATK_MUL[Math.min(9,Math.round(TIER(i)))]),windup:Math.round(os.windup*.7),heavy:os.heavy,combo:Math.round(os.combo),stunMult:+os.stunMult.toFixed(3),
     gold:Math.round((50+18*i+.48*i*i)*(fin?2:mid?1.5:1)),boss:mid||fin,line,taunt,p2});
   REGIONS.push({name:C.areas[s],min:PAIRS[s].map(j=>C.mobs[j%C.mobs.length]),elite:C.elites[(s+1)%3]});
@@ -2462,16 +2463,16 @@ function drawHazard(c,t){const a=B.atk;if(B.state!=='WINDUP'||!a||!a.hz||a.resol
 }
 function roomCfg(idx,type){
   if(type==='pack'){const rg=REGIONS[idx],n=packN(idx),mins=[];for(let i=0;i<n;i++)mins.push(rg.min[i%rg.min.length]);
-    const base=roomCfg(idx,'min'),each=Math.round(base.hp*.5);
+    const base=roomCfg(idx,'min'),each=Math.round(base.hp*.7);
     return Object.assign(base,{kind:mins[0][0],name:mins[0][1]+' 무리',scale:EN[mins[0][0]].scale,hp:each*n,gold:base.gold*n*.6,label:'무리',line:'',
       pack:mins.map(([kind,name])=>({kind,name,scale:EN[kind].scale,pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)])}})),packEach:each})}
   const st=STAGES[idx],rg=REGIONS[idx],T=PARRY_TUNE[idx],k=R?R.room:0;
   if(type==='boss')return{kind:st.kind,name:st.name,scale:Math.max(EN[st.kind].scale,3),hp:st.hp*BOSS_HP_MUL,atk:st.atk*atkMul(idx),windup:st.windup,stunMult:st.stunMult,gold:st.gold*.6,
     theme:st.theme,hz:st.hz,boss:!!st.boss,music:'bs'+st.ch,pool:POOLS[idx],tune:T,line:st.line,taunt:st.taunt||'',label:'보스'};
-  if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.6:.55),atk:st.atk*.88*atkMul(idx),windup:st.windup,
+  if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.85:.75),atk:st.atk*.88*atkMul(idx),windup:st.windup,
     stunMult:st.stunMult*1.05,gold:st.gold*.32*(type==='danger'?2:1),theme:st.theme,hz:st.hz,boss:false,music:'st'+st.ch,pool:{base:(MINION_POOLS[kind]||[]).concat(POOLS[idx].base)},tune:T,line:'',label:type==='danger'?'위험':'정예'}}
   const[kind,name]=rg.min[k%rg.min.length];
-  return{kind,name,scale:EN[kind].scale,hp:Math.max(30,st.hp*.3),atk:st.atk*(TIER(idx)>=3?.75:.65)*atkMul(idx),windup:st.windup*1.08,stunMult:st.stunMult*1.15,gold:st.gold*.18,theme:st.theme,hz:st.hz,boss:false,music:'st'+st.ch,
+  return{kind,name,scale:EN[kind].scale,hp:Math.max(40,st.hp*.45),atk:st.atk*(TIER(idx)>=3?.75:.65)*atkMul(idx),windup:st.windup*1.08,stunMult:st.stunMult*1.15,gold:st.gold*.18,theme:st.theme,hz:st.hz,boss:false,music:'st'+st.ch,
     pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)])},tune:Object.assign({},T,{win:T.win+20,late:T.late+10,ne:T.ne+10,nl:T.nl+8}),line:k===0?st.line:'',taunt:'',label:'졸개'};
 }
 function startRun(idx){

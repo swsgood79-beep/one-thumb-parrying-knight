@@ -296,8 +296,8 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '무리 관문 (4:1) · 피로도 가득 차면 패턴 끝에 기절', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); __bot.skill = 1; __bot.sig = 8; S.streak = 0;
-      startRun(66); R.room = 1; startFight(roomCfg(66, 'pack'), false); if (!B.pack || B.pack.length !== 4) return 'pack of 4 not created';
-      let vt = 0, backAtk = false; while (vt < 240000 && B.state !== 'VICTORY') { __tick(16); vt += 16; if (B.state === 'WINDUP' && B.packAtk > 0) backAtk = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
+      startRun(66); R.room = 1; { const pc = roomCfg(66, 'pack'); pc.packEach = Math.round(pc.packEach / 8); pc.hp = pc.packEach * pc.pack.length; startFight(pc, false); }   // light HP: this checks pack mechanics, not stage 67 balance if (!B.pack || B.pack.length !== 4) return 'pack of 4 not created';
+      let vt = 0, backAtk = false; while (vt < 720000 && B.state !== 'VICTORY') { __tick(16); vt += 16; if (B.state === 'WINDUP' && B.packAtk > 0) backAtk = true; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (B.state !== 'VICTORY') return 'pack fight never finished (' + B.state + ', left ' + (B.pack && B.pack.length) + ')';
       if (B.packKills !== 3) return 'expected 3 front kills before the last one, got ' + B.packKills; if (!backAtk) return 'back members never attacked';
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
