@@ -538,6 +538,10 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #cine.bossin .ct b{color:#ffd23f;text-shadow:0 0 18px rgba(255,190,40,.8),0 4px 0 #5a2a00;font-size:clamp(34px,11vw,56px)}
 #cine.bossin .ct.show b{animation:cinepop .5s cubic-bezier(.2,1.6,.4,1)}
 #cine.bossin .ct em{color:#fff}
+#cine.bossin .ct em.sig{color:#ffd23f;font-weight:800;margin-top:6px}
+.ft.groove{color:#7cf0ff;font-size:15px;text-shadow:0 0 10px rgba(80,220,255,.9),0 2px 0 #10204a}
+.ft.sigmv{color:#fff;font-size:17px;font-weight:900;padding:2px 10px;border-radius:10px;background:linear-gradient(90deg,#7a1030,#c4253c);border:2px solid #ffd23f;white-space:nowrap;animation:sigmv 1.1s ease-out forwards}
+@keyframes sigmv{0%{transform:translate(-50%,0) scale(1.6);opacity:0}12%{transform:translate(-50%,0) scale(1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-14px);opacity:0}}
 /* fever cut-in: speed-line backdrop, scrolling FEVER bands, the knight sweeping in, then the strikes */
 #fvcut{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden;display:none}
 #fvcut.on{display:block;animation:fcin .12s ease-out}
@@ -1705,6 +1709,7 @@ function noise(d,v=.1,delay=0,freq=900,o={}){if(!voiceOK(o))return;
   s.connect(f);f.connect(g);send(g,o);s.start(t,Math.random()*.4);s.stop(t+d+.05)}
 function metal(f,d,v,wet=.5,delay=0){[1,2.76,5.4,8.93].forEach((m,i)=>tone(f*m,d*(1-i*.18),'sine',v/(i+1),0,delay,{wet}))}
 const SFX={
+  clangLite(){metal(mf(chordTone(0,84)),.35,.04,.3);noise(.05,.16,0,2500,{wet:.2})},
   clang(p){metal(p?1500:1250,p?.9:.55,p?.1:.075);tone(p?3200:2600,.12,'square',.05,-900);noise(.07,.25,0,2500,{wet:.3});tone(120,.14,'sine',.35,-70);
     if(p){tone(700,.4,'sawtooth',.035,2600,.02,{wet:.6});noise(.3,.08,.03,3000,{wet:.6,type:'bandpass',q:1,sweep:9000});metal(2200,.6,.04,.7,.05)}},
   whiff(){noise(.1,.08,0,1400,{type:'bandpass',q:.8,sweep:500})},
@@ -1719,7 +1724,7 @@ const SFX={
   dash(){noise(.2,.14,0,600,{type:'bandpass',q:.8,sweep:3500});tone(380,.15,'sine',.05,500)},
   evadeOk(){tone(1320,.1,'sine',.07,700,0,{wet:.4});tone(1980,.12,'sine',.04,0,.06,{wet:.4})},
   warn(){[0,.14].forEach(d=>{tone(880,.1,'square',.07,0,d);tone(440,.1,'square',.05,0,d)})},
-  tick(k){tone(k===1?1568:1175,.05,'square',.055);tone(k===1?784:587,.05,'triangle',.06)},
+  tick(k){const m=chordTone(k===1?3:2,72);tone(mf(m),.05,'square',.05);tone(mf(m-12),.05,'triangle',.06)},
   windup(){noise(.22,.06,0,400,{type:'bandpass',q:4,sweep:2400})},
   groggy(){tone(280,.5,'sine',.18,600);[523,659,784,1047,1319].forEach((f,i)=>tone(f,.14,'square',.06,0,.12+i*.055,{wet:.4}))},
   combo(){[784,988,1175,1568].forEach((f,i)=>tone(f,.1,'square',.05,0,i*.045,{wet:.4}))},
@@ -1778,7 +1783,7 @@ function unlockAudio(){ensureAudio();if(!AC)return;if(!unlockAudio.done){try{con
 /* ---------- chiptune BGM (step sequencer, 8th-note grid) ---------- */
 const SEMI={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
 const nf=s=>{const m=s.match(/^([A-G][#b]?)(\d)$/);return 440*Math.pow(2,(SEMI[m[1]]+(+m[2]+1)*12-69)/12)};
-const SONGS={
+let SONGS={
   lobby:{bpm:116,lead:'square',lv:.07,ch:['C5 E5 G5','A4 C5 E5','F4 A4 C5','G4 B4 D5'],
     mel:'E5 G5 C6 G5 E5 G5 A5 G5 | E5 - C5 E5 A5 - G5 E5 | F5 A5 C6 A5 G5 F5 E5 D5 | D5 E5 G5 - B4 D5 G5 - | E5 G5 C6 G5 E5 G5 A5 C6 | B5 - A5 G5 E5 - C5 E5 | F5 E5 D5 C5 D5 E5 F5 A5 | G5 - - - - - . .',
     bass:'C3 G3 C3 G3 C3 G3 C3 G3 | A2 E3 A2 E3 A2 E3 A2 E3 | F2 C3 F2 C3 F2 C3 F2 C3 | G2 D3 G2 D3 G2 D3 G2 B2',dr:'k.h.S.h.'},
@@ -1793,6 +1798,7 @@ const SONGS={
     bass:'A2 - E3 - A2 - E3 - | E2 - B2 - E2 - B2 - | F2 - C3 - F2 - C3 - | E2 - B2 - E2 - G#2 -',dr:'........'},
 };
 /* generated chiptune: each region gets its own key, tempo, groove and motif; bosses get a faster, heavier version */
+const mf=m=>440*Math.pow(2,(m-69)/12);
 const NOTE_N=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],nn=m=>NOTE_N[((m%12)+12)%12]+(Math.floor(m/12)-1);
 const MODES={major:[0,2,4,5,7,9,11],minor:[0,2,3,5,7,8,10],dorian:[0,2,3,5,7,9,10],phryg:[0,1,3,5,7,8,10],harm:[0,2,3,5,7,8,11]};
 function makeSong(o){
@@ -1806,23 +1812,58 @@ function makeSong(o){
     for(const n of pat)bass.push(n==='.'?'.':nn(n))}
   return{bpm:o.bpm,lead:o.lead||'square',lv:o.lv||.07,dr:o.dr,ch:o.prog.map(d=>[deg(d),deg(d+2),deg(d+4)].map(nn).join(' ')),mel:mel.join(' '),bass:bass.join(' ')};
 }
-const STAGE_MUSIC=[
-  {root:60,mode:'major', bpm:120,prog:[0,4,5,3],bass:'oct',  dr:'KhShKhSh',rhy:['x.x.xxx.','x-x.x.x.','xx.xx.x.','x.xxx-x.']},
-  {root:62,mode:'major', bpm:124,prog:[0,5,3,4],bass:'drive',dr:'KhSkKhSh',rhy:['x-x.xx.x','x.x.x-x.','xxx.x.x.','x-xx-x.x']},
-  {root:57,mode:'minor', bpm:128,prog:[0,5,6,4],bass:'sync', dr:'K.hhS.hh',rhy:['x.xx.x.x','x-x-xx.x','x.x.x.xx','xx-x.x-x']},
-  {root:64,mode:'phryg', bpm:132,prog:[0,1,0,6],bass:'oct',  dr:'KhShKKSh',rhy:['xx.x.xx.','x-xx.x.x','x.x-x.x.','xxx-x-x.']},
-  {root:62,mode:'harm',  bpm:136,prog:[0,5,3,4],bass:'drive',dr:'KhSKKhSh',rhy:['x.xx.xx.','x-x.xxx.','xx.x-x.x','x.x.xx-x']},
-  {root:59,mode:'dorian',bpm:138,prog:[0,3,0,6],bass:'sync', dr:'K.hSKhS.',rhy:['x-.xx.x.','x.x-x.xx','.xx.x-x.','xx.x.x.x']},
-  {root:54,mode:'minor', bpm:142,prog:[0,6,5,4],bass:'walk', dr:'KhShKhSS',rhy:['x.x.xx.x','xx-x.x.x','x-x.x-xx','x.xxx.x.']},
-  {root:55,mode:'harm',  bpm:146,prog:[0,3,4,0],bass:'oct',  dr:'KhSKKSSh',rhy:['xx.xx.xx','x-x.x.x.','x.xx-xx.','xxx.x.xx']},
-  {root:60,mode:'minor', bpm:150,prog:[0,6,5,4],bass:'drive',dr:'KKShKKSh',rhy:['x.xxx.xx','xx.x-x.x','x-xxx.x.','xxxx.x.x']},
-  {root:62,mode:'phryg', bpm:156,prog:[0,1,6,5],bass:'drive',dr:'KKSKKKSh',rhy:['xxx.xx.x','x.xxx-xx','xx-xxx.x','x.x.xxxx']},
+/* ===== composer: every stage and every stage boss gets its own 16-bar song =====
+   chapter = style (scale, instruments, drum kit, groove, swing) · stage = key, tempo, progression, motifs
+   form: A (theme) · A' (answer) · B (bridge, new chords, counter-melody) · A'' (theme up an octave, cadence) */
+MODES.lydian=[0,2,4,6,7,9,11];MODES.mixo=[0,2,4,5,7,9,10];MODES.hijaz=[0,1,4,5,7,8,10];
+const STYLE=[
+  {t:'초원 행진',   root:60,mode:'major', boss:'mixo',  bpm:120,lead:'square',  lead2:'triangle',kit:'pop',   arp:'up',    swing:0,  progs:[[0,4,5,3],[0,3,4,4],[0,5,3,4],[0,3,0,4]],bP:[[3,4,5,4],[5,3,4,4]],gr:['KhShKhSh','KhSkKhSh','K.ShKkSh'],bs:['oct','walk','bounce']},
+  {t:'숲의 춤',     root:62,mode:'dorian',boss:'minor', bpm:122,lead:'triangle',lead2:'square',  kit:'wood',  arp:'updown',swing:.14,progs:[[0,3,0,6],[0,6,3,4],[0,4,3,0]],bP:[[5,3,6,4],[3,6,5,4]],gr:['K.bSK.bS','KbhSKhbS','K.hSbKhS'],bs:['sync','walk','oct']},
+  {t:'동굴 메아리', root:57,mode:'minor', boss:'harm',  bpm:126,lead:'square',  lead2:'sine',    kit:'cave',  arp:'echo',  swing:0,  progs:[[0,5,6,4],[0,6,5,6],[0,3,6,4]],bP:[[5,6,4,4],[3,4,5,4]],gr:['K.tSK.tS','KhtSKthS','K.hSKttS'],bs:['drive','oct','sync']},
+  {t:'늪의 블루스', root:53,mode:'dorian',boss:'harm',  bpm:124,lead:'sawtooth',lead2:'triangle',kit:'swamp', arp:'down',  swing:.2, progs:[[0,3,0,4],[0,0,3,3],[0,6,3,4]],bP:[[3,3,0,4],[4,3,0,6]],gr:['K.cbK.cb','KbcSKbcS','K.cSbKcS'],bs:['walk','bounce','sync']},
+  {t:'사막 행렬',   root:64,mode:'hijaz', boss:'hijaz', bpm:132,lead:'sawtooth',lead2:'square',  kit:'darbuka',arp:'oud',  swing:.08,progs:[[0,1,0,6],[0,6,5,1],[0,1,6,0]],bP:[[3,1,0,1],[5,6,1,0]],gr:['K.bSKbS.','KbSbK.Sb','K.bbKbSx'],bs:['oct','sync','drive']},
+  {t:'설원 왈츠',   root:67,mode:'lydian',boss:'minor', bpm:128,lead:'triangle',lead2:'sine',    kit:'bells', arp:'sparkle',swing:0, progs:[[0,1,4,0],[0,5,1,4],[0,3,1,4]],bP:[[5,4,1,0],[3,1,5,4]],gr:['K.xSK.xS','KxbSKxbS','K.xSxKbS'],bs:['bounce','oct','walk']},
+  {t:'화산 질주',   root:52,mode:'minor', boss:'phryg', bpm:144,lead:'sawtooth',lead2:'square',  kit:'rock',  arp:'power', swing:0,  progs:[[0,5,6,0],[0,6,4,5],[0,3,4,6]],bP:[[5,6,0,0],[6,5,4,4]],gr:['KhSKKhSh','KhSoKKSh','KKShKhSo'],bs:['drive','oct','drive']},
+  {t:'유령선 뱃노래',root:57,mode:'minor',boss:'harm',  bpm:136,lead:'square',  lead2:'sawtooth',kit:'shanty',arp:'updown',swing:.22,progs:[[0,6,5,4],[0,3,4,0],[0,5,3,4]],bP:[[3,4,0,5],[6,5,4,4]],gr:['K.cbK.cb','KbcbKbcb','K.cbKKcb'],bs:['bounce','oct','walk']},
+  {t:'천공 브레이크',root:62,mode:'mixo', boss:'dorian',bpm:148,lead:'square',  lead2:'triangle',kit:'break', arp:'fast',  swing:.06,progs:[[0,6,3,0],[0,4,6,3],[0,3,6,4]],bP:[[3,6,0,4],[6,3,4,4]],gr:['K.SkKhS.','KhSKKbSh','K.SKkhSb'],bs:['sync','drive','oct']},
+  {t:'마왕성 진군', root:50,mode:'harm',  boss:'harm',  bpm:150,lead:'sawtooth',lead2:'square',  kit:'epic',  arp:'power', swing:0,  progs:[[0,5,3,4],[0,6,4,4],[0,3,5,4]],bP:[[5,3,6,4],[3,4,5,4]],gr:['KtSKKtSt','KKStKtSS','KtSKtKSS'],bs:['drive','oct','drive']},
 ];
-STAGE_MUSIC.forEach((m,i)=>{SONGS['st'+i]=makeSong(Object.assign({seed:101+i*17},m));
-  SONGS['bs'+i]=makeSong(Object.assign({},m,{seed:557+i*29,bpm:m.bpm+12,lv:.075,dr:i<3?'KhSKKhSh':i<7?'KhSKKhSS':'KKSSKKSS',bass:i%2?'drive':'oct',prog:m.prog.slice(1).concat(m.prog[0]),
-    rhy:m.rhy.map(r=>r.replace(/\./g,(c,k)=>k%2?'x':'.'))}))});
+const KEY_SHIFT=[0,2,-3,5,-2,0,3,-5,7,0];
+const RHY_A=['x.x.xxx.','x-x.x.x.','xx.xx.x.','x.xxx-x.','x-.xx.x.','xx-x.xx.','x.x-xx.x','x--.x.xx','.xx.x-x.','x.xx.xx.'];
+const RHY_B=['x---x---','x-x-x--.','x--xx--.','x---xx-.','xx--x---','x.x.x---'];
+function genSong(key){
+  const boss=key[0]==='b',i=+key.slice(2),c=Math.floor(i/10),st=i%10,Y=STYLE[c],Rn=mulberry(7001+i*131+(boss?977:0)),ri=n=>Math.floor(Rn()*n);
+  const fin=st===9,mid=st===4;
+  let root=Y.root+KEY_SHIFT[st];while(root>66)root-=12;while(root<50)root+=12;
+  const mode=boss?Y.boss:Y.mode,sc=MODES[mode];
+  const deg=d=>root+sc[((d%7)+7)%7]+12*Math.floor(d/7);
+  const bpm=Math.min(170,Math.round(Y.bpm+st*1.3+(boss?(fin?12:mid?10:8):0)));
+  const pA=Y.progs[(st+ri(2))%Y.progs.length],pB=Y.bP[(st+(boss?1:0))%Y.bP.length];
+  const motif=(rhy,lo,hi)=>{let cur=[0,2,4][ri(3)];return rhy.split('').map((ch,k)=>{if(ch!=='x')return ch;
+    if(k===0||k===4)cur=[0,2,4,7][ri(4)];else cur=clamp(cur+[-2,-1,1,2,1,-1,3,-3][ri(8)],lo,hi);return cur})};
+  const MA=[0,1,2,3].map(()=>motif(RHY_A[ri(RHY_A.length)],-2,9)),MB=[0,1].map(()=>motif(RHY_B[ri(RHY_B.length)],0,9));
+  const form=['A','A','A','A','A','A','A','A','B','B','B','B','A','A','A','A'],mel=[],mel2=[],bass=[],chords=[],secs=[];
+  for(let bar=0;bar<16;bar++){const sec=form[bar],q=bar%4,cd=(sec==='B'?pB:pA)[q];secs.push(bar>=12?'C':sec);
+    chords.push([deg(cd),deg(cd+2),deg(cd+4)]);
+    let m;if(sec==='B')m=MB[q%2];else if(bar===7)m=[0,'-','-','.',4,'-',2,'-'];else if(bar===15)m=[4,2,1,'-',0,'-','-','.'];
+    else m=MA[bar<4?q:bar<8?[0,1,0,3][q]:[2,1,0,3][q]];
+    const up=bar>=12?12:0;for(const v of m)mel.push(typeof v==='number'?deg(cd+v)+12+up:v);
+    /* counter-melody: long chord tones in the bridge and the last section */
+    for(let k=0;k<8;k++)mel2.push(sec==='A'&&bar<12?'.':k===0?deg(cd+(bar%2?4:2)):k===4?deg(cd+(bar%2?2:4)):'-');
+    const r=deg(cd)-12,f=deg(cd+4)-12,sty=boss?(fin?'drive':Y.bs[(st+1)%3]):Y.bs[st%3];
+    const pat=sty==='oct'?[r,r+12,r,r+12,r,r+12,r,r+12]:sty==='drive'?[r,r,r,r,r,r,r,r+12]:sty==='sync'?[r,'.',r,r,'.',r,f,'.']:sty==='bounce'?[r,'.',f,'.',r+12,'.',f,'.']:[r,f,r+12,f,r,f,r+12,deg(cd+5)-12];
+    for(const n of pat)bass.push(n)}
+  const g0=Y.gr[st%3],g1=Y.gr[(st+1)%3],dbl=s=>s.replace(/^K\./,'KK').replace(/\.(?=S)/g,'k');
+  let dr=boss?dbl(g0):g0,drB=boss?dbl(g1):g1;
+  const fill={pop:'KSSSSSSS',wood:'KbbSbbSS',cave:'KttTTtSS',swamp:'KccScSSc',darbuka:'KbbSbSSb',bells:'KxxSxSSb',rock:'KSSSTTtt',shanty:'KccbcbSS',break:'KSkSSkSS',epic:'KtTtTSSS'}[Y.kit];
+  return{bpm,lead:Y.lead,lead2:Y.lead2,lv:boss?.074:.068,kit:Y.kit,arp:Y.arp,swing:Y.swing,style:Y.t+(boss?' · 보스':''),root,sc,
+    _m:mel.map(v=>typeof v==='number'?v:v),_m2:mel2,_b:bass,_cm:chords,secs,dr,drB,fill,midi:true,
+    _c:chords.map(ch=>ch.map(mf))};
+}
 SONGS.prologue=makeSong({seed:913,root:57,mode:'harm',bpm:126,prog:[0,5,3,4],bass:'drive',dr:'KhSKKhSh',lv:.12,rhy:['x.xx.xx.','x-x.xxx.','xx.x-x.x','x.x.xx-x']});
-for(const k in SONGS){const s=SONGS[k];s._c=s.ch.map(c=>c.split(' ').map(nf));s._m=s.mel.split(/\s+/).filter(x=>x&&x!=='|');s._b=s.bass.split(/\s+/).filter(x=>x&&x!=='|')}
+for(const k in SONGS){const s=SONGS[k];s._c=s.ch.map(c=>c.split(' ').map(nf));s._m=s.mel.split(/\s+/).filter(x=>x&&x!=='|');s._b=s.bass.split(/\s+/).filter(x=>x&&x!=='|');
+  s.root=Math.round(69+12*Math.log2(s._c[0][0]/440));s._cm=s._c.map(ch=>ch.map(f=>Math.round(69+12*Math.log2(f/440))))}
+{const base=SONGS;SONGS=new Proxy(base,{get(t,k){if(typeof k==='string'&&!(k in t)&&/^(st|bs)\d+$/.test(k)&&+k.slice(2)<100)t[k]=genSong(k);return t[k]}})}
 const Music={cur:null,step:0,next:0,timer:0,hype:false,rate:1,beats:[]};
 function playMusic(name){if(Music.cur===name)return;Music.cur=name;Music.step=0;Music.next=0;Music.beats=[];Music.last=null;if(!Music.timer)Music.timer=setInterval(schedMusic,25)}
 function stopMusic(){Music.cur=null}
@@ -1830,19 +1871,107 @@ function duckMusic(v){if(musBus)musBus.gain.setTargetAtTime(v,AC.currentTime,.08
 function schedMusic(){if(!AC||!Music.cur||!S.bgm||AC.state!=='running')return;const s=SONGS[Music.cur],sp=60/(s.bpm*(Music.rate||1))/2;
   if(Music.next<AC.currentTime)Music.next=AC.currentTime+.05;
   while(Music.next<AC.currentTime+.15){musStep(s,Music.step,Music.next,sp);Music.next+=sp;Music.step++}}
+/* drum kits: one letter per hit, each chapter voices them differently
+   K kick · k soft kick · S snare · s ghost · h hat · o open hat · c clap · t/T low/high tom · b kit colour (wood, bell, frog, tek...) · x shaker */
+function drumHit(kit,c,o){const at=o.at,M=(x)=>Object.assign({},o,x||{});
+  if(c==='K'||c==='k'){const v=c==='K'?.55:.32;
+    if(kit==='epic'){tone(95,.32,'sine',.62,-55,0,o);noise(.12,.18,0,180,M({type:'lowpass'}))}
+    else if(kit==='darbuka'){tone(105,.22,'sine',.5,-40,0,o);noise(.06,.1,0,400,M({type:'lowpass'}))}
+    else if(kit==='shanty'){tone(90,.16,'sine',.5,-50,0,o);noise(.1,.22,0,300,M({type:'lowpass'}))}
+    else if(kit==='rock'){tone(160,.12,'sine',.62,-125,0,o);noise(.02,.2,0,3000,o)}
+    else tone(150,.13,'sine',v,-115,0,o)}
+  else if(c==='S'||c==='s'){const v=c==='S'?1:.4;
+    if(kit==='darbuka'){noise(.05,.24*v,0,3200,M({type:'bandpass',q:2}));tone(880,.03,'triangle',.06*v,0,0,o)}
+    else if(kit==='wood'){tone(820,.04,'triangle',.12*v,-200,0,o);noise(.04,.16*v,0,2600,M({type:'bandpass',q:3}))}
+    else if(kit==='bells'){noise(.18,.14*v,0,2000,M({type:'bandpass',q:.6}))}
+    else if(kit==='cave'){noise(.16,.26*v,0,1500,M({type:'bandpass',q:.7,wet:.6}));tone(180,.08,'triangle',.12*v,-50,0,o)}
+    else if(kit==='rock'||kit==='epic'){noise(.16,.34*v,0,1800,M({type:'bandpass',q:.6}));tone(200,.1,'triangle',.18*v,-60,0,o)}
+    else{noise(.12,.28*v,0,1600,M({type:'bandpass',q:.7}));tone(190,.08,'triangle',.14*v,-50,0,o)}}
+  else if(c==='h')noise(.035,.09,0,7000,o);
+  else if(c==='o')noise(.18,.08,0,6500,o);
+  else if(c==='x'){noise(.05,.07,0,6000,M({type:'bandpass',q:1.5}));noise(.04,.05,0,7000,M({at:at+.03}))}
+  else if(c==='c'){[0,.011,.022].forEach(d=>noise(.05,.2,0,1300,M({type:'bandpass',q:1.2,at:at+d})))}
+  else if(c==='t'||c==='T'){const f=c==='t'?(kit==='epic'?120:140):(kit==='epic'?180:210);tone(f,.2,'sine',.42,-f*.45,0,o);if(kit==='epic')noise(.1,.12,0,300,M({type:'lowpass'}))}
+  else if(c==='b'){
+    if(kit==='wood'){tone(1250,.05,'sine',.16,0,0,o);tone(830,.05,'sine',.08,0,0,o)}
+    else if(kit==='bells'){tone(1568,.5,'sine',.05,0,0,M({wet:.6}));tone(1568*2.76,.25,'sine',.02,0,0,o)}
+    else if(kit==='swamp'){tone(330,.09,'square',.05,-170,0,o)}
+    else if(kit==='darbuka'||kit==='shanty'){noise(.08,.12,0,7500,o);tone(3900,.05,'square',.012,0,0,o)}
+    else if(kit==='cave'){tone(1200,.16,'sine',.06,1300,0,M({wet:.7}))}
+    else if(kit==='epic'){metal(760,.3,.035,.4)}
+    else if(kit==='break'){noise(.03,.2,0,2400,M({type:'bandpass',q:2}))}
+    else{tone(540,.08,'square',.04,0,0,o);tone(800,.08,'square',.03,0,0,o)}}
+  else if(c==='C')noise(.9,.16,0,4500,M({wet:.4}));
+}
 function musStep(s,i,t,sp){
-  const o={mus:true,at:t};if(i%2===0){Music.beats.push({t,down:(i/2)%4===0});Music.last={t,n:i/2,per:sp*2};if(Music.beats.length>24)Music.beats.shift()}
-  const lay=(arr,fn)=>{const L=arr.length,n0=arr[i%L];if(n0==='.'||n0==='-')return;let n=1;while(n<6&&arr[(i+n)%L]==='-')n++;fn(nf(n0),sp*n)};
-  lay(s._m,(f,d)=>{tone(f,d*.92,s.lead,s.lv,0,0,Object.assign({attack:.008,wet:.25},o));if(Music.hype)tone(f*2,d*.5,'square',s.lv*.4,0,0,o)});
+  const t0=t;if(i%2&&s.swing)t+=sp*s.swing;
+  const o={mus:true,at:t};if(i%2===0){Music.beats.push({t:t0,down:(i/2)%4===0});Music.last={t:t0,n:i/2,per:sp*2};if(Music.beats.length>24)Music.beats.shift()}
+  const bar=Math.floor(i/8),sec=s.secs?s.secs[bar%s.secs.length]:'A',lvl=Music.lvl||0;
+  Music.chord=(s._cm||[])[bar%(s._cm||[1]).length]||null;Music.song=s;Music.sec=sec;
+  const fq=v=>typeof v==='number'?mf(v):nf(v);
+  const lay=(arr,fn)=>{const L=arr.length,n0=arr[i%L];if(n0==='.'||n0==='-')return;let n=1;while(n<8&&arr[(i+n)%L]==='-')n++;fn(fq(n0),sp*n)};
+  lay(s._m,(f,d)=>{tone(f,d*.92,s.lead,s.lv,0,0,Object.assign({attack:.008,wet:.25},o));if(Music.hype||lvl>=3)tone(f*2,d*.5,'square',s.lv*(Music.hype?.4:.28),0,0,o)});
+  if(s._m2)lay(s._m2,(f,d)=>tone(f,d*.95,s.lead2||'triangle',s.lv*.55,0,0,Object.assign({attack:.03,wet:.35},o)));
   lay(s._b,(f,d)=>{tone(f,d*.85,'triangle',.24,0,0,Object.assign({attack:.005},o));tone(f*2,d*.45,'square',.035,0,0,o)});
-  const chord=s._c[Math.floor(i/8)%s._c.length],av=Music.cur==='story'?.02:.028;
-  tone(chord[(i*2)%3],sp*.45,'square',av,0,0,o);tone(chord[(i*2+1)%3]*(Music.hype?2:1),sp*.45,'square',av,0,0,Object.assign({},o,{at:t+sp/2}));
-  const c=s.dr[i%s.dr.length];
-  if(c==='K'||c==='k'){tone(150,.13,'sine',.55,-115,0,o)}
-  if(c==='S'||c==='s'){noise(.12,.28,0,1600,Object.assign({type:'bandpass',q:.7},o));tone(190,.08,'triangle',.14,-50,0,o)}
-  if(c==='K'||c==='h'||c==='s'||(Music.hype&&c!=='.'))noise(.035,.09,0,7000,o);
+  const chord=s._c[bar%s._c.length],av=Music.cur==='story'?.02:.028;
+  if(s.midi){
+    /* comping: off-beat stabs in A, sustained pad in B, both louder as the groove builds */
+    if(sec==='B'){if(i%8===0)chord.forEach(f=>tone(f,sp*7.5,'triangle',av*.9,0,0,Object.assign({attack:.08,wet:.4},o)))}
+    else if(i%2===1)chord.forEach(f=>tone(f,sp*.4,'square',av*.75,0,0,o));
+    /* arpeggio: always in the last section, earlier once the combo groove reaches level 2 */
+    if(sec==='C'||lvl>=2||Music.hype){const ord=s.arp==='down'?[2,1,0,1]:s.arp==='updown'?[0,1,2,1]:s.arp==='echo'?[0,2,0,2]:s.arp==='fast'?[0,1,2,0]:[0,1,2,1],
+      f=chord[ord[i%4]]*(s.arp==='sparkle'?4:2),w=s.arp==='power'?'sawtooth':s.arp==='sparkle'?'sine':'square';
+      tone(f,sp*.45,w,s.arp==='sparkle'?.035:.022,0,0,Object.assign({wet:s.arp==='echo'?.6:.2},o));
+      if(lvl>=2||Music.hype)tone(chord[ord[(i+2)%4]]*2,sp*.4,w,.016,0,0,Object.assign({},o,{at:t+sp/2}))}
+  }else{tone(chord[(i*2)%3],sp*.45,'square',av,0,0,o);tone(chord[(i*2+1)%3]*(Music.hype?2:1),sp*.45,'square',av,0,0,Object.assign({},o,{at:t+sp/2}))}
+  const L=s.dr.length,dstr=(bar%4===3&&i%8>=4&&s.fill)?s.fill:(sec==='B'&&s.drB?s.drB:s.dr),c=dstr[i%dstr.length];
+  if(s.kit)drumHit(s.kit,c,o);
+  else{if(c==='K'||c==='k'){tone(150,.13,'sine',.55,-115,0,o)}
+    if(c==='S'||c==='s'){noise(.12,.28,0,1600,Object.assign({type:'bandpass',q:.7},o));tone(190,.08,'triangle',.14,-50,0,o)}
+    if(c==='K'||c==='h'||c==='s')noise(.035,.09,0,7000,o)}
+  if(s.kit&&i%64===0&&bar===0)drumHit(s.kit,'C',o);
+  /* combo groove layers (Patapon-style: the better you play, the bigger the band) */
+  if(lvl>=1&&i%2===1)noise(.03,.06,0,7500,o);
+  if(lvl>=2&&i%4===2)drumHit('pop','c',o);
+  if(lvl>=3)noise(.025,.05,0,8500,Object.assign({},o,{at:t+sp/2}));
   if(Music.hype)noise(.03,.06,0,8000,Object.assign({},o,{at:t+sp/2}));
 }
+
+/* ===== rhythm kit: every action is an instrument in the song =====
+   sounds use the chord that's playing right now, and early presses are delayed to land on the beat */
+function keyNow(){const s=Music.cur&&SONGS[Music.cur];const ch=(Music.chord&&Music.chord.length)?Music.chord:[60,64,67];
+  return{root:(s&&s.root)||60,sc:(s&&s.sc)||MODES.major,ch}}
+function chordTone(k,base){const ch=keyNow().ch;let m=ch[((k%3)+3)%3]+12*Math.floor(k/3);while(m<base)m+=12;while(m>base+24)m-=12;return m}
+function scaleTone(k,base){const K=keyNow();let r=K.root;while(r<base)r+=12;while(r>=base+12)r-=12;const sc=K.sc;return r+sc[((k%sc.length)+sc.length)%sc.length]+12*Math.floor(k/sc.length)}
+const qAt=early=>AC?AC.currentTime+clamp((early||0)/1000,0,.12):0;
+const RK={
+  ok(){return AC&&S.snd},
+  parry(idx,perfect,early){if(!RK.ok())return;const at=qAt(early),o={at},m=chordTone(idx,72),f=mf(m);
+    tone(f,.2,'square',.06,0,0,Object.assign({attack:.003,wet:.3},o));tone(f/2,.14,'triangle',.12,0,0,o);
+    tone(240,.1,'sine',.32,-130,0,o);noise(.04,.16,0,2600,Object.assign({type:'bandpass',q:1.4},o));
+    if(perfect){tone(f*2,.26,'sine',.05,0,0,Object.assign({wet:.6},o));tone(f*3,.16,'sine',.02,0,0,Object.assign({at:at+.05,wet:.6}))}},
+  guard(){if(!RK.ok())return;const at=AC.currentTime,m=chordTone(0,48);tone(mf(m),.18,'triangle',.18,0,0,{at});tone(110,.1,'sine',.3,-50,0,{at})},
+  holdStart(lenMs){if(!RK.ok())return;const at=AC.currentTime,m=chordTone(0,48),d=Math.min(3,lenMs/1000);
+    tone(mf(m),d,'sawtooth',.03,0,0,{at,attack:.05,wet:.4});tone(mf(m+7),d,'sawtooth',.022,0,0,{at,attack:.05,wet:.4});tone(70,.3,'sine',.5,-25,0,{at})},
+  holdTick(k){if(!RK.ok())return;const at=AC.currentTime;noise(.03,.1+.03*(k%4===0),0,3000,{at,type:'bandpass',q:1.2});if(k%4===0)tone(mf(chordTone(k/4,60)),.08,'square',.025,0,0,{at})},
+  holdEnd(){if(!RK.ok())return;const at=AC.currentTime;[0,1,2].forEach(k=>tone(mf(chordTone(k,67)),.3,'square',.035,0,0,{at,wet:.4}));drumHit('pop','c',{at})},
+  block(){if(!RK.ok())return;const at=AC.currentTime;tone(80,.42,'sine',.6,-30,0,{at});noise(.2,.24,0,260,{at,type:'lowpass'});tone(mf(chordTone(0,40)),.35,'triangle',.2,0,0,{at})},
+  dodge(dir){if(!RK.ok())return;const at=AC.currentTime;noise(.14,.12,0,900,{at,type:'bandpass',q:.9,sweep:dir<0?500:4200});
+    const a=chordTone(2,74),b=chordTone(3,74);tone(mf(a),.07,'triangle',.07,0,0,{at});tone(mf(b),.14,'triangle',.08,0,0,{at:at+.06,wet:.3})},
+  jump(){if(!RK.ok())return;const at=AC.currentTime;tone(170,.16,'sine',.4,240,0,{at});tone(mf(chordTone(3,72)),.18,'square',.045,0,0,{at:at+.05,wet:.3})},
+  chainDone(n){if(!RK.ok())return;const now=AC.currentTime,per=Music.last?Music.last.per/2:.2;let at=Music.next||now;while(at<now+.02)at+=per;
+    const top=Math.min(5,n);for(let k=0;k<3;k++)tone(mf(chordTone(top+k,72)),per*.9,'square',.05,0,0,{at:at+k*per,wet:.35});
+    tone(mf(chordTone(top+3,72)),per*2.5,'square',.055,0,0,{at:at+3*per,wet:.5});drumHit('pop','C',{at:at+3*per});drumHit('pop','K',{at:at+3*per})},
+  miss(){if(!RK.ok())return;const at=AC.currentTime,m=chordTone(0,60);tone(mf(m+1),.12,'square',.04,-30,0,{at});tone(mf(m),.18,'square',.04,-40,0,{at:at+.09})},
+  groggy(k){if(!RK.ok())return;const at=AC.currentTime,d=[0,1,2,4,5][k%5]+7*(Math.floor(k/5)%2);
+    tone(mf(scaleTone(d,72)),.12,'square',.045,0,0,{at,wet:.25})},
+  fever(k){if(!RK.ok())return;const at=AC.currentTime;tone(mf(scaleTone(k%14,76)),.1,k%5===4?'sawtooth':'square',.045,0,0,{at,wet:.3});if(k%5===4)tone(mf(scaleTone(k%14,64)),.2,'triangle',.08,0,0,{at})},
+  groove(lv){if(!RK.ok())return;const now=AC.currentTime;let at=Music.next||now;while(at<now+.02)at+=.1;
+    [0,1,2,3].slice(0,lv+1).forEach(k=>tone(mf(chordTone(k+2,72)),.09,'square',.04,0,0,{at:at+k*.07,wet:.4}));noise(.4,.08,0,3000,{at,sweep:9000,type:'bandpass',q:.8})},
+};
+/* groove level from combo: 0 · 1 (5+) · 2 (12+) · 3 (25+) */
+function grooveSet(){const c=B.combo||0,lv=c>=25?3:c>=12?2:c>=5?1:0,was=Music.lvl||0;Music.lvl=lv;
+  if(lv>was&&B.active){RK.groove(lv);ftThrottle(['','GROOVE!','GROOVE ×2','MAX GROOVE!!'][lv],B.kx+4,B.gy-58,'groove')}}
 
 /* ===================== save ===================== */
 const DEF={gold:0,gems:10,energy:30,enT:0,sel:0,cleared:0,shLv:1,shStage:0,eng:{},engrEq:[],engAd:'',pot:{hp:1,sp:1},intro:false,exp:0,adFree:false,snd:true,bgm:true,vib:true,assist:false,mvol:1,prologue:false,streak:0,skins:[],skin:'',plume:'',pass:{season:1,xp:0,prem:false,cf:[],cp:[]},dm:null,wk:null,lastSeen:0,rBest:0,starter:false,daily:'',adBox:'',adBoxN:0,ending:false,vault:null,stars:{},seenPat:{}};
@@ -2413,6 +2542,33 @@ for(let i=0;i<100;i++){const c=Math.floor(i/10),s=i%10,C=CH[c],tr=TIER(i),os=ler
   const op=OLD_POOLS[Math.min(9,Math.round(tr))],m=MECH[c]||MECH_LATE,sig=SIG[kind]||[];
   POOLS.push({base:op.base.concat(m[0],sig),p2:op.p2.concat(m[1],sig.map(([n,w])=>[n,w*1.3]))});
 }
+/* boss signature moves: every boss leans on its own 3 named attacks (~60% of turns, more in phase 2), so each fight has a personality */
+const BOSS_SIG={
+  slimeK:[['echo','바운스 바운스'],['stutter','말랑 점프'],['crush','몸통 누르기']],
+  gobChief:[['feintchain','속임수 연타'],['grabchain','금화 강탈'],['clave','고블린 북장단']],
+  spiderQ:[['grabchain','거미줄 낚기'],['triplet','여덟 다리 찌르기'],['orb4','독 구슬']],
+  wolfK:[['gallop','늑대 질주'],['sweep2','발톱 휩쓸기'],['stream8','사냥의 울음']],
+  bat:[['swing','날갯짓 스윙'],['ghostrun','어둠 습격'],['snapchain','초음파']],
+  skelboss:[['tresillo','뼈 장단'],['rally4','두개골 랠리'],['heavyfake','가짜 내려찍기']],
+  orcAxe:[['crush2','도끼 내려찍기'],['stopgo','멈칫 난도질'],['chain3','세 번 베기']],
+  witch:[['orb6','저주 구슬'],['dfeint','환영 속임수'],['longnote','늪의 주문']],
+  scorpK:[['jack','독침 연타'],['pincer','집게 협공'],['grabchain','집게 잡기']],
+  worm:[['holdjump','땅속 돌진'],['crushjump','모래 솟구치기'],['decel','모래 파도']],
+  frostG:[['crush2','빙벽 누르기'],['slowfast','얼음 주먹'],['longhold','냉기 압박']],
+  iceQ:[['dance','얼음 왈츠'],['poly34','눈꽃 3박자'],['orb7','빙결 구슬']],
+  lavaGK:[['crushjump','용암 강타'],['measure','대지 진동'],['holdbreak','마그마 압박']],
+  drake:[['storm','화염 폭풍'],['sweepX','꼬리 휩쓸기'],['accel8','불꽃 가속']],
+  ghostCap:[['shuffle','유령 뱃노래'],['callresp','선장의 호령'],['blind5','안개 칼질']],
+  kraken:[['grabchain','촉수 낚아채기'],['sweepX','촉수 휩쓸기'],['holdchain','먹물 압박']],
+  harpyQ:[['sweep2','돌풍'],['trip8','깃털 난사'],['dance','공중 춤']],
+  griffon:[['gallop','천공 돌진'],['mechmix','폭풍 콤보'],['quad','번개 발톱']],
+  dknight:[['syncopa','흑검 엇박'],['riff2','흑기사 검무'],['feintchain','검 속임수']],
+  demon:[['gauntlet','마왕의 시련'],['stream16','멸망의 연타'],['ramp12','종말 가속']],
+};
+const SIG_NAME={};for(const k in BOSS_SIG)SIG_NAME[k]=Object.fromEntries(BOSS_SIG[k].map(([p,n])=>[p,n]));
+function sigPool(kind,pool){const sg=BOSS_SIG[kind];if(!sg)return pool;
+  const mix=(list,share,w)=>{const W=list.reduce((a,b)=>a+b[1],0),S=W*share/(1-share);return list.concat(sg.map(([p],i)=>[p,S*w[i]]))};
+  return{base:mix(pool.base,.6,[.42,.33,.25]),p2:pool.p2&&mix(pool.p2,.66,[.3,.33,.37])}}
 const packN=i=>OLD_PACK_N[Math.min(9,Math.round(TIER(i)))],atkMul=i=>OLD_ATK_MUL[Math.min(9,Math.round(TIER(i)))];
 
 /* map traits: each chapter's ground fights back. ev = attacks thrown by the map itself (the enemy holds still), the rest are passive rules */
@@ -2486,11 +2642,11 @@ function roomCfg(idx,type){
       pack:mins.map(([kind,name])=>({kind,name,scale:EN[kind].scale,pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)])}})),packEach:each})}
   const st=STAGES[idx],rg=REGIONS[idx],T=PARRY_TUNE[idx],k=R?R.room:0;
   if(type==='boss')return{kind:st.kind,name:st.name,scale:Math.max(EN[st.kind].scale,3),hp:st.hp*BOSS_HP_MUL,atk:st.atk*atkMul(idx),windup:st.windup,stunMult:st.stunMult,gold:st.gold*.6,
-    theme:st.theme,hz:st.hz,boss:!!st.boss,music:'bs'+st.ch,pool:POOLS[idx],tune:T,line:st.line,taunt:st.taunt||'',label:'보스'};
+    theme:st.theme,hz:st.hz,boss:!!st.boss,music:'bs'+idx,pool:st.boss?sigPool(st.kind,POOLS[idx]):POOLS[idx],tune:T,line:st.line,taunt:st.taunt||'',label:'보스'};
   if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.85:.75),atk:st.atk*.88*atkMul(idx),windup:st.windup,
-    stunMult:st.stunMult*1.05,gold:st.gold*.32*(type==='danger'?2:1),theme:st.theme,hz:st.hz,boss:false,music:'st'+st.ch,pool:{base:(MINION_POOLS[kind]||[]).concat(POOLS[idx].base)},tune:T,line:'',label:type==='danger'?'위험':'정예'}}
+    stunMult:st.stunMult*1.05,gold:st.gold*.32*(type==='danger'?2:1),theme:st.theme,hz:st.hz,boss:false,music:'st'+idx,pool:{base:(MINION_POOLS[kind]||[]).concat(POOLS[idx].base)},tune:T,line:'',label:type==='danger'?'위험':'정예'}}
   const[kind,name]=rg.min[k%rg.min.length];
-  return{kind,name,scale:EN[kind].scale,hp:Math.max(40,st.hp*.45),atk:st.atk*(TIER(idx)>=3?.75:.65)*atkMul(idx),windup:st.windup*1.08,stunMult:st.stunMult*1.15,gold:st.gold*.18,theme:st.theme,hz:st.hz,boss:false,music:'st'+st.ch,
+  return{kind,name,scale:EN[kind].scale,hp:Math.max(40,st.hp*.45),atk:st.atk*(TIER(idx)>=3?.75:.65)*atkMul(idx),windup:st.windup*1.08,stunMult:st.stunMult*1.15,gold:st.gold*.18,theme:st.theme,hz:st.hz,boss:false,music:'st'+idx,
     pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)])},tune:Object.assign({},T,{win:T.win+20,late:T.late+10,ne:T.ne+10,nl:T.nl+8}),line:k===0?st.line:'',taunt:'',label:'졸개'};
 }
 function startRun(idx){
@@ -2618,7 +2774,7 @@ function update(dt){
         if(n.type==='hold'&&t>=n.t)B.ex=close+rnd(-1.5,1.5);
         else if(a.idx>0){const p=clamp((t-a.start)/a.dur,0,1);B.ex=close+6*Math.sin(p*Math.PI)}
         else if(toImp<110){const p=clamp(1-toImp/110,0,1);B.ex=lerp(EX()+4,close,p)}else B.ex=EX()+4*clamp((t-a.start)/a.dur,0,1)}
-      if(a.idx===0&&n.type!=='swipe'&&a.kind!=='feint'&&B.tune.cue)for(let k=B.tune.cue;k>=1;k--){const tt=a.impact-k*200;if(tt>=a.start&&t>=tt&&!(a.ticks&(1<<k))){a.ticks|=1<<k;sfx('tick',k);a.pulseT=t}}
+      if(a.idx===0&&n.type!=='swipe'&&a.kind!=='feint'&&B.tune.cue)for(let k=B.tune.cue;k>=1;k--){const tt=a.impact-k*beatMs()/2;if(tt>=a.start&&t>=tt&&!(a.ticks&(1<<k))){a.ticks|=1<<k;sfx('tick',k);a.pulseT=t}}
       if(a.kind==='smash'&&!a.heavy&&t>=a.start+a.dur*.6){a.heavy=true;sfx('warn');vig('rgba(255,40,60,.75)',500);ftAt('늦었다! 좌우 회피!',B.kx,B.gy-44,'warn')}
       if(n.type==='hold')holdUpdate(n,t);
       else if(!n.res&&t>=a.impact+(n.type==='tap'?pWin().l+nearL():40))resolveImpact();
@@ -2667,6 +2823,7 @@ function beginAttack(){
   if(PAT_INFO[name]&&R&&!R.prologue&&!(S.seenPat||{})[name]){S.seenPat=S.seenPat||{};S.seenPat[name]=1}
   else if(tipsOn()&&PAT_INFO[name]&&name!=='single'&&!(S.seenPat||{})[name]&&!B.disarm){const nm=name;patTip(nm,()=>{if(B.active&&B.state==='IDLE'){B.forcePat=nm;B.idleDur=350;B.stT=B.time}});setState('IDLE');B.idleDur=1e9;return}
   let ambush=false;if(R&&R.v2){ambush=B.v2Ambush;B.v2Ambush=false;name=ambush?'single':v2Pick()}
+  {const sn=B.st.label==='보스'&&SIG_NAME[B.st.kind]&&SIG_NAME[B.st.kind][name];B.sigMove=sn||null;if(sn)ftAt(sn+'!',B.ex,B.gy-B.E.scale*22,'sigmv')}
   const P=PATMAKE[name](),beat=beatMs();
   let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?.88:1);if(ambush)lead=520;
   if(!(R&&R.prologue)&&!ambush){const minL=Math.round((P.notes.length>1||P.kind==='hold'?560:P.lead&&P.lead<.7?380:460)*(1-.28*((B.idx||0)/99)));lead=alignBeat(Math.max(lead,minL))}
@@ -2724,7 +2881,7 @@ function finishPattern(defended){
   if(R&&R.vault&&n>1&&a.chainOk){B.vStats.chain++;vCoin(n*2*vMul(),B.ex,B.gy-B.E.scale*14,true)}
   if(n>1&&a.chainOk){
     const bonus=Math.round((a.kind==='rally'?40:20+n*4)*STUN_GAIN/stagRes()*(1+1.5*cardN('chain'))*(1+(B.fx.chainPct||0)/100));B.stun=Math.min(100,B.stun+bonus);
-    cgAdd(10);banner(a.kind==='rally'?'랠리 성공!':'PERFECT CHAIN!',`${n}연속 패링 · 피로도 +${bonus}`);sfx('combo');sfx('clang',true);
+    cgAdd(10);RK.chainDone(n);banner(a.kind==='rally'?'랠리 성공!':'PERFECT CHAIN!',`${n}연속 패링 · 피로도 +${bonus}`);sfx('combo');sfx('clang',true);
     flash('#ffffff',.6,300);zoom(1.12);domShake(2);vib([20,30,20,30,80]);chip(B.wp.groggyTapDamage*n*.3*(1+cardN('chain')),'반격');   // small: the real payoff is the stagger it addspushAdd(2);
     B.hitstop=Math.max(B.hitstop,120);
   }else if(n>1&&a.parried>0)ftAt(`${a.parried}/${a.notes.filter(x=>x.type==='tap').length} 패링`,B.ex,B.gy-50,'info');
@@ -2732,18 +2889,18 @@ function finishPattern(defended){
 }
 function holdUpdate(n,t){
   const a=B.atk;if(t<n.t)return;
-  if(!a.holdTick)a.holdTick=n.t;
+  if(!a.holdTick){a.holdTick=n.t;a.holdK=0;a.holdStep=clamp(beatMs()/4,80,140);RK.holdStart(n.dur)}
   const end=n.t+n.dur;
-  while(a.holdTick<=Math.min(t,end)&&B.state==='WINDUP'){holdHit();a.holdTick+=110}
+  while(a.holdTick<=Math.min(t,end)&&B.state==='WINDUP'){holdHit(a.holdStep/110);if(B.guard)RK.holdTick(a.holdK);a.holdK++;a.holdTick+=a.holdStep}
   if(B.state!=='WINDUP')return;
   if(t>=end&&!n.res){n.res=true;
     if(R&&R.rhythm){if(a.holdOk)rScore(300,'ok');else B.rStats.miss++}
     if(R&&R.prologue&&B.tutStep===4){B.tutStep=5;coachHide();if(!a.holdOk)toast('다음엔 끝까지 꾹 눌러 봐요')}
-    if(a.holdOk){const b=Math.round(9/stagRes());B.stun=Math.min(100,B.stun+b);ftAt('버텼다! 피로도 +'+b,B.kx+10,B.gy-46,'info');sfx('combo');vig('rgba(120,200,255,.9)',400)}else a.chainOk=false;
+    if(a.holdOk){RK.holdEnd();const b=Math.round(9/stagRes());B.stun=Math.min(100,B.stun+b);ftAt('버텼다! 피로도 +'+b,B.kx+10,B.gy-46,'info');sfx('combo');vig('rgba(120,200,255,.9)',400)}else a.chainOk=false;
     advanceNote(a.holdOk)}
 }
-function holdHit(){
-  const a=B.atk,atk=B.st.atk*.16,[sx,sy]=shieldPos();
+function holdHit(sc=1){
+  const a=B.atk,atk=B.st.atk*.16*sc,[sx,sy]=shieldPos();
   if(B.guard&&B.psh>0){B.psh-=drainK()*atk*1.1*(1-Math.min(.6,(B.fx.guardDrain||0)/100))*Math.max(.3,1-.55*cardN('grip'));B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.05);
     sfx('guard',S.shStage);vib(12);B.shake=1.5;burstParts(sx+2,sy+rnd(-3,3),3,['#bfe6ff','#ffffff'],.07,.0002,.2);barShake('#pShBar');
     if(B.psh<=0){B.psh=0;B.guard=false;a.holdOk=false;guardBreak()}}
@@ -2777,7 +2934,7 @@ function onTap(){
     if(early<=w.e&&early>=-w.l){parrySuccess(early,w.e);return}
     const ne=nearE(),nl=nearL();
     if(early<=w.e+ne&&early>=-w.l-nl){parryBlock();return}
-    B.parryLock=t+(midChain()?Math.min(B.tune.lock,120):B.tune.lock);sfx('whiff');ftThrottle(early>0?'너무 빨라!':'늦었다!',B.kx,B.gy-40,'info');missPenalty(.15);B.pStreak=0;feverBreak();return;
+    B.parryLock=t+(midChain()?Math.min(B.tune.lock,120):B.tune.lock);sfx('whiff');RK.miss();ftThrottle(early>0?'너무 빨라!':'늦었다!',B.kx,B.gy-40,'info');missPenalty(.15);B.pStreak=0;feverBreak();return;
   }
   B.parryLock=t+180;sfx('whiff');if(t-(B.lastParryT||-1e9)>250&&t>=(B.mashGrace||0))B.pendWhiff=t+200;   // judged a whiff only if no swipe follows (every swipe starts with a touch)
 }
@@ -2811,7 +2968,7 @@ function parrySuccess(early,win){
   addFx('pow',sx+3,sy,{r:perfect?15:10,dur:perfect?230:160});
   if(perfect){addFx('burst',sx+3,sy,{dur:420});if(!light)slow(280,.3)}
   if(B.E.ranged&&B.orb){B.parts.push({x:B.orb[0],y:B.orb[1],vx:.14,vy:-.02,life:420,col:'#b44cff',sz:3})}
-  sfx('clang',perfect);
+  sfx(perfect?'clang':'clangLite',perfect);RK.parry(a.idx,perfect,early);
   vib(perfect?[25,30,80]:[40]);
   flash(perfect?'#ffffff':'#ffe56b',perfect?.75:.4,perfect?280:170);
   vig(perfect?'rgba(255,245,170,.95)':'rgba(255,200,60,.8)');
@@ -2855,13 +3012,13 @@ function witchBonus(){if(B.fx.evadeStun){const v=Math.round(B.fx.evadeStun);B.st
 function resolveImpact(){
   if(B.finalBlow){prologueKO();return}
   const a=B.atk,n=curNote();n.res=true;if(n.type==='tap')B.tapN++;const t=B.time,atk=B.st.atk*(a.kind==='desp'||a.kind==='fury'?.7:1)*(B.raged?1.25:1)*(a.hz?.8:1),red=1-B.ar.dmgReduce;let ok=false;
-  if(n.type==='jump'){if(t<(B.jumpUntil||0)){ok=true;actOk('점프!','#d6ffc0',.4);sfx('evadeOk')}else hurt(atk*1.2*red,B.guard?'발밑을 쓸었다!':'↑ 점프했어야!')}
+  if(n.type==='jump'){if(t<(B.jumpUntil||0)){ok=true;actOk('점프!','#d6ffc0',.4);RK.jump()}else hurt(atk*1.2*red,B.guard?'발밑을 쓸었다!':'↑ 점프했어야!')}
   else if(n.type==='block'){if(B.guard&&B.psh>0){B.psh-=drainK()*atk*.6*Math.max(.3,1-.55*cardN('grip'));
       if(B.psh<=0){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 브레이크!')}
-      else{ok=true;if(a.name==='hzBolt')actOk('번개 흡수!','#ffe14d',1.4);else actOk('철벽!','#bfe6ff',.5);sfx('guard',S.shStage);sfx('clang',true);domShake(1);barShake('#pShBar');ripple('#8fd0ff')}}
+      else{ok=true;if(a.name==='hzBolt')actOk('번개 흡수!','#ffe14d',1.4);else actOk('철벽!','#bfe6ff',.5);sfx('guard',S.shStage);RK.block();domShake(1);barShake('#pShBar');ripple('#8fd0ff')}}
     else hurt(atk*1.3*red,t<B.evadeUntil?'충격파는 못 피해! 꾹!':'짓눌렸다! 꾹 가드!')}
   else if(t<B.evadeUntil&&n.dir&&B.evadeDir!==n.dir)hurt(atk*1.2*red,'반대쪽!');
-  else if(t<B.evadeUntil){if(n.type==='swipe')fvAdd(.8);ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
+  else if(t<B.evadeUntil){if(n.type==='swipe')fvAdd(.8);ftAt('회피!',B.kx,B.gy-40,'info');RK.dodge(n.dir||B.evadeDir||-1);vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
   else if(n.grab)grabStart(atk*red);
   else if(n.type==='swipe'&&a.kind==='barrage')hurt(atk*.35*red,'피격!');
   else if(n.type==='swipe'){if(B.guard){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 붕괴!')}else hurt(atk*1.4*red)}
@@ -2892,7 +3049,7 @@ function grabEnd(ok){const g=B.grab;if(!g)return;B.grab=null;
   else{hurt(g.dmg,'내동댕이!');domShake(2)}
   if(B.state==='IDLE'){B.stT=B.time;B.idleDur=500}}
 function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(220,480)*(1.05-TIER(B.idx||0)*.065)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?.75:1)}
-function enterGroggy(){
+function enterGroggy(){B.gHitK=0;
   B.gTot=0;B.finishBonus=false;fvAdd(6);
   if(B.stolen){R.gold+=B.stolen;ftAt(`+${B.stolen}G 되찾았다!`,B.kx+6,B.gy-52,'combo');sfx('coin');B.stolen=0}
   if(B.finishReady){B.finishReady=false;if(B.finishPerfect&&B.finishNotes>0){B.finishBonus=true;setTimeout(()=>{if(B.active&&B.state==='GROGGY')banner('PERFECT FINISH!','기절 시간 · 연타 피해 UP')},150)}}
@@ -2911,7 +3068,7 @@ function milestone(){if([10,25,50,75,100,150].includes(B.combo)){ftAt(B.combo+' 
 function groggyHit(){
   {const now=performance.now();if(now-(B.lastBashT||-1e9)<90)return;B.lastBashT=now}
   const crit=Math.random()<B.wp.critRate;const d=Math.max(1,Math.round(B.wp.groggyTapDamage*(hasT('armored')?.7:1)*(feverOn()?1.3:1)*(B.finishBonus?1.25:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
-  B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
+  RK.groggy(B.gHitK=(B.gHitK||0)+1);B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
   if(B.st.label==='보스'&&B.phase2&&!B.despUsed&&B.ehp<=B.emax*.1&&!(R&&(R.rhythm||R.prologue||R.vault||R.trial))){B.ehp=Math.max(1,B.ehp);B.stun=0;Music.hype=false;setState('IDLE');B.idleDur=450;ftAt(String(d),B.ex,B.gy-30,'dmg');flash('#ff2b3b',.4,300);return}
   {const now=performance.now();if(now>=(B.hsReady||0)){B.hitstop=crit?80:30;B.hsReady=now+(crit?220:140)}}B.shake=crit?4.5:1.8;zoom(crit?1.09:1.025);
   const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10,wi=S.shStage;
@@ -3060,7 +3217,7 @@ function feverStrike(mult,label){
   const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;
   addFx('slash',hx,hy,{len:14,ang:B.swing?-.75:.75+Math.PI,dur:140});addFx('pow',hx,hy,{r:8+mult*3,dur:150});
   for(let i=0;i<(4+mult*2);i++)B.parts.push({x:hx,y:hy,vx:rnd(.02,.14),vy:rnd(-.14,-.03),g:.0005,life:rnd(350,600),col:`hsl(${Math.floor(Math.random()*6)*60},100%,70%)`,sz:Math.random()<.5?2:1,bounce:true});
-  ftAt((mult>1.5?label+' ':'')+d,hx+rnd(-8,8),hy+rnd(-12,0),'fev');sfx(mult>1.5?'crit':'hit',S.shStage,B.combo);vib(mult>1.5?[25]:10);B.shake=Math.max(B.shake,mult>1.5?3:1.5);
+  ftAt((mult>1.5?label+' ':'')+d,hx+rnd(-8,8),hy+rnd(-12,0),'fev');RK.fever(B.fvHits||0);sfx(mult>1.5?'crit':'hit',S.shStage,B.combo);vib(mult>1.5?[25]:10);B.shake=Math.max(B.shake,mult>1.5?3:1.5);
   B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);comboPop();
   if(B.ehp<=0){B.pendingKO=true;B.fever=0}
 }
@@ -3274,6 +3431,7 @@ function hpBar(){
   hud.ePhase.hidden=false;hud.ePhase.textContent=B.phase2?'PHASE 2/2 · 각성':'PHASE 1/2';hud.ePhase.classList.toggle('p2',!!B.phase2);
 }
 function updHud(){
+  grooveSet();
   {const fb=document.getElementById('fvBtn'),show=!!(fvReady()&&!B.disarm&&!B.grab&&B.state!=='VICTORY'&&B.state!=='DEFEAT');if(fb&&fb.hidden===show)fb.hidden=!show}
   let stunPct=B.stun;if(B.state==='GROGGY')stunPct=100*Math.min(clamp((B.groggyEnd-B.time)/B.groggyDur,0,1),B.groggyCap?clamp(1-B.groggyDmg/B.groggyCap,0,1):1);
   const sig=[Math.round(B.ehp),Math.round(stunPct),Math.round(B.php),Math.round(B.psh),B.combo,B.state,B.guard,B.atk&&B.atk.heavy&&!B.atk.resolved,B.atk&&B.atk.idx,B.atk&&B.atk.kind,B.exec&&B.exec.charge>=0,B.disarm&&B.disarm.steps,B.phase2,Math.round(B.groggyDmg||0),B.finishReady].join('|');
@@ -4096,7 +4254,7 @@ function bossInTick(e){const b=B.bossIn;if(!b)return;
   if(!b.shown&&e>=b.rev){b.shown=true;B.ex=EX();flash('#ffffff',.85,260);B.eFlash=200;sfx('groggy');sfx('crit',3);domShake(2);B.shake=5;vib([60,30,120]);zoom(1.12);
     burstParts(B.ex,B.gy-B.E.scale*10,b.big?36:18,['#ffffff','#ffd23f',STAGE_COL[(STAGES[B.idx]||{}).theme]||'#ff5b7a'],.18,.0003,.45);
     const st=STAGES[B.idx]||{},tr=traitOn()&&TRAITS[B.E.trait],hz=B.hz&&HZ[B.hz],cfg=B.bossInCfg||{};
-    cineText(`<small>STAGE ${B.idx+1} ${st.boss?'BOSS':'수문장'}</small><b>${B.st.name}</b><em>${[tr?'특성: '+tr[0]:'',hz?'지형: '+hz.name:''].filter(Boolean).join(' · ')}</em>`);
+    {const sg=st.boss&&BOSS_SIG[B.st.kind];cineText(`<small>STAGE ${B.idx+1} ${st.boss?'BOSS':'수문장'}</small><b>${B.st.name}</b><em>${[tr?'특성: '+tr[0]:'',hz?'지형: '+hz.name:''].filter(Boolean).join(' · ')}</em>${sg?`<em class="sig">대표기 · ${sg.map(x=>x[1]).join(' · ')}</em>`:''}`)}
     if(cfg.taunt||cfg.line)cineSub(`<b>${cfg.taunt?B.st.name:'용사'}</b>${cfg.taunt||cfg.line}`)}
   if(b.shown&&e>b.rev+700)B.cam=Math.max(0,B.cam-.025);
   if(e>=b.len)bossInEnd()}
