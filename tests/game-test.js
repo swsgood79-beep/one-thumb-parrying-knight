@@ -477,6 +477,8 @@ const BOT = `(()=>{
       if (B.state !== 'GROGGY') return 'no stun'; updHud(); const w0 = parseFloat(hud.eStun.style.width);
       for (let k = 0; k < 6; k++) { B.lastBashT = -1e9; groggyHit(); __tick(16); } lastHud = ''; updHud(); const w1 = parseFloat(hud.eStun.style.width);
       if (!(w1 < w0 - 5)) return `stun gauge did not shrink with damage (${w0} → ${w1})`;
+      endBattle(); startRun(3); startFight(roomCfg(3, 'min'), false); for (let i = 0; i < 200; i++) __tick(16); while (B.state !== 'IDLE') __tick(16); B.ehp = B.emax = B.wp.groggyTapDamage * 40; B.stun = 100; for (let i = 0; i < 3; i++) __tick(16);
+      for (let k = 0; k < 4; k++) { B.lastBashT = -1e9; groggyHit(); __tick(16); } if (B.state !== 'GROGGY') return 'a strong shield ended the stun after 4 hits (stun must allow ~12 hits)';
       __bot.sig = undefined; endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '피버가 다음 전투로 안 넘어감 · 스테이지·보스 음악 200곡 · 보스 대표기 · 스테이지별 피로도', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
