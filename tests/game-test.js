@@ -596,6 +596,15 @@ const BOT = `(()=>{
         for (let k = 0; k < 60; k++) __tick(16);
         if (sub()) return `boss line stuck after phase-2 scene (stage ${i + 1}, skip at ${skip}ms)`; }
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '몬스터별 고유 기술 3종 순환 · 스테이지 클리어로 기술 습득', run: () => {
+      R = R || {}; const sets = new Set(), kinds = new Set();
+      for (const i of [12, 22, 42, 52, 72]) for (const t of ['min', 'elite']) { const c = roomCfg(i, t); if (!c.moves || c.moves.length < 2) return `${c.kind} has no moveset`; sets.add(c.moves.join(',')); kinds.add(c.kind); }
+      if (sets.size < kinds.size * .7) return `monsters share the same moves (${sets.size} movesets for ${kinds.size} kinds)`;
+      endBattle(); startRun(22); R.room = 0; startFight(roomCfg(22, 'min'), false); B.php = B.pmax = 1e7; B.ehp = B.emax = 1e7; B.hz = null; let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16);
+      const ms = B.st.pool.moves, seen = []; for (let k = 0; k < 6; k++) { B.atk = null; B.state = 'IDLE'; B.firstAtk = false; beginAttack(); seen.push(B.atk && B.atk.name); }
+      if (seen.filter(n => ms.includes(n)).length < 5) return 'attacks do not come from the moveset: ' + seen.join(',');
+      endBattle(); const c0 = S.cleared; S.cleared = 2; if (tech('counter')) return 'counter slash unlocked too early'; S.cleared = 3; startRun(5); if (!tech('counter')) return 'counter slash not unlocked after stage 3'; S.cleared = c0;
+      endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = R.rooms.length - 1; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
