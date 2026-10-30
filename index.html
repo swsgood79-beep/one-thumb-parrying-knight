@@ -2380,7 +2380,7 @@ function lerpRow(rows,x){x=clamp(x,0,rows.length-1);const a=Math.floor(x),b=Math
 const stageDmg=i=>6.4+.76*i+[0,4,8,12,18,24,32][[0,5,20,40,60,80,95].filter(r=>r<=i).length-1];
 /* monster HP is multiplied every stage: ×1.075 up to stage 20, ×1.04 to 60, ×1.025 after */
 /* boss hit ≈ player HP ÷ (7.5 at stage 1 → 3.3 at stage 100) */
-const hpBoost=i=>1.5*(1+i/60);   // all monsters: ×1.5 (stage 1) → ×3 (60) → ×4 (100)
+const hpBoost=i=>1.8*(1+i/55);   // all monsters: ×1.8 (stage 1) → ×3.8 (60) → ×5.1 (100)
 const stageHp=i=>{let h=160;for(let k=1;k<=i;k++)h*=k<=20?1.08:k<=60?1.045:1.025;return h};
 const STAGES=[],REGIONS=[],PARRY_TUNE=[],POOLS=[];
 for(let i=0;i<100;i++){const c=Math.floor(i/10),s=i%10,C=CH[c],tr=TIER(i),os=lerpRow(OLD_STAGES,tr);
@@ -2811,7 +2811,7 @@ function parrySuccess(early,win){
   if(a.kind==='desp'||a.kind==='fury'){zoom(1.08+a.idx*.04);domShake(1+a.idx);if(a.idx===a.notes.length-1)slow(500,.2)}
   comboPop();milestone();advanceNote(true);
 }
-function chip(d,label){d=Math.round(d);B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;ftAt(label+' '+d,B.ex-B.E.scale*4,B.gy-B.E.scale*14,'crit');if(B.ehp<=0)B.pendingKO=true}
+function chip(d,label){d=Math.round(Math.min(d,Math.max(3,B.emax*(multiBar()?.025:.05))));B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;ftAt(label+' '+d,B.ex-B.E.scale*4,B.gy-B.E.scale*14,'crit');if(B.ehp<=0)B.pendingKO=true}
 function hurt(dmg,label,guarded){
   if(!guarded&&R&&R.prologue&&B.tutStep===3&&B.state==='WINDUP')tutParried('hit');
   if(R&&R.rhythm){B.combo=0;ftThrottle('MISS',B.kx,B.gy-40,'warn');sfx('whiff');return}
@@ -2884,7 +2884,7 @@ function enterGroggy(){
   track('groggy');
   if(B.fx.groggyShield){B.psh=B.pshMax;ftAt('실드 회복',B.kx,B.gy-36,'info')}
   if(R&&R.prologue&&B.tutStep===6)setTimeout(()=>{if(B.active&&B.state==='GROGGY')coachShow(6)},350);
-  setState('GROGGY');B.groggyDur=(2900+B.wp.stunBonus*600)*(feverOn()?1.5:1)*(B.finishBonus?1.3:1);B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?Math.max(.09,.18-TIER(B.idx||0)*.009):B.st.label==='정예'||B.st.label==='위험'||B.st.label==='무리'?Math.max(.20,.35-TIER(B.idx||0)*.015):Math.max(.30,.50-TIER(B.idx||0)*.02))*(feverOn()?1.6:1)*(B.finishBonus?1.3:1);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
+  setState('GROGGY');B.groggyDur=(2900+B.wp.stunBonus*600)*(feverOn()?1.5:1)*(B.finishBonus?1.3:1);B.groggyDmg=0;B.groggyCap=B.emax*(multiBar()?Math.max(.07,.12-TIER(B.idx||0)*.006):B.st.label==='정예'||B.st.label==='위험'||B.st.label==='무리'?Math.max(.13,.22-TIER(B.idx||0)*.01):Math.max(.18,.30-TIER(B.idx||0)*.013))*(feverOn()?1.6:1)*(B.finishBonus?1.3:1);B.groggyEnd=B.time+B.groggyDur;B.guard=false;
   if(R&&R.vault){B.groggyDur=2600+B.wp.stunBonus*500;B.groggyEnd=B.time+B.groggyDur}
   atkCue(true);slow(160,.2);zoom(1.16);flash('#fff3a0',.55,240);
   if(R&&R.vault)banner('털어라!','연타로 금화 주머니 흔들기!!');sfx('groggy');flash('#ffffff',.55,300);zoom(1.12);vib([30,40,30]);domShake(2);Music.hype=true;
