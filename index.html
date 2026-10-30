@@ -1001,6 +1001,7 @@ PATMAKE.rush=()=>PAT.chain(8,.5);
 PATMAKE.tapguard=()=>({kind:'chain',notes:[{o:0,type:'tap'},{o:1,type:'hold',len:1},{o:3,type:'tap'}]});
 PATMAKE.slow=()=>({kind:'single',notes:[{o:0,type:'tap'}],lead:2.1});
 PATMAKE.orb4=()=>orbPat(4);
+PATMAKE.wolfrun=()=>({kind:'chain',notes:[0,.5,1,2,2.5,3].map(o=>({o,type:'tap'}))});
 /* complex patterns: t = parry, s = dodge (≥2.5 beats between dodges), h = hold, g = hidden-until-late tap */
 const MP=(kind,spec,lead)=>()=>({kind,lead,notes:spec.map(([o,c,len])=>({o,type:'sLRk'.includes(c)?'swipe':c==='h'?'hold':c==='b'?'block':c==='j'?'jump':'tap',len,ghost:c==='g',dir:c==='L'?-1:c==='R'?1:0,grab:c==='k'}))});
 Object.assign(PATMAKE,{
@@ -2210,7 +2211,7 @@ const PAT_INFO={
   stutter:['엇박 3연타','rhythm','하나, 쉬고, 따닥.'],echo:['메아리','rhythm','따닥 · 쉬고 · 따닥.'],slowfast:['느-느-빠-빠','rhythm','느리게 둘, 빠르게 셋, 다시 느리게.'],
   syncopa:['엇박 6연타','rhythm','박자 사이사이를 치는 리듬.'],triplet:['셋잇단','rhythm','따다닥 · 따다닥 (한 박에 세 번).'],decel:['감속 5연타','rhythm','점점 느려져요. 서두르지 말 것.'],
   stairs:['계단','rhythm','2연타씩, 묶음마다 박자가 달라져요.'],swing:['스윙','rhythm','바운스 리듬. 마지막 즈음 숨은 노트가 있어요.'],
-  stream8:['8비트 스트림','rhythm','반 박 간격으로 8번 쭉.'],stream16:['16비트 스트림','rhythm','반의반 박 간격 8연타. 손목을 가볍게!'],gallop:['갤럽','rhythm','말발굽처럼 따다닥 ×3.'],
+  stream8:['8비트 스트림','rhythm','반 박 간격으로 8번 쭉.'],stream16:['16비트 스트림','rhythm','반의반 박 간격 8연타. 손목을 가볍게!'],gallop:['갤럽','rhythm','말발굽처럼 따다닥 ×3.'],wolfrun:['늑대 질주','rhythm','다다닥 · 다다닥 — 반 박 간격 3연타 두 번.'],
   dotted:['점음표','rhythm','따~단 따~단 (길게-짧게).'],clave:['클라베','rhythm','3-2 손 클라베 리듬.'],tresillo:['트레실로','rhythm','3+3+2 라틴 리듬.'],jack:['잭','rhythm','같은 박에 4연타 두 번.'],
   trip8:['셋잇단 스트림','rhythm','셋잇단으로 7번 쭉.'],shuffle:['셔플','rhythm','통통 튀는 바운스 8연타.'],offbeat:['엇박','rhythm','전부 박과 박 사이(앤드)에 와요.'],
   poly34:['폴리리듬 3:4','rhythm','네 박 위에 세 박 묶음이 겹쳐요.'],callresp:['주고받기','rhythm','3번 · 3번 · 4번으로 대답해요.'],stopgo:['스톱앤고','rhythm','셋 치고 쉬었다가 몰아쳐요.'],
@@ -2547,7 +2548,7 @@ const BOSS_SIG={
   slimeK:[['echo','바운스 바운스'],['stutter','말랑 점프'],['crush','몸통 누르기']],
   gobChief:[['feintchain','속임수 연타'],['grabchain','금화 강탈'],['clave','고블린 북장단']],
   spiderQ:[['grabchain','거미줄 낚기'],['triplet','여덟 다리 찌르기'],['orb4','독 구슬']],
-  wolfK:[['gallop','늑대 질주'],['sweep2','발톱 휩쓸기'],['stream8','사냥의 울음']],
+  wolfK:[['wolfrun','늑대 질주'],['sweep2','발톱 휩쓸기'],['stream8','사냥의 울음']],
   bat:[['swing','날갯짓 스윙'],['ghostrun','어둠 습격'],['snapchain','초음파']],
   skelboss:[['tresillo','뼈 장단'],['rally4','두개골 랠리'],['heavyfake','가짜 내려찍기']],
   orcAxe:[['crush2','도끼 내려찍기'],['stopgo','멈칫 난도질'],['chain3','세 번 베기']],
@@ -2731,14 +2732,15 @@ function beatPulse(){
     const pb=document.getElementById('padBtn');if(pb){pb.classList.add('beat');pb.classList.toggle('down',b.down);clearTimeout(pb._bt);pb._bt=setTimeout(()=>pb.classList.remove('beat','down'),90)}}}
 function loopBody(ts){
   beatPulse();
-  const dt=lastTs?Math.min(50,ts-lastTs):16;lastTs=ts;
+  const dt=lastTs?Math.min(200,ts-lastTs):16;lastTs=ts;
   tutTick();
   if(!B.paused&&!B.tutFreeze){
     const gdt=performance.now()<B.slowUntil?dt*B.slowF:dt;
     checkPhase();
     if(_hs>0){_hs-=dt;_hsFrozen+=dt;if(_hsFrozen>200){_hs=0;_hsFrozen=0;_hsBlockUntil=performance.now()+150}}
-    else{_hsFrozen=0;B.time+=gdt;update(gdt)}
-    B.shake=Math.max(0,B.shake-dt*.02);if(B.state!=='TRANSFORM')B.zoom=lerp(B.zoom,1,Math.min(1,dt*.009));
+    else{_hsFrozen=0;let rem=gdt;while(rem>0){const st=Math.min(rem,34);B.time+=st;update(st);rem-=st;if(!B.active)break}}
+    B.tReal=performance.now();B.tScale=_hs>0?0:gdt/Math.max(1,dt);
+    B.shake=Math.max(0,B.shake-Math.min(dt,50)*.02);if(B.state!=='TRANSFORM')B.zoom=lerp(B.zoom,1,Math.min(1,dt*.009));
   }
   draw();updHud();
   // watchdog: a state that should be short but has lasted far too long gets reset
@@ -2829,7 +2831,9 @@ function beginAttack(){
   if(!(R&&R.prologue)&&!ambush){const minL=Math.round((P.notes.length>1||P.kind==='hold'?560:P.lead&&P.lead<.7?380:460)*(1-.28*((B.idx||0)/99)));lead=alignBeat(Math.max(lead,minL))}
   if(P.off)lead+=P.off*beat;
   if(hasT('swift')&&!hzA)lead=Math.max(420,lead-beat*.5);
-  const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*beat,type:n.type,dur:(n.len||0)*beat,res:false,ghost:!!n.ghost,dir:n.dir||0,grab:!!n.grab}));
+  let pb=beat;{const os=P.notes.map(n=>n.o).sort((x,y)=>x-y);let md=1e9;for(let k=1;k<os.length;k++)if(os[k]-os[k-1]>.01)md=Math.min(md,os[k]-os[k-1]);
+    const minGap=B.idx==null||R&&(R.rhythm||R.prologue)?0:(B.idx<30?135:B.idx<60?110:85);while(md<1e9&&md*pb<minGap&&pb<beat*4)pb*=2}
+  const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*pb,type:n.type,dur:(n.len||0)*pb,res:false,ghost:!!n.ghost,dir:n.dir||0,grab:!!n.grab}));
   if(!hzA){const gp=(hasT('ghostly')?.35:0)+(B.hz==='vine'?.15:0);notes.forEach((n,k)=>{if(gp&&k>0&&n.type==='tap'&&Math.random()<gp)n.ghost=true;if(B.hz==='sand'&&n.type==='swipe'&&!n.grab&&P.kind!=='barrage')n.dir=B.wind})}
   B.atk={kind:P.kind,name,start:B.time,impact:notes[0].t,dur:lead,notes,idx:0,resolved:false,heavy:notes[0].type==='swipe',chainOk:true,holdOk:true,holdTick:0,ticks:0,pulseT:-9999,parried:0};
   B.atk.lesson=!!B.isLesson;B.isLesson=false;B.atk.hz=hzA;
@@ -2908,9 +2912,11 @@ function holdHit(sc=1){
     a.holdOk=false;hurt(atk*(1-B.ar.dmgReduce),null,false)}
 }
 function shieldPos(){return[B.kx+10,B.gy-14]}
+/* game time at the moment of the touch: last frame's time + real time since then (frames can lag behind the finger) */
+function inputTime(){return B.time+(B.tReal!=null?clamp(performance.now()-B.tReal,0,60)*(B.tScale==null?1:B.tScale):0)}
 function onTap(){
   if(!B.active||B.paused)return;
-  const t=B.time;
+  const t=inputTime();
   padHit();
   if(B.tutWait==='tap'&&B.tutStep===0){tutNext();return}
   if(B.tutWait==='lesson'){coachHide();B.lessonGo=true;B.idleDur=350;B.stT=B.time;return}
@@ -2934,7 +2940,7 @@ function onTap(){
     if(early<=w.e&&early>=-w.l){parrySuccess(early,w.e);return}
     const ne=nearE(),nl=nearL();
     if(early<=w.e+ne&&early>=-w.l-nl){parryBlock();return}
-    B.parryLock=t+(midChain()?Math.min(B.tune.lock,120):B.tune.lock);sfx('whiff');RK.miss();ftThrottle(early>0?'너무 빨라!':'늦었다!',B.kx,B.gy-40,'info');missPenalty(.15);B.pStreak=0;feverBreak();return;
+    {const a=B.atk,nx=a.notes[a.idx+1],gap=nx?nx.t-a.impact:999;B.parryLock=t+(midChain()?Math.min(B.tune.lock,120,gap*.45):B.tune.lock)}sfx('whiff');RK.miss();ftThrottle(early>0?'너무 빨라!':'늦었다!',B.kx,B.gy-40,'info');missPenalty(.15);B.pStreak=0;feverBreak();return;
   }
   B.parryLock=t+180;sfx('whiff');if(t-(B.lastParryT||-1e9)>250&&t>=(B.mashGrace||0))B.pendWhiff=t+200;   // judged a whiff only if no swipe follows (every swipe starts with a touch)
 }
@@ -2963,17 +2969,19 @@ function parrySuccess(early,win){
   B.stun=Math.min(100,B.stun+gain);B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);B.parries++;if(perfect)B.perfects++;
   B.hitstop=light?0:perfect?120:70;B.shake=perfect?5:3;B.eFlash=150;B.recoilFrom=B.ex;
   const[sx,sy]=shieldPos();
-  for(let i=0;i<(perfect?28:15);i++){const ang=rnd(-1.5,1.5);const sp=rnd(.05,perfect?.17:.12);B.parts.push({x:sx+2,y:sy,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-.03,g:.00025,life:rnd(220,480),col:Math.random()<.5?'#fff36b':'#ffffff',sz:Math.random()<.35?2:1})}
+  for(let i=0;i<(light?(perfect?8:5):(perfect?28:15));i++){const ang=rnd(-1.5,1.5);const sp=rnd(.05,perfect?.17:.12);B.parts.push({x:sx+2,y:sy,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp-.03,g:.00025,life:rnd(220,480),col:Math.random()<.5?'#fff36b':'#ffffff',sz:Math.random()<.35?2:1})}
   B.parts.push({ring:true,x:sx+2,y:sy,r:2,vr:perfect?.09:.06,life:perfect?280:200,col:'#fff6b0'});
   addFx('pow',sx+3,sy,{r:perfect?15:10,dur:perfect?230:160});
   if(perfect){addFx('burst',sx+3,sy,{dur:420});if(!light)slow(280,.3)}
   if(B.E.ranged&&B.orb){B.parts.push({x:B.orb[0],y:B.orb[1],vx:.14,vy:-.02,life:420,col:'#b44cff',sz:3})}
-  sfx(perfect?'clang':'clangLite',perfect);RK.parry(a.idx,perfect,early);
-  vib(perfect?[25,30,80]:[40]);
-  flash(perfect?'#ffffff':'#ffe56b',perfect?.75:.4,perfect?280:170);
-  vig(perfect?'rgba(255,245,170,.95)':'rgba(255,200,60,.8)');
-  domShake(perfect?2:1);zoom(light?1.04:perfect?1.15:1.07);ripple(perfect?'#ffffff':'#fff36b');
-  ftAt(a.notes.length>1?`${perfect?'퍼펙트':'저스트'} ${a.idx+1}/${a.notes.length}`:perfect?'퍼펙트 패링!':'저스트 패링!',sx,sy-18,perfect?'perfect':'parry');ftAt('CLANG!',sx+14,sy-4,'clang');
+  sfx(perfect&&!light?'clang':'clangLite',perfect);RK.parry(a.idx,perfect,early);
+  vib(light?(perfect?[18]:[12]):perfect?[25,30,80]:[40]);
+  if(light){if(perfect)flash('#ffffff',.25,90);B.shake=perfect?2:1.5}
+  else{flash(perfect?'#ffffff':'#ffe56b',perfect?.75:.4,perfect?280:170);
+    vig(perfect?'rgba(255,245,170,.95)':'rgba(255,200,60,.8)');
+    domShake(perfect?2:1);zoom(perfect?1.15:1.07);ftAt('CLANG!',sx+14,sy-4,'clang')}
+  ripple(perfect?'#ffffff':'#fff36b');
+  ftAt(a.notes.length>1?`${perfect?'퍼펙트':'저스트'} ${a.idx+1}/${a.notes.length}`:perfect?'퍼펙트 패링!':'저스트 패링!',sx,sy-18,perfect?'perfect':'parry');
   B.perfStreak=perfect?B.perfStreak+1:0;
   if(B.fx.perfStreakStun&&B.perfStreak>0&&B.perfStreak%3===0){B.stun=Math.min(100,B.stun+B.fx.perfStreakStun);ftAt('메아리 +'+Math.round(B.fx.perfStreakStun),B.ex,B.gy-44,'info')}
   if(perfect&&B.fx.perfectHealPct&&B.php<B.pmax){const h=Math.max(1,Math.round(B.pmax*B.fx.perfectHealPct/100));B.php=Math.min(B.pmax,B.php+h);ftAt('+'+h,B.kx-10,B.gy-30,'info')}
