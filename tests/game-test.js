@@ -587,6 +587,15 @@ const BOT = `(()=>{
       if (B.psh < s0) return 'tapping after the victory cost shield (state ' + B.state + ')';
       if (B.state === 'VICTORY' || B.state === 'WALK') { setState('WALK'); s0 = B.psh; onTap(); for (let i = 0; i < 20; i++) __tick(16); if (B.psh < s0) return 'tapping while walking to the next gate cost shield'; }
       closeModal(); endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '2페이즈 변신 장면을 언제 건너뛰어도 보스 대사가 남지 않음', run: () => {
+      const sub = () => document.querySelector('#cineSub').classList.contains('show');
+      for (const i of [9, 29, 99]) for (const skip of [-1, 2800, 3000, 3100, 4000]) {
+        endBattle(); startRun(i); R.room = 4; startFight(roomCfg(i, 'boss'), false); B.php = B.pmax = 1e7; let g = 0; while (B.state !== 'IDLE' && g++ < 900) __tick(16);
+        B.ehp = 0; B.pendingKO = true; g = 0; while (B.state !== 'TRANSFORM' && g++ < 200) __tick(16); const t0 = B.time; let tapped = false; g = 0;
+        while (B.state === 'TRANSFORM' && g++ < 1200) { __tick(16); if (skip >= 0 && !tapped && B.time - t0 >= skip) { tapped = true; onTap(); } }
+        for (let k = 0; k < 60; k++) __tick(16);
+        if (sub()) return `boss line stuck after phase-2 scene (stage ${i + 1}, skip at ${skip}ms)`; }
+      endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }

@@ -2832,6 +2832,7 @@ function beatPulse(){
     const pb=document.getElementById('padBtn');if(pb){pb.classList.add('beat');pb.classList.toggle('down',b.down);clearTimeout(pb._bt);pb._bt=setTimeout(()=>pb.classList.remove('beat','down'),90)}}}
 function loopBody(ts){
   beatPulse();try{feverSync()}catch(e){}
+  {const cs=document.getElementById('cineSub');if(cs&&cs.classList.contains('show')&&!$('#cine').classList.contains('on')&&B.state!=='TRANSFORM'&&B.state!=='BOSSIN')cineSub('')}   // a cinematic line never outlives its scene
   const dt=lastTs?Math.min(200,ts-lastTs):16;lastTs=ts;
   tutTick();
   if(!B.paused&&!B.tutFreeze){
@@ -3609,8 +3610,8 @@ function cineFrameKnight(){const f=cineFrame();const bh=34;return{top:f.top,bot:
 function cineTick(e){
   const step=(n,at,fn)=>{if(B.cineStep<n&&e>=at){B.cineStep=n;fn()}};
   step(1,1600,()=>{cineText('');B.camT='knight';B.cam=1;cineSub(`<b>용사</b>…끝난 건가?`);sfx('ui')});
-  step(2,2700,()=>{B.camT='boss';B.cam=1;cineSub('');sfx('warn');vib([30,30,30,30,30]);domShake(1);B.bolts.push({at:e+500},{at:e+1300});
-    setTimeout(()=>{if(B.active&&B.state==='TRANSFORM')cineSub(`<b>${B.st.name}</b>${(STAGES[B.idx]&&STAGES[B.idx].p2)||'아직 끝나지 않았다...!'}`)},450)});
+  step(2,2700,()=>{B.camT='boss';B.cam=1;cineSub('');sfx('warn');vib([30,30,30,30,30]);domShake(1);B.bolts.push({at:e+500},{at:e+1300})});
+  step(2.5,3150,()=>cineSub(`<b>${B.st.name}</b>${(STAGES[B.idx]&&STAGES[B.idx].p2)||'아직 끝나지 않았다...!'}`));   // game-time shot, so a skip skips it too
   step(3,4900,()=>{cineSub('');transformHit();B.camT='boss';B.cam=1});
   step(4,5300,()=>{B.cam=.35;cineText(`<small>— ${B.idx+1}스테이지 보스 —</small><b>PHASE 2</b><span>각성한 ${B.st.name}</span><em>${(()=>{const ex=BOSS_P2[B.st.kind],t=B.p2T||p2Tune(B.idx||0);return `공격력 ×${t.atk.toFixed(2)} · 공격 간격 ${Math.round((1-t.idle)*100)}% 단축`+(ex?`<br>각성기: ${ex.map(x=>x[1]).join(' · ')}`:'')})()}</em>`)});
   step(5,7900,()=>{cineText('');cineSub('');$('#cine').classList.remove('on');B.camT=null;B.cam=0});
