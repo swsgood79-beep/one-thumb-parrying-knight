@@ -2992,7 +2992,7 @@ function drawKillOverlay(c,e){
 }
 /* FEVER = special move. Parries fill a run-wide gauge (faster at a high combo) — about once per expedition, around the boss gate.
    Full gauge: the pad turns rainbow; one tap unleashes ~4.5 s of automatic rapid strikes while the enemy can only take it. */
-const FV_NEED=110,FEVER_MS=2300;
+const FV_NEED=110,FEVER_MS=3000;
 function fvAdd(v){if(!R||!feverAllowed()||feverOn())return;const was=fvReady();R.fv=Math.min(FV_NEED,(R.fv||0)+v*(R.rooms&&R.rooms[R.room]==='danger'?1.5:1));
   if(!was&&fvReady()){banner('FEVER 준비!','버튼을 탭하면 필살 연속 공격!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200)}fvMeter()}
 const feverOn=()=>B.state==='FEVER'&&B.fever>B.time;
@@ -3015,15 +3015,15 @@ function feverTick(t){if(t<B.fvCut)return;if(!B.fvIgn){B.fvIgn=true;fvCutOut();f
     B.parts.push({ring:true,x:B.ex,y:B.gy-B.E.scale*10,r:4,vr:.2,life:520,col:'#ff5bb5'},{ring:true,x:B.ex,y:B.gy-B.E.scale*10,r:2,vr:.13,life:420,col:'#ffd23f'})}
   const e=t-B.fvT0;B.ex=lerp(B.ex,EX()+3+(B.fvPush||0),.25);B.fvPush=(B.fvPush||0)*.9;if(t>=B.fever){feverEnd();return}
   if(e<220)return;
-  if(e<1700){if(t<B.fvNext)return;const n=B.fvHits++,big=n%5===4,gap=Math.max(55,115-n*4);B.fvNext=t+gap;
+  if(e<2300){if(t<B.fvNext)return;const n=B.fvHits++,big=n%5===4,gap=Math.max(55,115-n*4);B.fvNext=t+gap;
     const sl=fvSlot(n);fvTeleport(sl.x,sl.y);const ang=Math.atan2(B.gy-B.E.scale*10-sl.y+(sl.y<B.gy?6:0),B.ex-sl.x)+rnd(-.5,.5);
     fvSlash(big?40:26+n,ang,big?4:3,FV_COLS[n%6]);if(big){fvSlash(36,ang+1.3,3,'#ffffff');addFx('burst',B.ex,B.gy-B.E.scale*10,{dur:260})}
-    feverStrike(big?3.4:2.1,big?'강타':'');B.fvPush=big?6:2;
+    feverStrike(big?2.4:1.45,big?'강타':'');B.fvPush=big?6:2;
     if(big){B.hitstop=Math.max(B.hitstop,40);flash('#ffffff',.35,120);zoom(1.09);B.shake=Math.max(B.shake,4.5);domShake(1)}
     if(n%3===0)fvMeter();return}
   if(!B.fvLeap){B.fvLeap=true;fvTeleport(B.ex-B.E.scale*3,B.gy-B.E.scale*12-30);slow(260,.3);zoom(1.14);sfx('windup');
     burstParts(B.ex,B.gy-B.E.scale*12-26,16,FV_COLS,.12,.0001,.35);ftAt('피니시!',B.W/2,B.H*.3,'perfect');return}
-  if(!B.fvFin&&e>=1950){B.fvFin=true;fvTeleport(B.ex-B.E.scale*6,B.gy);
+  if(!B.fvFin&&e>=2600){B.fvFin=true;fvTeleport(B.ex-B.E.scale*6,B.gy);
     fvSlash(64,-.78,5,'#ffd23f',320);fvSlash(64,.78,5,'#ff5bd8',320);fvSlash(46,-.78,2,'#ffffff',320);fvSlash(46,.78,2,'#ffffff',320);addFx('burst',B.ex,B.gy-B.E.scale*10,{dur:420});
     const d0=B.ehp;feverStrike(16,'FEVER FINISH');B.fvPush=16;B.hitstop=Math.max(B.hitstop,90);flash('#ffffff',.85,260);zoom(1.2);B.shake=8;domShake(3);vib([60,30,160]);sfx('ko');sfx('groggy');
     B.parts.push({ring:true,x:B.ex,y:B.gy-B.E.scale*10,r:4,vr:.22,life:600,col:'#ffd23f'},{ring:true,x:B.ex,y:B.gy-B.E.scale*10,r:2,vr:.15,life:500,col:'#ff5bd8'});
