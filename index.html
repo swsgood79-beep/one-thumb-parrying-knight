@@ -2731,7 +2731,7 @@ function beatPulse(){
   while(Music.beats.length&&Music.beats[0].t<=now){const b=Music.beats.shift();B.beatT=B.time;B.beatDown=b.down;
     const pb=document.getElementById('padBtn');if(pb){pb.classList.add('beat');pb.classList.toggle('down',b.down);clearTimeout(pb._bt);pb._bt=setTimeout(()=>pb.classList.remove('beat','down'),90)}}}
 function loopBody(ts){
-  beatPulse();
+  beatPulse();try{feverSync()}catch(e){}
   const dt=lastTs?Math.min(200,ts-lastTs):16;lastTs=ts;
   tutTick();
   if(!B.paused&&!B.tutFreeze){
@@ -2926,7 +2926,7 @@ function onTap(){
   if(B.state==='EXEC'){if(B.exec&&B.exec.charge<0){B.exec.charge=B.time;sfx('windup');vib(10)}return}
   if(B.state==='TRANSFORM'){if(t-B.stT>600&&B.cineStep<5){if(!B.tfDone)transformHit();B.cineStep=4;cineSub('');B.stT=B.time-7900}return}
   if(B.state==='BOSSIN'){if(t-B.stT>400)bossInEnd();return}
-  if(B.state==='FEVER'){feverStrike(.6,'추가');return}
+  if(B.state==='FEVER'){if(B.time>=B.fvCut)feverStrike(.6,'추가');return}
   if(B.state==='INTRO'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='WAKE')return;
   if(B.grab){grabTap();return}
   if(t<B.parryLock)return;
@@ -3118,7 +3118,7 @@ function onSwipe(dir){
 function setGuard(on){if(!B.active)return;if(on&&B.pendWhiff){B.pendWhiff=0}if(on&&(B.grab||B.state==='FEVER'||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
   if(on&&!B.guard){sfx('guard',0);vib(10)}B.guard=on}
 function victory(){
-  if(reviveCheck())return;
+  fvCutOut();if(reviveCheck())return;
   if(B.stolen){R.gold+=B.stolen;B.stolen=0}
   atkCue(false);B.fever=0;feverHud();
   if(multiBar()&&!B.phase2){startTransform();return}
@@ -3241,6 +3241,14 @@ const fcHeroArt=()=>memo('fch'+S.shStage+(S.skin||'')+(S.plume||''),()=>{const c
 const fcHeroURL=()=>fcHeroArt().hero;
 function fvCutIn(){const el=$('#fvcut');if(!el)return;{const a=fcHeroArt();el.querySelectorAll('.fc-hero').forEach(im=>{const u=im.classList.contains('gh')?a.ghost:a.hero;if(im.src!==u)im.src=u})}el.classList.remove('on');void el.offsetWidth;el.classList.add('on');$('#banner').classList.remove('show')}
 function fvCutOut(){const el=$('#fvcut');if(el)el.classList.remove('on')}
+/* every frame: the fever screens must match the real fever state, whatever path ended or interrupted it
+   (KO during the cut-in, phase-2 transform, revive, gate clear, defeat...) */
+function feverSync(){const cut=$('#fvcut'),inCut=!!(B.active&&B.state==='FEVER'&&B.time<B.fvCut);
+  if(cut&&cut.classList.contains('on')&&!inCut)fvCutOut();
+  if(B.state==='FEVER'&&B.active&&!inCut&&!(B.fever>B.time)&&!B.pendingKO){feverEnd();return}
+  if(B.state!=='FEVER'&&B.fever){B.fever=0;B.fvK=null;Music.hype=false}
+  const on=!!(B.active&&feverOn()&&B.state!=='VICTORY'&&B.state!=='DEFEAT');
+  if($('#battle').classList.contains('fever')!==on||$('#fever').classList.contains('on')!==on)feverHud()}
 /* these run every frame during fever: only touch the DOM when a value really changes (each write restyles the HUD) */
 function setIf(el,k,v){if(el&&el[k]!==v)el[k]=v}function styIf(el,k,v){if(el&&el._s!==undefined&&el._s[k]===v)return;if(!el)return;(el._s||(el._s={}))[k]=v;el.style.setProperty(k,v)}
 function fvMeter(){const m=document.getElementById('fvMeter');if(m&&m.firstChild)m.innerHTML='';const g=document.getElementById('fGauge');if(!g)return;

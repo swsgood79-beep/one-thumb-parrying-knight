@@ -518,6 +518,19 @@ const BOT = `(()=>{
       for (const [k] of PAT_CATS) { document.querySelector(`[data-m="c_${k}"]`).click(); if (!document.querySelectorAll('#mbox .pbrow').length) return 'empty pattern book tab ' + k; }
       const named = Object.keys(PATMAKE).filter(k => !PAT_INFO[k]); if (named.length) return 'patterns missing from the book: ' + named.join(',');
       closeModal(); return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '피버 화면이 항상 꺼짐: 컷인 중 처치 · 2페이즈 변신 · 부활 · 관문 이동', run: () => {
+      const cutOn = () => document.querySelector('#fvcut').classList.contains('on');
+      for (const [i, type, kill] of [[0, 'boss', true], [22, 'min', true], [23, 'elite', false], [49, 'boss', true], [99, 'boss', false], [22, 'min', false]]) {
+        endBattle(); startRun(i); R.room = type === 'boss' ? 4 : 1; startFight(roomCfg(i, type), false); let g = 0; while (B.state !== 'IDLE' && g++ < 600) __tick(16);
+        if (kill) B.ehp = Math.max(1, B.emax * .01); R.fv = FV_NEED; if (!feverStart()) return 'fever did not start at stage ' + (i + 1);
+        if (!cutOn()) return 'cut-in not shown';
+        const e0 = B.ehp; onTap(); if (B.ehp !== e0) return 'taps during the cut-in should not deal damage';
+        if (kill) { for (let k = 0; k < 20; k++) __tick(16); B.ehp = 0; B.pendingKO = true; }
+        for (let k = 0; k < 500; k++) { __tick(16); if (document.querySelector('#modal').hidden && B.state !== 'FEVER') __botStep(); }
+        if (cutOn()) return `fever cut-in stuck on screen (stage ${i + 1} ${type}${kill ? ' KO' : ''}, state ${B.state})`;
+        if (document.querySelector('#battle').classList.contains('fever') && !feverOn()) return `fever UI stuck after fever ended (stage ${i + 1})`;
+        if (B.state === 'FEVER' && !(B.fever > B.time)) return 'stuck in FEVER state'; }
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
