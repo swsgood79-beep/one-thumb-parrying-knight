@@ -45,6 +45,7 @@ const BOT = `(()=>{
       return pickBtn('#mbox [data-m]')}
     if(typeof B==='undefined'||!B.active||B.paused)return;
     if(B.tutWait){__bot.log.push('tut:'+B.tutStep+':'+B.tutWait);if(B.tutWait==='hold')setGuard(true);else if(B.tutWait==='swipe')onSwipe(-1);else onTap();return}
+    if(!__bot.noFever&&typeof fvReady==='function'&&fvReady()&&!B.disarm&&B.state==='IDLE'){feverStart();return}   // players press the FEVER button when it shows
     const t=B.time;
     if(B.state==='GROGGY'||B.grab){onTap();return}
     if(B.state==='OPEN'){if(B.open&&B.open.real)onTap();else if(B.open&&Math.random()<(1-__bot.skill)*.04)onTap();return}
@@ -458,12 +459,14 @@ const BOT = `(()=>{
       startRun(3); startFight(roomCfg(3, 'min'), false); B.ehp = B.emax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [['single', 1]] };
       R.fv = FV_NEED - 3; let vt = 0; while (vt < 60000 && !fvReady()) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (!fvReady()) return 'fever gauge never filled from parries';
-      __tick(16); lastHud = ''; updHud(); if (!document.querySelector('#pad').classList.contains('fever')) return 'pad did not turn rainbow when fever is ready';
+      __tick(16); lastHud = ''; updHud(); const fb = document.querySelector('#fvBtn'); if (fb.hidden) return 'FEVER button not shown when gauge is full';
       const fg = document.querySelector('#fGauge'); if (fg.hidden || !fg.classList.contains('ready')) return 'fever gauge not shown as ready';
-      let g = 0; while (B.state !== 'WINDUP' && g++ < 400) __tick(16); const e0 = B.ehp; onTap(); if (B.state !== 'FEVER') return 'tap did not unleash fever (' + B.state + ')';
+      let g = 0; while (B.state !== 'WINDUP' && g++ < 400) __tick(16); onTap(); if (B.state === 'FEVER') return 'pad tap should not fire fever (button only)'; g = 0; while (B.state !== 'WINDUP' && g++ < 400) __tick(16); if (!fvReady()) return 'gauge lost without pressing the button';
+      const e0 = B.ehp; fb.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); if (B.state !== 'FEVER') return 'FEVER button did not unleash fever (' + B.state + ')';
+      lastHud = ''; updHud(); if (!fb.hidden) return 'FEVER button still shown during fever';
       if (!document.querySelector('#fever').classList.contains('on')) return 'fever HUD not shown';
       let atk = false; vt = 0; while (B.state === 'FEVER' && vt < 8000) { __tick(16); vt += 16; if (B.state === 'WINDUP') atk = true; }
-      if (atk) return 'enemy attacked during fever'; if (vt < 3500 || vt > 5000) return 'fever (1s cut-in + 3s strikes) should last about 4s (' + vt + 'ms)';
+      if (atk) return 'enemy attacked during fever'; if (vt < 4100 || vt > 5600) return 'fever (1.6s cut-in + 3s strikes) should last about 4.6s (' + vt + 'ms)';
       if (!(e0 - B.ehp > B.wp.groggyTapDamage * 25)) return 'fever did not deal rapid damage (' + Math.round(e0 - B.ehp) + ')';
       if ((R.fv || 0) !== 0 || fvReady()) return 'fever gauge not emptied after use';
       R.fv = 0; B.combo = 0; feverParry(false); const g1 = R.fv; R.fv = 0; B.combo = 30; feverParry(false); if (!(R.fv > g1 * 1.8)) return 'combo does not speed up the fever gauge';

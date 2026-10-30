@@ -318,6 +318,10 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 .pot img{width:32px;height:32px}
 .pot b{position:absolute;right:-6px;bottom:-6px;min-width:20px;height:20px;border-radius:10px;border:2px solid var(--edge);background:var(--gold);color:var(--edge);font-family:var(--f-display);font-weight:normal;font-size:12px;line-height:16px;text-align:center}
 .pot[disabled]{filter:grayscale(1);opacity:.5}
+#fvBtn{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:-176px;z-index:6;width:70px;height:70px;border-radius:50%;border:3px solid #fff;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;
+  background:conic-gradient(#ff3b5c,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c);box-shadow:0 4px 0 #3a0a30,0 0 18px rgba(255,120,220,.9);animation:fvbtn 1.2s linear infinite,fvpulse .6s ease-in-out infinite alternate;touch-action:none}
+#fvBtn[hidden]{display:none}#fvBtn b{font-family:var(--f-display);font-size:15px;letter-spacing:1px;text-shadow:0 2px 0 #3a0a30,1px 0 0 #3a0a30,-1px 0 0 #3a0a30}#fvBtn small{font-size:11px;font-weight:800;margin-top:3px;text-shadow:0 1px 0 #3a0a30}
+#fvBtn:active{transform:scale(.92)}@keyframes fvbtn{to{filter:hue-rotate(360deg)}}@keyframes fvpulse{to{box-shadow:0 4px 0 #3a0a30,0 0 30px 6px rgba(255,210,63,.95)}}
 .pot.l{margin-left:max(14px,env(safe-area-inset-left,0px))}.pot.r{margin-right:max(14px,env(safe-area-inset-right,0px))}
 
 #flash,#vig{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:5}
@@ -544,17 +548,17 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #fvcut .fc-band.t{top:9%;transform:rotate(-4deg) scale(1.1)}#fvcut .fc-band.b{bottom:13%;transform:rotate(-4deg) scale(1.1)}
 #fvcut .fc-band span{position:absolute;top:50%;left:0;white-space:nowrap;font-family:var(--f-display);font-size:26px;color:#fff;letter-spacing:3px;text-shadow:0 2px 0 #3a0a30,2px 0 0 #3a0a30,-2px 0 0 #3a0a30;animation:bscroll 1.1s linear infinite}
 #fvcut .fc-band.b span{animation-direction:reverse}
-#fvcut .fc-hero{position:absolute;left:2%;bottom:15%;height:64%;image-rendering:pixelated;filter:drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff) drop-shadow(0 0 12px #ffd23f);animation:fchero 1s cubic-bezier(.2,1.25,.4,1) forwards}
+#fvcut .fc-hero{position:absolute;left:2%;bottom:15%;height:64%;image-rendering:pixelated;filter:drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff) drop-shadow(0 0 12px #ffd23f);animation:fchero 1.6s cubic-bezier(.2,1.25,.4,1) forwards}
 #fvcut .fc-hero.gh{filter:brightness(2.2) saturate(0) drop-shadow(0 0 6px #ff5bd8);animation-name:fcghost;animation-delay:.05s;margin-left:-6%}#fvcut .fc-hero.gh2{animation-name:fcghost2;animation-delay:.1s;margin-left:-12%}
 @keyframes fcghost{0%{transform:translateX(-130%);opacity:.35}20%{transform:translateX(0);opacity:.35}40%{opacity:0}100%{opacity:0}}@keyframes fcghost2{0%{transform:translateX(-130%);opacity:.2}20%{transform:translateX(0);opacity:.2}35%{opacity:0}100%{opacity:0}}
 #fvcut .fc-txt{position:absolute;right:4%;top:28%;font-family:var(--f-display);font-size:clamp(40px,12.5vw,66px);line-height:.95;text-align:right;color:#fff;
-  text-shadow:0 0 16px #ff5bd8,0 5px 0 #3a0a30,3px 0 0 #3a0a30,-3px 0 0 #3a0a30;animation:fctxt 1s ease-out forwards}
+  text-shadow:0 0 16px #ff5bd8,0 5px 0 #3a0a30,3px 0 0 #3a0a30,-3px 0 0 #3a0a30;animation:fctxt 1.6s ease-out forwards}
 #fvcut .fc-txt small{display:block;font-size:.42em;color:#ffd23f;letter-spacing:4px}
 @keyframes fcin{from{opacity:0}}
 @keyframes fcbg{to{background-position:0 -128px}}
 @keyframes fcline{to{transform:translateX(260%)}}
-@keyframes fchero{0%{transform:translateX(-130%) scale(1.15);opacity:1}20%{transform:translateX(0) scale(1);opacity:1}78%{transform:translateX(5%) scale(1.02);opacity:1}100%{transform:translateX(140%) scale(1.1);opacity:0}}
-@keyframes fctxt{0%{transform:scale(3) rotate(-6deg);opacity:0}16%{transform:scale(1) rotate(-6deg);opacity:1}82%{opacity:1}100%{transform:translateX(50px) rotate(-6deg);opacity:0}}
+@keyframes fchero{0%{transform:translateX(-130%) scale(1.15);opacity:1}13%{transform:translateX(0) scale(1);opacity:1}86%{transform:translateX(5%) scale(1.02);opacity:1}100%{transform:translateX(140%) scale(1.1);opacity:0}}
+@keyframes fctxt{0%{transform:scale(3) rotate(-6deg);opacity:0}10%{transform:scale(1) rotate(-6deg);opacity:1}88%{opacity:1}100%{transform:translateX(50px) rotate(-6deg);opacity:0}}
 /* world map */
 .mapbar{display:flex;align-items:center;gap:8px;width:100%;max-width:420px;margin-top:8px;padding-bottom:6px}
 .mapbtn{flex:none;padding:8px 12px;font-size:15px;border-radius:12px}
@@ -789,6 +793,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
     <div class="pad" id="pad">
       <button class="pot l" id="potHp" aria-label="체력 포션"><img class="px" data-icon="potHp" alt=""><b id="potHpN">0</b></button>
       <div class="padcore"><i class="ripple" id="ripple"></i><div class="padbtn" id="padBtn"><span id="padLabel">패링</span><small id="padSub">TAP</small></div></div>
+      <button id="fvBtn" hidden aria-label="피버 발동"><b>FEVER</b><small>발동!</small></button>
       <button class="pot r" id="potSp" aria-label="실드 포션"><img class="px" data-icon="potSp" alt=""><b id="potSpN">0</b></button>
       <div class="padhint" id="padHint">탭: 패링 · 꾹: 가드 · 좌우 스와이프: 회피</div>
     </div>
@@ -1760,7 +1765,11 @@ function loadFeverClip(){if(feverBuf||feverBufLoading||!AC)return;feverBufLoadin
   try{const bin=atob(FEVER_MP3.split(',')[1]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
     const ok=b=>{feverBuf=b},bad=()=>{feverBufLoading=false};const pr=AC.decodeAudioData(u.buffer,ok,bad);if(pr&&pr.catch)pr.catch(bad)}catch(e){feverBufLoading=false}}
 SFX.fever=()=>{if(!AC||!S.snd)return;loadFeverClip();
-  if(feverBuf){const s=AC.createBufferSource(),g=AC.createGain();s.buffer=feverBuf;g.gain.value=1.5;s.connect(g);g.connect(sfxBus);s.start(AC.currentTime+.02)}
+  if(feverBuf){const t=AC.currentTime+.02,s=AC.createBufferSource(),g=AC.createGain();s.buffer=feverBuf;g.gain.value=1.4;s.connect(g);g.connect(sfxBus);
+    // echo: delay line with feedback, darkened a little on every repeat, plus some room reverb
+    const d=AC.createDelay(1),fb=AC.createGain(),lp=AC.createBiquadFilter(),wet=AC.createGain();d.delayTime.value=.2;fb.gain.value=.42;lp.type='lowpass';lp.frequency.value=3200;wet.gain.value=.6;
+    g.connect(d);d.connect(lp);lp.connect(fb);fb.connect(d);lp.connect(wet);wet.connect(sfxBus);if(verb){const vw=AC.createGain();vw.gain.value=.35;g.connect(vw);vw.connect(verb)}
+    s.start(t);setTimeout(()=>{try{fb.gain.value=0;wet.disconnect()}catch(e){}},(feverBuf.duration+2.2)*1000)}
   else feverVoice(AC,sfxBus,AC.currentTime+.03)};
 const sfx=(n,a,b)=>{try{SFX[n]&&SFX[n](a,b)}catch(e){}};
 function unlockAudio(){ensureAudio();if(!AC)return;if(!unlockAudio.done){try{const b=AC.createBuffer(1,1,22050),src=AC.createBufferSource();src.buffer=b;src.connect(AC.destination);src.start(0);unlockAudio.done=true}catch(e){}}}
@@ -2132,7 +2141,7 @@ function helpModal(onClose){
   <div class="ctl"><div class="k btn g">↑</div><p><b>점프</b> — <span style="color:#8fe86a">초록 노트(발밑 쓸기)</span>는 위로 스와이프해서 뛰어넘어요.</p></div>
   <div class="ctl"><div class="k btn y" style="background:linear-gradient(#ffe0b0,#ff9b2f)">잡기</div><p><b>잡기</b> — <span style="color:#ffb35a">주황 노트</span>는 가드하면 붙잡혀요. 좌우로 피하거나, 잡히면 마구 연타해서 탈출!</p></div>
   <div class="ctl"><div class="k btn y" style="background:linear-gradient(#fff,#ff9b2f 50%,#e0283f)">연타</div><p><b>기절</b> — 피로도가 가득 차면 「지금 공격!!」 마구 연타! 게이지는 시간과 피해 여유만큼 줄어요.</p></div>
-  <div class="ctl"><div class="k btn y" style="background:conic-gradient(#ff3b5c,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c)">FEVER</div><p><b>피버(필살기)</b> — 패링할수록 위쪽 피버 게이지가 차요(콤보가 높을수록 빨리). 가득 차면 버튼이 무지개색으로 바뀌고, 탭하면 4.5초 동안 자동 연속 공격! 그동안 적은 반격하지 못해요. 게이지는 원정 내내 유지돼요.</p></div>
+  <div class="ctl"><div class="k btn y" style="background:conic-gradient(#ff3b5c,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c)">FEVER</div><p><b>피버(필살기)</b> — 패링할수록 위쪽 피버 게이지가 차요(콤보가 높을수록 빨리). 가득 차면 오른쪽에 무지개색 FEVER 버튼이 나타나요. 원할 때 누르면 3초 동안 자동 연속 공격! 그동안 적은 반격하지 못해요. 게이지는 원정 내내 유지돼요.</p></div>
   <div class="ctl"><div class="k btn y">♪</div><p><b>특수 패턴</b> — 바닥의 노트를 보세요. <b style="color:#ffe14d">노랑</b>=탭, <b style="color:#ff8a8a">빨강</b>=스와이프, <b style="color:#9ad8ff">파랑</b>=꾹. 연속 패링을 전부 성공하면 <b>PERFECT CHAIN</b>! 보라색 <b>?</b>는 페이크.</p></div>
   <div class="ctl"><div class="k btn g">지형</div><p><b>지형 · 몬스터 특성</b> — 챕터마다 땅이 공격해요(낙석·용암·번개…). 몬스터마다 특성이 있어요(재생·독·부활·빙결…). 로비의 스테이지 정보에서 미리 확인!</p></div>
   <p style="font-size:12px">키보드: 스페이스(탭·꾹) · ← → (회피) · ↑ (점프)</p>
@@ -2754,7 +2763,6 @@ function onTap(){
   if(B.state==='TRANSFORM'){if(t-B.stT>600&&B.cineStep<5){if(!B.tfDone)transformHit();B.cineStep=4;cineSub('');B.stT=B.time-7900}return}
   if(B.state==='BOSSIN'){if(t-B.stT>400)bossInEnd();return}
   if(B.state==='FEVER'){feverStrike(.6,'추가');return}
-  if(fvReady()&&!B.disarm&&['IDLE','WINDUP','RECOIL','STRIKE','GROGGY'].includes(B.state)&&feverStart())return;
   if(B.state==='INTRO'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='WAKE')return;
   if(B.grab){grabTap();return}
   if(t<B.parryLock)return;
@@ -3004,14 +3012,14 @@ function drawKillOverlay(c,e){
    Full gauge: the pad turns rainbow; one tap unleashes ~4.5 s of automatic rapid strikes while the enemy can only take it. */
 const FV_NEED=110,FEVER_MS=3000;
 function fvAdd(v){if(!R||!feverAllowed()||feverOn())return;const was=fvReady();R.fv=Math.min(FV_NEED,(R.fv||0)+v*(R.rooms&&R.rooms[R.room]==='danger'?1.5:1));
-  if(!was&&fvReady()){banner('FEVER 준비!','버튼을 탭하면 필살 연속 공격!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200)}fvMeter()}
+  if(!was&&fvReady()){banner('FEVER 준비!','오른쪽 FEVER 버튼으로 원할 때 발동!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200)}fvMeter()}
 const feverOn=()=>B.state==='FEVER'&&B.fever>B.time;
 const feverAllowed=()=>!(R&&(R.rhythm||R.prologue||R.trial||R.vault||R.v2));
 const fvReady=()=>!!(B.active&&R&&feverAllowed()&&(R.fv||0)>=FV_NEED&&!feverOn());
 function feverParry(perfect){fvAdd((perfect?1.5:1)*(1+Math.min(B.combo,30)/30))}
 function feverStart(){if(!fvReady())return false;R.fv=0;track('fever');
   if(B.atk&&!B.atk.resolved){B.atk.resolved=true;B.atk.notes.forEach(n=>n.res=true)}B.guard=false;B.pendWhiff=0;B.grab=null;B.finishReady=false;B.cutChain=false;
-  const CUT=1000;setState('FEVER');B.fvCut=B.time+CUT;B.fever=B.time+CUT+FEVER_MS;B.fvT0=B.time+CUT;B.fvNext=B.fvT0+230;fvCutIn();B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?Math.max(.14,.25-TIER(B.idx||0)*.012):.40);B.fvK=null;B.fvLeap=false;B.fvFin=false;B.fvPush=0;B.fvIgn=false;
+  const CUT=1600;setState('FEVER');B.fvCut=B.time+CUT;B.fever=B.time+CUT+FEVER_MS;B.fvT0=B.time+CUT;B.fvNext=B.fvT0+230;fvCutIn();B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?Math.max(.14,.25-TIER(B.idx||0)*.012):.40);B.fvK=null;B.fvLeap=false;B.fvFin=false;B.fvPush=0;B.fvIgn=false;
   sfx('fever');sfx('clang',true);vib([30,30,30,30,80]);Music.hype=true;Music.rate=Math.max(Music.rate,1.08);
   B.parts.push({ring:true,x:B.kx,y:B.gy-14,r:4,vr:.16,life:520,col:'#ff5bb5'},{ring:true,x:B.kx,y:B.gy-14,r:2,vr:.1,life:420,col:'#ffd23f'});burstParts(B.kx,B.gy-14,30,['#ff5bb5','#ffd23f','#4fb8ff','#5fd23a'],.16,.0002,.45);
   feverHud();return true}
@@ -3062,7 +3070,7 @@ function fvCutOut(){const el=$('#fvcut');if(el)el.classList.remove('on')}
 function fvMeter(){const m=document.getElementById('fvMeter');if(m)m.innerHTML='';const g=document.getElementById('fGauge');if(!g)return;
   const on=B.active&&R&&feverAllowed();g.hidden=!on;if(!on)return;const live=feverOn(),f=live?clamp((B.fever-B.time)/FEVER_MS,0,1):clamp((R.fv||0)/FV_NEED,0,1);
   document.getElementById('fGaugeFill').style.width=f*100+'%';g.classList.toggle('ready',live||fvReady());
-  document.getElementById('fGaugeTxt').textContent=live?`FEVER!! ${Math.ceil((B.fever-B.time)/1000)}초`:fvReady()?'피버 준비! 버튼을 탭!':`피버 게이지 ${Math.floor(f*100)}%`}
+  document.getElementById('fGaugeTxt').textContent=live?`FEVER!! ${Math.ceil((B.fever-B.time)/1000)}초`:fvReady()?'피버 준비! FEVER 버튼으로 발동':`피버 게이지 ${Math.floor(f*100)}%`}
 function feverHud(){fvMeter();const el=document.getElementById('fever');if(!el)return;const on=B.active&&feverOn()&&B.state!=='VICTORY'&&B.state!=='DEFEAT';el.classList.toggle('on',on);$('#battle').classList.toggle('fever',on);
   if(on){document.getElementById('feverT').textContent=Math.ceil((B.fever-B.time)/1000)+'초';el.style.setProperty('--hb',(hudBottom()+2)+'px')}}
 function drawFeverFrame(c,t){if(!feverOn())return;const q=(B.fever-B.time)/FEVER_MS;
@@ -3255,6 +3263,7 @@ function hpBar(){
   hud.ePhase.hidden=false;hud.ePhase.textContent=B.phase2?'PHASE 2/2 · 각성':'PHASE 1/2';hud.ePhase.classList.toggle('p2',!!B.phase2);
 }
 function updHud(){
+  {const fb=document.getElementById('fvBtn'),show=!!(fvReady()&&!B.disarm&&!B.grab&&B.state!=='VICTORY'&&B.state!=='DEFEAT');if(fb&&fb.hidden===show)fb.hidden=!show}
   let stunPct=B.stun;if(B.state==='GROGGY')stunPct=100*Math.min(clamp((B.groggyEnd-B.time)/B.groggyDur,0,1),B.groggyCap?clamp(1-B.groggyDmg/B.groggyCap,0,1):1);
   const sig=[Math.round(B.ehp),Math.round(stunPct),Math.round(B.php),Math.round(B.psh),B.combo,B.state,B.guard,B.atk&&B.atk.heavy&&!B.atk.resolved,B.atk&&B.atk.idx,B.atk&&B.atk.kind,B.exec&&B.exec.charge>=0,B.disarm&&B.disarm.steps,B.phase2,Math.round(B.groggyDmg||0),B.finishReady].join('|');
   if(sig===lastHud)return;lastHud=sig;
@@ -3266,7 +3275,6 @@ function updHud(){
   let mode='',label='패링',sub='TAP',hint='탭: 패링 · 꾹: 가드 · 좌우 스와이프: 회피';
   const cn=B.state==='WINDUP'&&B.atk&&!B.atk.resolved?curNote():null;
   if(B.state==='FEVER'){mode='fever';label='FEVER!!';sub='탭하면 추가타';hint='필살 연속 공격 중! 적은 반격할 수 없어요'}
-  else if(fvReady()&&!B.disarm&&B.state!=='VICTORY'&&B.state!=='DEFEAT'){mode='fever';label='FEVER!';sub='탭해서 발동';hint='피버 게이지 가득! 탭하면 자동 필살 연속 공격'}
   else if(B.grab){mode='groggy';label='탈출!!';sub=`${B.grab.cnt}/${B.grab.need}`;hint='붙잡혔다! 마구 탭해서 빠져나와요'}
   else if(cn&&cn.grab){mode='warn';label='◀ 회피 ▶';sub='GRAB';hint='잡기! 가드하면 붙잡혀요 · 좌우로 회피'}
   else if(cn&&cn.dir){mode='warn';label=cn.dir<0?'◀◀ 회피':'회피 ▶▶';sub='SWIPE';hint=`휩쓸기! ${cn.dir<0?'왼쪽':'오른쪽'}으로만 피할 수 있어요`}
@@ -3342,7 +3350,7 @@ function updPots(){$('#potHpN').textContent=S.pot.hp;$('#potSpN').textContent=S.
 const ptrs=new Map();
 const pad=$('#pad');
 pad.addEventListener('pointerdown',e=>{
-  if(e.target.closest('.pot'))return;
+  if(e.target.closest('.pot,#fvBtn'))return;
   e.preventDefault();ensureAudio();try{pad.setPointerCapture(e.pointerId)}catch(_){}
   const p={x0:e.clientX,y0:e.clientY,swiped:false};ptrs.set(e.pointerId,p);
   onTap();
@@ -3367,6 +3375,7 @@ function usePot(k){if(R&&R.vault){toast('금고에서는 물약을 쓸 수 없�
   if(k==='hp'){if(B.php>=B.pmax){toast('체력이 가득 찼어요');return}B.php=Math.min(B.pmax,B.php+B.pmax*.5*(1+(B.fx.potionPct||0)/100));ftAt('+'+Math.round(B.pmax*.5*(1+(B.fx.potionPct||0)/100)),B.kx,B.gy-36,'info')}
   else{if(B.psh>=B.pshMax){toast('실드가 가득 찼어요');return}B.psh=B.pshMax;ftAt('실드 회복',B.kx,B.gy-36,'info')}
   S.pot[k]--;save();updPots();sfx('heal');lastHud=''}
+$('#fvBtn').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();ensureAudio();if(B.active&&!B.disarm&&!B.grab&&['IDLE','WINDUP','RECOIL','STRIKE','GROGGY'].includes(B.state)&&feverStart())e.currentTarget.hidden=true;fvMeter()});
 $('#potHp').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();ensureAudio();usePot('hp')});
 $('#potSp').addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();ensureAudio();usePot('sp')});
 $('#pauseBtn').onclick=()=>pauseGame();
