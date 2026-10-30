@@ -2629,18 +2629,45 @@ const BOSS_SIG={
   lavaGK:[['crushjump','용암 강타'],['quake','대지 분쇄'],['holdbreak','마그마 압박']],
   drake:[['storm','화염 폭풍'],['sweepX','꼬리 휩쓸기'],['dragonbreath','화염 브레스']],
   ghostCap:[['shuffle','유령 뱃노래'],['callresp','선장의 호령'],['mirage','신기루 환술']],
-  kraken:[['grabchain','촉수 낚아채기'],['sweepX','촉수 휩쓸기'],['tentaclerage','촉수 대소동']],
+  kraken:[['grabchain','촉수 낚아채기'],['sweepX','촉수 휩쓸기'],['holdchain','먹물 압박']],
   harpyQ:[['sweep2','돌풍'],['skyfall','급강하 칼바람'],['dance','공중 춤']],
   griffon:[['gallop','천공 돌진'],['mechmix','폭풍 콤보'],['talongrab','발톱 낚아채기']],
   dknight:[['syncopa','흑검 엇박'],['riff2','흑기사 검무'],['guardparry','가드 카운터']],
   demon:[['gauntlet','마왕의 시련'],['stream16','멸망의 연타'],['lichdoom','사령의 심판']],
 };
-const SIG_NAME={};for(const k in BOSS_SIG)SIG_NAME[k]=Object.fromEntries(BOSS_SIG[k].map(([p,n])=>[p,n]));SIG_NAME.kraken.tentaclerage='촉수 대소동';SIG_NAME.demon.demonend='마왕의 종언';
-const BOSS_AWAKE={kraken:['tentaclerage','촉수 대소동'],demon:['demonend','마왕의 종언']};
+const SIG_NAME={};for(const k in BOSS_SIG)SIG_NAME[k]=Object.fromEntries(BOSS_SIG[k].map(([p,n])=>[p,n]));
+/* phase 2: every boss awakens with three moves it never uses in phase 1 (first = its awakening move) */
+const BOSS_P2={
+  slimeK:[['chain4','분열 연타'],['crush2','대왕 누르기'],['sweep2','젤리 파도']],
+  gobChief:[['syncopa','고블린 난타'],['crushjump','금화 자루 강타'],['dodgeparry','도망치며 베기']],
+  spiderQ:[['cascade','독니 폭주'],['holdjump','거미줄 조이기'],['jumpchain','알 주머니 투척']],
+  wolfK:[['boarcharge','광란 돌진'],['zigzag','그림자 질주'],['sweepX','발톱 회오리']],
+  bat:[['skyfall','흡혈 급강하'],['blind5','어둠 초음파'],['mix','박쥐 떼']],
+  skelboss:[['riff','뼈의 리프'],['holdbreak','해골 방패 돌파'],['stairs','계단식 칼질']],
+  orcAxe:[['quake','전투 함성 분쇄'],['boarcharge','광전사 돌진'],['holdswipe','도끼 회전']],
+  witch:[['mirage','환영 분신'],['orb7','저주 7연 구체'],['cursedbind','늪 속박']],
+  scorpK:[['pincercrush','집게 절단'],['backstab','모래 잠행'],['gallop','독침 난무']],
+  worm:[['quake','지각 붕괴'],['dragonbreath','모래 브레스'],['webtrap','유사 지옥']],
+  frostG:[['frostnova','절대영도'],['guardparry','빙벽 반격'],['quake','빙하 분쇄']],
+  iceQ:[['avalanche','눈사태 소환'],['mirage','얼음 거울'],['orb8','빙결 구슬 폭풍']],
+  lavaGK:[['dragonbreath','용암 분출'],['anvilcrush','마그마 주먹'],['thunderchain','화산 낙뢰']],
+  drake:[['stormwing','화염 회오리'],['skyfall','급강하 화염'],['quake','착지 충격']],
+  ghostCap:[['phantomstep','망령 보법'],['cursedbind','닻 사슬'],['gauntlet','최후의 항해']],
+  kraken:[['tentaclerage','촉수 대소동'],['webtrap','먹물 올가미'],['avalanche','해일']],
+  harpyQ:[['stormwing','폭풍 군무'],['talongrab','여왕의 발톱'],['sonicdive','음속 비행']],
+  griffon:[['thunderchain','천둥 깃털'],['stormwing','천공 폭풍'],['dragonbreath','번개 브레스']],
+  dknight:[['anvilcrush','흑검 연참'],['lichdoom','암흑 심판'],['mirage','그림자 분신']],
+  demon:[['demonend','마왕의 종언'],['chaosS','혼돈의 군단'],['storm','멸망의 폭풍']],
+};
+for(const k in BOSS_P2)BOSS_P2[k].forEach(([pt,nm])=>{(SIG_NAME[k]=SIG_NAME[k]||{})[pt]=nm});
+/* how much harder phase 2 hits, by how late the boss is (stage 5 → 100) */
+const p2Tune=idx=>{const k=clamp(idx/99,0,1);return{atk:1.15+.2*k,lead:.9-.1*k,idle:.7-.2*k,chain:.15+.25*k}};
 function sigPool(kind,pool){const sg=BOSS_SIG[kind];if(!sg)return pool;
   const mix=(list,share,w)=>{const W=list.reduce((a,b)=>a+b[1],0),S=W*share/(1-share);return list.concat(sg.map(([p],i)=>[p,S*w[i]]))};
-  const aw=BOSS_AWAKE[kind],p2=pool.p2&&mix(pool.p2,.66,[.3,.33,.37]);if(aw&&p2){const W=p2.reduce((x,y)=>x+y[1],0);p2.push([aw[0],W*.25])}
-  return{base:mix(pool.base,.6,[.42,.33,.25]),p2}}
+  let p2=pool.p2&&mix(pool.p2,.3/.45,[.3,.33,.37]);   // phase-1 signatures stay (~30%), now faster
+  const ex=BOSS_P2[kind];if(ex&&p2){const W=p2.reduce((x,y)=>x+y[1],0),S=W*.55/.45;p2=p2.concat(ex.map(([pt],i)=>[pt,S*[.45,.3,.25][i]]))}   // ~55% phase-2-only moves
+  const keep=ex?pool.base.filter(([n])=>!ex.some(([pt])=>pt===n)):pool.base;   // phase-2 moves never show up in phase 1
+  return{base:mix(keep.length?keep:pool.base,.6,[.42,.33,.25]),p2}}
 const packN=i=>OLD_PACK_N[Math.min(9,Math.round(TIER(i)))],atkMul=i=>OLD_ATK_MUL[Math.min(9,Math.round(TIER(i)))];
 
 /* map traits: each chapter's ground fights back. ev = attacks thrown by the map itself (the enemy holds still), the rest are passive rules */
@@ -2662,7 +2689,7 @@ Object.assign(PATMAKE,{hzVineL:MP('hz',[[0,'L']],1.4),hzVineR:MP('hz',[[0,'R']],
 /* guard drain scales with the shield: a guarded hit costs about 15% of a full shield at any stage */
 const drainK=()=>(hasT('burn')?1.6:1)*(B.hz==='lava'?1.4:1)*(B.st&&B.st.atk>0?Math.min(1,B.pshMax*(.14+.18*((B.idx||0)/99))/B.st.atk):1);
 function hzStart(cfg){B.hz=(R&&!(R.prologue||R.rhythm||R.vault||R.trial||R.v2)&&HZ[cfg.hz])?cfg.hz:null;B.lastHz=false;B.wind=Math.random()<.5?-1:1;B.windT=4000+rnd(3000,6000);B.blizOn=false;B.blizT=rnd(5000,8000);
-  B.raged=false;B.eRevived=false;B.stolen=0;B.poison=null;B.frozenUntil=0;
+  B.raged=false;B.p2T=null;B.eRevived=false;B.stolen=0;B.poison=null;B.frozenUntil=0;
   if(B.hz==='wave')B.tune=Object.assign({},B.tune,{jit:(B.tune.jit||0)+.06})}
 /* passive map effects + monster traits, every frame */
 function worldTick(t,dt){
@@ -2818,7 +2845,8 @@ function loopBody(ts){
   if(!B.paused&&B.active){const cap=(R&&(R.rhythm||R.prologue||R.vault&&B.state==='DONE'))?null:{STRIKE:2500,RECOIL:2500,WAKE:4000,WALK:3000,GROGGY:12000,WINDUP:15000}[B.state];
     if(cap&&B.time-B.stT>cap){logError('watchdog',`stuck in ${B.state}`);recoverFight()}}
 }
-function checkPhase(){if(multiBar())return;if((B.st.boss||B.st.label==='보스')&&B.st.pool.p2&&!(R&&(R.rhythm||R.trial))&&!B.phase2&&B.ehp>0&&B.ehp<B.emax*.5&&B.state!=='VICTORY'){B.phase2=true;Music.rate=1.12;banner('2페이즈!',B.idx===9?'마왕이 분노했다':B.st.name+'이(가) 분노했다! 패턴 변화');flash('#ff2b3b',.45,400);vig('rgba(255,40,60,.9)',800);domShake(3);vib([60,60,60]);sfx('warn')}}
+function enterPhase2(){if(B.p2T)return;B.p2T=p2Tune(B.idx||0);B.st=Object.assign({},B.st,{atk:B.st.atk*B.p2T.atk})}
+function checkPhase(){if(multiBar())return;if((B.st.boss||B.st.label==='보스')&&B.st.pool.p2&&!(R&&(R.rhythm||R.trial))&&!B.phase2&&B.ehp>0&&B.ehp<B.emax*.5&&B.state!=='VICTORY'){B.phase2=true;enterPhase2();Music.rate=1.12;banner('2페이즈!',B.idx===9?'마왕이 분노했다':B.st.name+'이(가) 분노했다! 패턴 변화');flash('#ff2b3b',.45,400);vig('rgba(255,40,60,.9)',800);domShake(3);vib([60,60,60]);sfx('warn')}}
 function update(dt){
   const t=B.time;
   if(R&&R.vault)vaultTick();
@@ -2899,7 +2927,7 @@ function beginAttack(){
   let ambush=false;if(R&&R.v2){ambush=B.v2Ambush;B.v2Ambush=false;name=ambush?'single':v2Pick()}
   {const sn=B.st.label==='보스'&&SIG_NAME[B.st.kind]&&SIG_NAME[B.st.kind][name];B.sigMove=sn||null;if(sn)ftAt(sn+'!',B.ex,B.gy-B.E.scale*22,'sigmv')}
   const P=PATMAKE[name](),beat=beatMs();
-  let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?.88:1);if(ambush)lead=520;
+  let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?(B.p2T?B.p2T.lead:.88):1);if(ambush)lead=520;
   if(!(R&&R.prologue)&&!ambush){const minL=Math.round((P.notes.length>1||P.kind==='hold'?560:P.lead&&P.lead<.7?380:460)*(1-.28*((B.idx||0)/99)));lead=alignBeat(Math.max(lead,minL))}
   if(P.off)lead+=P.off*beat;
   if(hasT('swift')&&!hzA)lead=Math.max(420,lead-beat*.5);
@@ -3129,7 +3157,8 @@ function grabEnd(ok){const g=B.grab;if(!g)return;B.grab=null;
   if(ok){ftAt('탈출!',B.kx+10,B.gy-44,'perfect');sfx('combo');flash('#ffffff',.4,200);zoom(1.06);B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.4);B.ex=EX();B.eFlash=80}
   else{hurt(g.dmg,'내동댕이!');domShake(2)}
   if(B.state==='IDLE'){B.stT=B.time;B.idleDur=500}}
-function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(220,480)*(1.05-TIER(B.idx||0)*.065)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?.75:1)}
+function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(220,480)*(1.05-TIER(B.idx||0)*.065)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?(B.p2T?B.p2T.idle:.75):1);
+  if(B.phase2&&B.p2T&&B.st.label==='보스'&&Math.random()<B.p2T.chain){B.idleDur=90;ftThrottle('연계!',B.ex,B.gy-B.E.scale*20,'warn')}}
 /* a stun always lasts at least this many normal hits, however strong the shield is; the % cap only matters for weaker shields */
 const GROGGY_MIN_HITS=12;
 function enterGroggy(){B.gHitK=0;
@@ -3576,7 +3605,7 @@ function cineTick(e){
   step(2,2700,()=>{B.camT='boss';B.cam=1;cineSub('');sfx('warn');vib([30,30,30,30,30]);domShake(1);B.bolts.push({at:e+500},{at:e+1300});
     setTimeout(()=>{if(B.active&&B.state==='TRANSFORM')cineSub(`<b>${B.st.name}</b>${(STAGES[B.idx]&&STAGES[B.idx].p2)||'아직 끝나지 않았다...!'}`)},450)});
   step(3,4900,()=>{cineSub('');transformHit();B.camT='boss';B.cam=1});
-  step(4,5300,()=>{B.cam=.35;cineText(`<small>— ${B.idx+1}스테이지 보스 —</small><b>PHASE 2</b><span>각성한 ${B.st.name}</span><em>공격력·속도 상승 · 새로운 패턴</em>`)});
+  step(4,5300,()=>{B.cam=.35;cineText(`<small>— ${B.idx+1}스테이지 보스 —</small><b>PHASE 2</b><span>각성한 ${B.st.name}</span><em>${(()=>{const ex=BOSS_P2[B.st.kind],t=B.p2T||p2Tune(B.idx||0);return `공격력 ×${t.atk.toFixed(2)} · 공격 간격 ${Math.round((1-t.idle)*100)}% 단축`+(ex?`<br>각성기: ${ex.map(x=>x[1]).join(' · ')}`:'')})()}</em>`)});
   step(5,7900,()=>{cineText('');cineSub('');$('#cine').classList.remove('on');B.camT=null;B.cam=0});
   if(B.cineStep>=2&&B.cineStep<3)B.shake=Math.max(B.shake,.8);
   if(B.cineStep===4)B.cam=Math.max(0,B.cam-.0006*16);
@@ -4352,7 +4381,7 @@ function bossInTick(e){const b=B.bossIn;if(!b)return;
 function bossInEnd(){if(!B.bossIn)return;B.bossIn=null;B.ex=EX();B.cam=0;B.camT=null;cineText('');cineSub('');const ci=$('#cine');ci.classList.remove('on','bossin');ci.querySelectorAll('.bwarn').forEach(x=>x.remove());
   if(B.state==='BOSSIN'){setState('IDLE');B.idleDur=500}}
 function startTransform(){
-  if(B.atk)B.atk.resolved=true;B.phase2=true;B.ehp=0;B.pendingKO=false;B.slam=false;B.cutChain=false;B.orbFinal=null;
+  if(B.atk)B.atk.resolved=true;B.phase2=true;enterPhase2();B.ehp=0;B.pendingKO=false;B.slam=false;B.cutChain=false;B.orbFinal=null;
   if(B.disarm){B.disarm=null;B.psh=B.pshMax*.6}
   Music.rate=1.12;
   setState('TRANSFORM');B.tfDone=false;B.guard=false;B.stun=0;if(B.push)B.pushBack=true;Music.hype=false;B.cineStep=0;

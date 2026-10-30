@@ -549,6 +549,15 @@ const BOT = `(()=>{
       while (B.atk && B.atk.notes.includes(mn) && !mn.res && mn.t - B.time > 300 && g++ < 600) __tick(16);
       if (!mn.flipped || mn.dir !== -d0) return 'mirror note did not flip before impact';
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '보스 2페이즈: 전용 각성기 과반 · 공격력·속도 상승', run: () => {
+      R = R || {};
+      for (let i = 4; i < 100; i += 5) { const c = roomCfg(i, 'boss'), ex = BOSS_P2[c.kind]; if (!ex) return `boss ${c.kind} has no phase-2 moves`;
+        for (const [pt] of ex) { if (!PATMAKE[pt]) return 'missing pattern ' + pt; if (c.pool.base.some(([n]) => n === pt)) return `${c.kind}: phase-2 move ${pt} also used in phase 1`; }
+        const W = c.pool.p2.reduce((a, b) => a + b[1], 0), sh = c.pool.p2.filter(([n]) => ex.some(([pt]) => pt === n)).reduce((a, b) => a + b[1], 0) / W;
+        if (sh < .5) return `${c.kind}: phase-2 moves only ${Math.round(sh * 100)}% of phase 2`; }
+      endBattle(); startRun(19); R.room = 4; startFight(roomCfg(19, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
+      const a1 = B.st.atk; startTransform(); if (!(B.st.atk > a1 * 1.1) || !B.p2T || !(B.p2T.idle < 1)) return 'phase 2 did not raise attack / speed';
+      endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
