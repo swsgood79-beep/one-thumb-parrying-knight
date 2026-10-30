@@ -533,6 +533,22 @@ const BOT = `(()=>{
         if (document.querySelector('#battle').classList.contains('fever') && !feverOn()) return `fever UI stuck after fever ended (stage ${i + 1})`;
         if (B.state === 'FEVER' && !(B.fever > B.time)) return 'stuck in FEVER state'; }
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '패턴 조작 가능성: 회피 쿨타임·점프 쿨타임·버티기 직후 여유 (최고 템포 기준)', run: () => {
+      const bad = [];
+      for (const k in PATMAKE) { if (/^(hz|chart|barrage|orb|desp|fury|chaos)/.test(k)) continue; const ns = PATMAKE[k]().notes;
+        for (let i = 0; i < ns.length; i++) { const n = ns[i];
+          for (let j = i - 1; j >= 0; j--) if (n.type === 'swipe' && ns[j].type === 'swipe') { if (n.o - ns[j].o < 2.5) bad.push(`${k}: dodges ${ns[j].o}→${n.o}`); break; }
+          for (let j = i - 1; j >= 0; j--) if (n.type === 'jump' && ns[j].type === 'jump') { if (n.o - ns[j].o < 2) bad.push(`${k}: jumps ${ns[j].o}→${n.o}`); break; }
+          if (i > 0 && ns[i - 1].type === 'hold' && n.o - ns[i - 1].o - (ns[i - 1].len || 0) < .5) bad.push(`${k}: no room after hold`); } }
+      if (bad.length) return 'unplayable at 170 BPM x1.12: ' + bad.slice(0, 6).join(' | ');
+      // every regular monster from stage 11 on has moves of its own, and the mirror note flips before impact
+      for (const i of [24, 54, 74, 94]) { R = R || {}; const e = roomCfg(i, 'elite'); if (!ownPats(e.kind, i).length && !SIG[e.kind]) return `elite ${e.kind} at stage ${i + 1} has no moves of its own`; }
+      endBattle(); startRun(44); startFight(roomCfg(44, 'min'), false); B.php = B.pmax = 1e7; B.hz = null; for (let i = 0; i < 200; i++) __tick(16); let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16);
+      B.ehp = B.emax = 1e7; B.php = B.pmax = 1e7; B.hz = null; B.forcePat = 'mirage'; B.idleDur = 0; g = 0; while (!(B.state === 'WINDUP' && B.atk && B.atk.name === 'mirage') && g++ < 400) __tick(16);
+      const mn = B.atk && B.atk.notes.find(n => n.flip); if (!mn) return 'mirror note missing (' + B.state + ' ' + (B.atk && B.atk.name) + ' g' + g + ')'; const d0 = mn.dir; g = 0; const mi = B.atk.notes.indexOf(mn); B.atk.notes.slice(0, mi).forEach(n => n.res = true); B.atk.idx = mi; B.atk.impact = mn.t;
+      while (B.atk && B.atk.notes.includes(mn) && !mn.res && mn.t - B.time > 300 && g++ < 600) __tick(16);
+      if (!mn.flipped || mn.dir !== -d0) return 'mirror note did not flip before impact';
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
