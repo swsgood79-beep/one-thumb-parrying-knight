@@ -132,7 +132,7 @@ const BOT = `(()=>{
   // ---- focused scenarios (bugs found by players get a scenario here so they never come back) ----
   const scenarios = [
     { name: '기절한 보스 연타 시 시계 멈춤 (해골 대장)', run: () => {
-      startRun(4); R.room = 4; startFight(roomCfg(4, 'boss'), false);
+      startRun(4); R.room = R.rooms.length - 1; startFight(roomCfg(4, 'boss'), false);
       for (let i = 0; i < 200; i++) __tick(16);
       B.ehp = B.emax = 1e7; B.stun = 100; enterGroggy();
       const t0 = B.time; let vt = 0;
@@ -222,7 +222,7 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '마법 구체 랠리 · 벽꽝 · 헛손질 실드 감소', run: () => {
       __bot.skill = 1; __bot.sig = 10;
-      startRun(7); R.room = 4; startFight(roomCfg(7, 'boss'), false); B.st.pool = { base: [['orb5', 1]] }; B.firstAtk = false; B.ehp = B.emax = 1e6;
+      startRun(7); R.room = R.rooms.length - 1; startFight(roomCfg(7, 'boss'), false); B.st.pool = { base: [['orb5', 1]] }; B.firstAtk = false; B.ehp = B.emax = 1e6;
       let vt = 0; while (vt < 40000 && !B.orbBooms) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (!B.orbBooms) return 'orb rally never exploded on the boss (state ' + B.state + ')';
       startRun(2); startFight(roomCfg(2, 'min'), false); B.st.pool = { base: [['single', 1]] }; B.ehp = B.emax = 1e6; B.st.stunMult = 0;
@@ -236,7 +236,7 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '연속 패링 골드 · 보스 발악 5연타 · 방패 놓침', run: () => {
       __bot.skill = 1; __bot.sig = 8;
-      startRun(1); R.room = 4; startFight(roomCfg(1, 'boss'), false); B.st.pool = { base: [['single', 1]] }; B.st.stunMult = 0; const g0 = R.gold;
+      startRun(1); R.room = R.rooms.length - 1; startFight(roomCfg(1, 'boss'), false); B.st.pool = { base: [['single', 1]] }; B.st.stunMult = 0; const g0 = R.gold;
       let vt = 0; while (vt < 40000 && B.pStreak < 7) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep(); if (__errors.length) return 'error: ' + __errors[0]; }
       if (!(R.gold > g0)) return 'parry streak dropped no gold (streak ' + B.pStreak + ')';
       B.phase2 = true; B.transformed = true; B.push = 0; B.ehp = Math.round(B.emax * .12); vt = 0; let sawDesp = false;
@@ -251,7 +251,7 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '보스 체력바 x20 · 페이즈2 변신 · 분노의 5연타', run: () => {
       __bot.skill = 1; __bot.sig = 8; for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
-      startRun(3); R.room = 4; startFight(roomCfg(3, 'boss'), false); for (let i = 0; i < 20; i++) __tick(16);
+      startRun(3); R.room = R.rooms.length - 1; startFight(roomCfg(3, 'boss'), false); for (let i = 0; i < 20; i++) __tick(16);
       if (document.querySelector('#eBars').hidden || document.querySelector('#eBars').textContent !== 'x20') return 'boss bar counter not x20: ' + document.querySelector('#eBars').textContent;
       if (!document.querySelector('#ePhase').textContent.startsWith('PHASE 1')) return 'phase label missing';
       const sc0 = B.E.scale; B.ehp = 1; chip(5, 'x'); let vt = 0, sawT = false;
@@ -313,7 +313,7 @@ const BOT = `(()=>{
       startRun(1); for (let i = 0; i < 5; i++) __tick(16); if (!document.querySelector('#modal').hidden && /카드/.test(document.querySelector('#mbox').textContent)) return 'win streak still offers starting cards';
       if (!document.querySelector('#cGauge').hidden) return 'card gauge still shown'; if (document.querySelector('#fGauge').hidden) return 'fever gauge not shown on top';
       let sawCard = false, rooms = 0, vt = 0; const r0 = R;
-      while (vt < 400000 && R === r0 && R.room < 3) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.startsWith('카드')) sawCard = true; __botStep(); } else __botStep(); }
+      while (vt < 400000 && R === r0 && R && R.room < 2) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.startsWith('카드')) sawCard = true; __botStep(); } else __botStep(); }
       if (sawCard) return 'a card pick appeared between gates'; if (!(R && R.room >= 1)) return 'did not reach the next gates (' + (R && R.room) + ')';
       if (!((R.fv || 0) > 0)) return 'fever gauge did not fill over the gates';
       S.streak = 0; __bot.sig = undefined; for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle();
@@ -323,7 +323,7 @@ const BOT = `(()=>{
       const humanDodge = (dir = -1) => { onTap(); onSwipe(dir); };
       // every pattern that contains a dodge note
       for (const name of Object.keys(PATMAKE)) { const P = PATMAKE[name](); if (!P.notes.some(n => n.type === 'swipe')) continue;
-        startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); B.ehp = B.emax = 1e7; B.st.stunMult = 0; B.st.pool = { base: [[name, 1]] }; B.firstAtk = false;
+        startRun(9); R.room = R.rooms.length - 1; startFight(roomCfg(9, 'boss'), false); B.ehp = B.emax = 1e7; B.st.stunMult = 0; B.st.pool = { base: [[name, 1]] }; B.firstAtk = false;
         for (let i = 0; i < 150 && B.state !== 'WINDUP'; i++) __tick(16);
         let vt = 0, hits = 0; const h0 = window.hurt; window.hurt = function (d, l, g) { if (!g && B.atk && B.atk.notes[B.atk.idx] && B.atk.notes[B.atk.idx].type === 'swipe') hits++; return h0.apply(this, arguments); };
         let lastKey = '';
@@ -338,7 +338,7 @@ const BOT = `(()=>{
         if (hits) return `pattern ${name}: a touch-then-swipe dodge still got hit (${hits})`; endBattle(); }
       // wake shockwave after a stun, also right after mashing
       for (const idx of STAGES.map((s, i) => i).filter(i => STAGES[i].boss)) for (const mash of [false, true]) {
-        startRun(idx); R.room = 4; startFight(roomCfg(idx, 'boss'), false); for (let i = 0; i < 150; i++) __tick(16); B.ehp = B.emax = 1e7;
+        startRun(idx); R.room = R.rooms.length - 1; startFight(roomCfg(idx, 'boss'), false); for (let i = 0; i < 150; i++) __tick(16); B.ehp = B.emax = 1e7;
         B.stun = 100; enterGroggy(); while (B.state === 'GROGGY') { __tick(16); if (mash) onTap(); }
         if (B.state !== 'WAKE') return `stage ${idx + 1}: no wake shockwave`;
         const hp0 = B.php, until = B.time + 250; let done = false;
@@ -347,7 +347,7 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '특수 동작: 짓누르기(꾹) · 휩쓸기(방향) · 점프(↑) · 잡기(연타 탈출)', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0;
-      const one = (name, act, post) => { startRun(3); R.room = 4; startFight(roomCfg(3, 'boss'), false); B.ehp = B.emax = 1e7; B.php = B.pmax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [[name, 1]] }; B.firstAtk = false;
+      const one = (name, act, post) => { startRun(3); R.room = R.rooms.length - 1; startFight(roomCfg(3, 'boss'), false); B.ehp = B.emax = 1e7; B.php = B.pmax = 1e6; B.st.stunMult = 0; B.st.pool = { base: [[name, 1]] }; B.firstAtk = false;
         for (let i = 0; i < 300 && B.state !== 'WINDUP'; i++) __tick(16);
         if (B.state !== 'WINDUP' || B.atk.name !== name) return { err: name + ': attack never started' };
         const out = { hurts: 0, labels: [] }, h0 = window.hurt; window.hurt = function (d, l, g) { if (!g) { out.hurts++; out.labels.push(l) } return h0.apply(this, arguments); };
@@ -402,13 +402,13 @@ const BOT = `(()=>{
       return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '보스 등장 연출: 경고 → 실루엣 → 공개 → 전투 시작 · 탭 건너뛰기', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 0; window.__noBossIntro = false;
-      startRun(24); R.room = 4; startFight(roomCfg(24, 'boss'), false);
+      startRun(24); R.room = R.rooms.length - 1; startFight(roomCfg(24, 'boss'), false);
       if (B.state !== 'BOSSIN' || !document.querySelector('#cine .bwarn')) return 'boss entrance did not start with a warning';
       let g = 0, sawSil = false; while (B.state === 'BOSSIN' && g++ < 400) { __tick(16); if (B.bossIn && !B.bossIn.shown && B.time - B.stT > 1200) sawSil = true; if (B.bossIn && B.bossIn.shown && !document.querySelector('#cineText').classList.contains('show')) return 'no name card after reveal'; }
       if (!sawSil) return 'no silhouette walk-in'; if (B.state !== 'IDLE') return 'fight did not start after the entrance (' + B.state + ')';
       if (document.querySelector('#cine').classList.contains('on')) return 'letterbox stayed on';
       let w = 0; while (B.state !== 'WINDUP' && w++ < 300) __tick(16); if (B.state !== 'WINDUP') return 'boss never attacked after the entrance';
-      endBattle(); startRun(21); R.room = 4; startFight(roomCfg(21, 'boss'), false); if (B.state !== 'BOSSIN' || !document.querySelector('#cine .bwarn.keeper')) return 'keeper should get the warning entrance too';
+      endBattle(); startRun(21); R.room = R.rooms.length - 1; startFight(roomCfg(21, 'boss'), false); if (B.state !== 'BOSSIN' || !document.querySelector('#cine .bwarn.keeper')) return 'keeper should get the warning entrance too';
       for (let i = 0; i < 40; i++) __tick(16); onTap(); __tick(16); if (B.state !== 'IDLE') return 'tap did not skip the entrance';
       endBattle(); startRun(24); R.room = 1; startFight(roomCfg(24, 'min'), false); if (B.state === 'BOSSIN') return 'minion got a boss entrance';
       endBattle(); window.__noBossIntro = true; return __errors.length ? 'error: ' + __errors[0] : null; } },
@@ -556,13 +556,13 @@ const BOT = `(()=>{
         for (const [pt] of ex) { if (!PATMAKE[pt]) return 'missing pattern ' + pt; if (c.pool.base.some(([n]) => n === pt)) return `${c.kind}: phase-2 move ${pt} also used in phase 1`; }
         const W = c.pool.p2.reduce((a, b) => a + b[1], 0), sh = c.pool.p2.filter(([n]) => ex.some(([pt]) => pt === n)).reduce((a, b) => a + b[1], 0) / W;
         if (sh < .5) return `${c.kind}: phase-2 moves only ${Math.round(sh * 100)}% of phase 2`; }
-      endBattle(); startRun(19); R.room = 4; startFight(roomCfg(19, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
+      endBattle(); startRun(19); R.room = R.rooms.length - 1; startFight(roomCfg(19, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       const a1 = B.st.atk; startTransform(); if (!(B.st.atk > a1 * 1.1) || !B.p2T || !(B.p2T.idle < 1)) return 'phase 2 did not raise attack / speed';
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '신규 패턴 25종: 완벽한 입력이면 최고 템포(마왕 2페이즈)에서도 한 대도 안 맞음', run: () => {
       const NEW = ['fangrush','backstab','webtrap','stinger','boarcharge','quake','anvilcrush','avalanche','guardparry','pincercrush','skyfall','sonicdive','talongrab','dragonbreath','stormwing','hexrally','mirage','frostnova','thunderchain','lichdoom','bonedance','cursedbind','phantomstep','tentaclerage','demonend'];
       let hurts = 0; const oh = hurt; hurt = function () { hurts++; return oh.apply(this, arguments); }; const bad = [];
-      for (const k of NEW) { endBattle(); startRun(99); R.room = 4; startFight(roomCfg(99, 'boss'), false); B.php = B.pmax = 1e7; B.psh = B.pshMax = 1e7; let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16);
+      for (const k of NEW) { endBattle(); startRun(99); R.room = R.rooms.length - 1; startFight(roomCfg(99, 'boss'), false); B.php = B.pmax = 1e7; B.psh = B.pshMax = 1e7; let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16);
         B.ehp = B.emax = 1e9; B.hz = null; B.stun = 0; B.phase2 = true; enterPhase2(); Music.rate = 1.12; B.forcePat = k; B.idleDur = 0; g = 0; while (!(B.state === 'WINDUP' && B.atk && B.atk.name === k) && g++ < 600) __tick(16);
         if (!(B.atk && B.atk.name === k)) { bad.push(k + ' did not start'); continue; }
         hurts = 0; const a = B.atk, done = new Set(), beat = beatMs(); g = 0;
@@ -590,14 +590,14 @@ const BOT = `(()=>{
     { name: '2페이즈 변신 장면을 언제 건너뛰어도 보스 대사가 남지 않음', run: () => {
       const sub = () => document.querySelector('#cineSub').classList.contains('show');
       for (const i of [9, 29, 99]) for (const skip of [-1, 2800, 3000, 3100, 4000]) {
-        endBattle(); startRun(i); R.room = 4; startFight(roomCfg(i, 'boss'), false); B.php = B.pmax = 1e7; let g = 0; while (B.state !== 'IDLE' && g++ < 900) __tick(16);
+        endBattle(); startRun(i); R.room = R.rooms.length - 1; startFight(roomCfg(i, 'boss'), false); B.php = B.pmax = 1e7; let g = 0; while (B.state !== 'IDLE' && g++ < 900) __tick(16);
         B.ehp = 0; B.pendingKO = true; g = 0; while (B.state !== 'TRANSFORM' && g++ < 200) __tick(16); const t0 = B.time; let tapped = false; g = 0;
         while (B.state === 'TRANSFORM' && g++ < 1200) { __tick(16); if (skip >= 0 && !tapped && B.time - t0 >= skip) { tapped = true; onTap(); } }
         for (let k = 0; k < 60; k++) __tick(16);
         if (sub()) return `boss line stuck after phase-2 scene (stage ${i + 1}, skip at ${skip}ms)`; }
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
-      startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
+      startRun(9); R.room = R.rooms.length - 1; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
       for (const k in EN) { try { getEnemy(k, 0); getEnemy(k, 1); } catch (e) { return 'sprite ' + k + ': ' + e.message; } }
       return __errors.length ? 'error: ' + __errors[0] : null; } },
@@ -630,7 +630,7 @@ const BOT = `(()=>{
           if (q.left < ar.left - 1 || q.right > ar.right + 1) return `${kind} x${sc}: bubble leaves the screen`; }
         endBattle(); }
       // cinematic: the transformed boss must fit between the HUD/bars and the bottom bar
-      for (let idx = 0; idx < STAGES.length; idx++) { startRun(idx); R.room = 4; startFight(roomCfg(idx, 'boss'), false);
+      for (let idx = 0; idx < STAGES.length; idx++) { startRun(idx); R.room = R.rooms.length - 1; startFight(roomCfg(idx, 'boss'), false);
         const sc = Math.round(B.E.scale * 1.15 * 10) / 10, f = cineFrame(sc, B.st.kind);
         if (f.bh * f.z > f.bot - f.top + 1) return `stage ${idx + 1} boss (${Math.round(f.bh * f.z)}px) does not fit the cinematic frame (${Math.round(f.bot - f.top)}px)`; endBattle(); }
       return __errors.length ? 'error: ' + __errors[0] : null; });
