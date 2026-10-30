@@ -534,13 +534,13 @@ const BOT = `(()=>{
         if (document.querySelector('#battle').classList.contains('fever') && !feverOn()) return `fever UI stuck after fever ended (stage ${i + 1})`;
         if (B.state === 'FEVER' && !(B.fever > B.time)) return 'stuck in FEVER state'; }
       return __errors.length ? 'error: ' + __errors[0] : null; } },
-    { name: '패턴 조작 가능성: 회피 쿨타임·점프 쿨타임·버티기 직후 여유 (최고 템포 기준)', run: () => {
+    { name: '패턴 조작 가능성: 연속 회피 · 점프 쿨타임 · 손 떼기 카운터 (최고 템포 기준)', run: () => {
       const bad = [];
       for (const k in PATMAKE) { if (/^(hz|chart|barrage|orb|desp|fury|chaos)/.test(k)) continue; const ns = PATMAKE[k]().notes;
         for (let i = 0; i < ns.length; i++) { const n = ns[i];
-          for (let j = i - 1; j >= 0; j--) if (n.type === 'swipe' && ns[j].type === 'swipe') { if (n.o - ns[j].o < 2.5) bad.push(`${k}: dodges ${ns[j].o}→${n.o}`); break; }
+          for (let j = i - 1; j >= 0; j--) if (n.type === 'swipe' && ns[j].type === 'swipe') { if (n.o - ns[j].o < .75) bad.push(`${k}: dodges ${ns[j].o}→${n.o}`); break; }   // chained dodges shorten the cooldown
           for (let j = i - 1; j >= 0; j--) if (n.type === 'jump' && ns[j].type === 'jump') { if (n.o - ns[j].o < 2) bad.push(`${k}: jumps ${ns[j].o}→${n.o}`); break; }
-          if (i > 0 && ns[i - 1].type === 'hold' && n.o - ns[i - 1].o - (ns[i - 1].len || 0) < .5) bad.push(`${k}: no room after hold`); } }
+          if (i > 0 && ns[i - 1].type === 'hold' && n.o - ns[i - 1].o - (ns[i - 1].len || 0) < (n.type === 'tap' ? .25 : .5)) bad.push(`${k}: no room after hold`); } }   // a tap can be hit by releasing the guard
       if (bad.length) return 'unplayable at 170 BPM x1.12: ' + bad.slice(0, 6).join(' | ');
       // every regular monster from stage 11 on has moves of its own, and the mirror note flips before impact
       for (const i of [24, 54, 74, 94]) { R = R || {}; const e = roomCfg(i, 'elite'); if (!ownPats(e.kind, i).length && !SIG[e.kind]) return `elite ${e.kind} at stage ${i + 1} has no moves of its own`; }
@@ -559,6 +559,25 @@ const BOT = `(()=>{
       endBattle(); startRun(19); R.room = 4; startFight(roomCfg(19, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       const a1 = B.st.atk; startTransform(); if (!(B.st.atk > a1 * 1.1) || !B.p2T || !(B.p2T.idle < 1)) return 'phase 2 did not raise attack / speed';
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '신규 패턴 25종: 완벽한 입력이면 최고 템포(마왕 2페이즈)에서도 한 대도 안 맞음', run: () => {
+      const NEW = ['fangrush','backstab','webtrap','stinger','boarcharge','quake','anvilcrush','avalanche','guardparry','pincercrush','skyfall','sonicdive','talongrab','dragonbreath','stormwing','hexrally','mirage','frostnova','thunderchain','lichdoom','bonedance','cursedbind','phantomstep','tentaclerage','demonend'];
+      let hurts = 0; const oh = hurt; hurt = function () { hurts++; return oh.apply(this, arguments); }; const bad = [];
+      for (const k of NEW) { endBattle(); startRun(99); R.room = 4; startFight(roomCfg(99, 'boss'), false); B.php = B.pmax = 1e7; B.psh = B.pshMax = 1e7; let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16);
+        B.ehp = B.emax = 1e9; B.hz = null; B.stun = 0; B.phase2 = true; enterPhase2(); Music.rate = 1.12; B.forcePat = k; B.idleDur = 0; g = 0; while (!(B.state === 'WINDUP' && B.atk && B.atk.name === k) && g++ < 600) __tick(16);
+        if (!(B.atk && B.atk.name === k)) { bad.push(k + ' did not start'); continue; }
+        hurts = 0; const a = B.atk, done = new Set(), beat = beatMs(); g = 0;
+        while (B.atk === a && !a.resolved && g++ < 2000) { const t = B.time, n = a.notes[a.idx]; if (!n) break; const key = a.idx;
+          if (n.type === 'hold') { if (t >= n.t - 120) setGuard(true); }
+          else if (n.type === 'block') { if (t >= n.t - 300) setGuard(true); }
+          else if (!done.has(key)) {
+            if (n.type === 'tap' && t >= n.t - 8) { done.add(key); const pv = a.notes[a.idx - 1]; if (pv && pv.type === 'hold' && n.t - (pv.t + pv.dur) <= beat * .45 && B.guard) { ptrs.clear(); setGuard(false); onRelease(); } else { setGuard(false); onTap(); } }
+            else if (n.type === 'swipe' && !(n.flip && !n.flipped) && t >= n.t - 140) { done.add(key); setGuard(false); onSwipe(n.dir || -1); }
+            else if (n.type === 'jump' && t >= n.t - 140) { done.add(key); setGuard(false); onSwipeUp(); } }
+          __tick(8); }
+        if (hurts || !a.chainOk) bad.push(`${k} (hit ${hurts})`); }
+      hurt = oh; endBattle();
+      if (bad.length) return 'not clearable with perfect play: ' + bad.join(', ');
+      return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }

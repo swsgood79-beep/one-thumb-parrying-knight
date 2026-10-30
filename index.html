@@ -1006,31 +1006,31 @@ PATMAKE.wolfrun=()=>({kind:'chain',notes:[0,.5,1,2,2.5,3].map(o=>({o,type:'tap'}
 const MP=(kind,spec,lead)=>()=>({kind,lead,notes:spec.map(([o,c,len])=>({o,type:'sLRkM'.includes(c)?'swipe':c==='h'?'hold':c==='b'?'block':c==='j'?'jump':'tap',len,ghost:c==='g',dir:c==='L'?-1:c==='R'?1:c==='M'?(Math.random()<.5?-1:1):0,grab:c==='k',flip:c==='M'}))});
 /* archetype patterns: A beasts/assassins · B heavies · C flyers · D casters/spirits · E undead/sea · boss awakenings */
 Object.assign(PATMAKE,{
-  fangrush:MP('chain',[[0,'t'],[.5,'t'],[1.25,'L'],[2,'t'],[2.5,'t'],[3.75,'k'],[4.5,'t']],.95),
-  backstab:MP('chain',[[0,'L'],[.75,'g'],[1.25,'g'],[2.5,'R'],[3.25,'g']],.75),
+  fangrush:MP('chain',[[0,'t'],[.5,'t'],[1.25,'L'],[2.25,'R'],[3,'k'],[3.75,'t']],.95),
+  backstab:MP('chain',[[0,'L'],[.75,'g'],[1.25,'g'],[2.25,'R'],[3,'g']],.75),
   webtrap:MP('chain',[[0,'k'],[1.25,'t'],[1.75,'g'],[2.5,'j'],[3.25,'k']],1.15),
   stinger:MP('chain',[[0,'t'],[.33,'t'],[.67,'t'],[1.5,'b'],[2.5,'L'],[3,'g']],1.05),
   boarcharge:MP('chain',[[0,'b'],[1.25,'b'],[2.5,'j'],[3.25,'t'],[3.5,'t']],1.2),
   quake:MP('chain',[[0,'b'],[1.25,'j'],[2.25,'b'],[3.5,'j'],[4.25,'t'],[4.5,'t']],1.3),
-  anvilcrush:MP('chain',[[0,'h',1.5],[2,'t'],[2.75,'b'],[4,'L'],[4.75,'t']],1.2),
-  avalanche:MP('chain',[[0,'j'],[1,'b'],[2,'j'],[3,'h',1.5],[5,'t']],1.25),
-  guardparry:MP('chain',[[0,'h',1.25],[1.75,'t'],[2.5,'h',1.25],[4.25,'j'],[5,'t'],[5.25,'t']]),
-  pincercrush:MP('chain',[[0,'L'],[1,'t'],[1.5,'t'],[2.5,'R'],[3.25,'b'],[4,'t'],[5,'k']],1.15),
-  skyfall:MP('chain',[[0,'t'],[.5,'L'],[1.5,'j'],[3,'R'],[3.75,'t'],[4,'t'],[4.25,'t']]),
+  anvilcrush:MP('chain',[[0,'h',1.5],[1.75,'t'],[2.25,'b'],[3.5,'L'],[4.25,'t']],1.2),
+  avalanche:MP('chain',[[0,'j'],[1,'b'],[2,'j'],[3,'h',1.5],[4.75,'t']],1.25),
+  guardparry:MP('chain',[[0,'h',1.25],[1.5,'t'],[2,'h',1.25],[3.75,'j'],[4.5,'t'],[4.75,'t']]),
+  pincercrush:MP('chain',[[0,'L'],[1,'R'],[2,'k'],[3.25,'b'],[4,'t'],[4.25,'t']],1.15),
+  skyfall:MP('chain',[[0,'t'],[.5,'L'],[1.5,'j'],[2.5,'R'],[3.25,'t'],[3.5,'t'],[3.75,'t']]),
   sonicdive:MP('chain',[[0,'g'],[.5,'t'],[1.5,'L'],[2.5,'g'],[3,'t'],[4,'R']],.85),
-  talongrab:MP('chain',[[0,'t'],[1,'j'],[2,'k'],[3.25,'b'],[4,'t']],1.35),
-  dragonbreath:MP('chain',[[0,'j'],[1,'h',1.5],[3,'L'],[4,'t'],[4.5,'t'],[5.5,'R'],[6.25,'b']],1.25),
-  stormwing:MP('chain',[[0,'L'],[.75,'t'],[1.25,'t'],[2.5,'R'],[3.25,'t'],[3.75,'t'],[4.5,'j'],[5.25,'t']]),
+  talongrab:MP('feint',[[0,'t'],[1,'j'],[2,'k'],[3.25,'b'],[4,'t']],1.35),
+  dragonbreath:MP('chain',[[0,'j'],[1,'h',1.5],[3,'L'],[4,'R'],[4.75,'b']],1.25),
+  stormwing:MP('chain',[[0,'L'],[.75,'t'],[1.25,'t'],[2,'R'],[2.75,'t'],[3.25,'t'],[4,'j'],[4.75,'t']]),
   hexrally:MP('chain',[[0,'t'],[1.5,'t'],[2.75,'j'],[3.75,'t'],[4.5,'g'],[5.25,'b']],1.2),
-  mirage:MP('chain',[[0,'t'],[1,'M'],[2.25,'g'],[3.5,'M'],[4.25,'t'],[4.5,'t']],1.15),
-  frostnova:MP('chain',[[0,'b'],[1,'t'],[1.5,'t'],[2.25,'j'],[3.25,'h',1.25],[5,'g']]),
+  mirage:MP('chain',[[0,'t'],[1,'M'],[2.25,'g'],[3,'M'],[4,'t'],[4.25,'t']],1.15),
+  frostnova:MP('chain',[[0,'b'],[1,'t'],[1.5,'t'],[2.25,'j'],[3.25,'h',1.25],[4.75,'g']]),
   thunderchain:MP('chain',[[0,'t'],[.25,'t'],[1.25,'b'],[2.25,'t'],[2.5,'t'],[3.5,'b'],[4.25,'j']]),
-  lichdoom:MP('chain',[[0,'g'],[.75,'g'],[1.5,'b'],[2.5,'L'],[3.25,'t'],[3.75,'t'],[5,'R'],[5.75,'h',1.5],[7.75,'t']]),
+  lichdoom:MP('chain',[[0,'g'],[.75,'g'],[1.5,'b'],[2.5,'L'],[3.5,'R'],[4.25,'h',1.5],[6,'t']]),
   bonedance:MP('chain',[[0,'t'],[.75,'t'],[1.25,'j'],[2,'t'],[2.5,'L'],[3.5,'t'],[3.75,'g']]),
   cursedbind:MP('chain',[[0,'k'],[1.25,'h',1.5],[3.25,'k'],[4.25,'b'],[5,'t']]),
-  phantomstep:MP('chain',[[0,'g'],[1,'L'],[1.75,'g'],[2.5,'g'],[3.5,'R'],[4.25,'g'],[6,'k']]),
-  tentaclerage:MP('chain',[[0,'L'],[1,'j'],[1.75,'t'],[2.5,'k'],[3.25,'t'],[3.75,'t'],[5,'R'],[5.75,'b'],[6.5,'t'],[6.75,'t']]),
-  demonend:MP('chain',[[0,'t'],[.5,'g'],[1.25,'b'],[2.25,'j'],[3,'L'],[3.75,'t'],[4.25,'t'],[5.5,'R'],[6.25,'t'],[6.5,'t'],[6.75,'t'],[8,'k']]),
+  phantomstep:MP('chain',[[0,'g'],[1,'L'],[1.75,'g'],[2.5,'g'],[3.5,'R'],[4.25,'k']]),
+  tentaclerage:MP('chain',[[0,'L'],[1,'j'],[2,'k'],[3.25,'R'],[4.25,'b'],[5,'t'],[5.25,'t']]),
+  demonend:MP('chain',[[0,'t'],[.5,'g'],[1.25,'b'],[2.25,'j'],[3,'L'],[4,'R'],[4.75,'k'],[5.75,'t'],[6,'t'],[6.25,'t']]),
 });
 /* which monsters use which archetype move, and from which stage (index) it may appear */
 const ARCH_PATS={
@@ -2266,19 +2266,19 @@ const PAT_INFO={
   syncopa:['엇박 6연타','rhythm','박자 사이사이를 치는 리듬.'],triplet:['셋잇단','rhythm','따다닥 · 따다닥 (한 박에 세 번).'],decel:['감속 5연타','rhythm','점점 느려져요. 서두르지 말 것.'],
   stairs:['계단','rhythm','2연타씩, 묶음마다 박자가 달라져요.'],swing:['스윙','rhythm','바운스 리듬. 마지막 즈음 숨은 노트가 있어요.'],
   stream8:['8비트 스트림','rhythm','반 박 간격으로 8번 쭉.'],stream16:['16비트 스트림','rhythm','반의반 박 간격 8연타. 손목을 가볍게!'],gallop:['갤럽','rhythm','말발굽처럼 따다닥 ×3.'],wolfrun:['늑대 질주','rhythm','다다닥 · 다다닥 — 반 박 간격 3연타 두 번.'],
-  fangrush:['송곳니 급습','action','물어뜯기 2연타 → 왼쪽 덮치기 회피 → 2연타 → 목덜미 물기(잡기)를 피해요.'],backstab:['그림자 기습','hidden','측면 베기를 피한 뒤 숨은 노트로 등 뒤를 찔러요.'],
+  fangrush:['송곳니 급습','action','물어뜯기 2연타 → ◀·▶ 연속 덮치기(연속 회피) → 목덜미 물기(잡기) → 탭.'],backstab:['그림자 기습','hidden','측면 베기를 피한 뒤 숨은 노트로 등 뒤를 찔러요.'],
   webtrap:['거미줄 올가미','action','거미줄 잡기 회피 → 탭 → 숨은 탭 → 바닥 쓸기 점프 → 다시 잡기.'],stinger:['독침 연격','action','집게 셋잇단 → 꼬리 내려찍기(꾹) → 왼쪽 회피 → 숨은 독침.'],
   boarcharge:['맹수 돌진','action','몸통 박치기 두 번(꾹·꾹) 뒤 발밑 들이받기(점프)와 2연타.'],quake:['대지 분쇄','action','꾹 → 여진 점프를 두 번. 가드와 점프 전환 속도를 시험해요.'],
-  anvilcrush:['모루 연타','hold','난타를 버티다 끝나자마자 탭(가드 카운터!) → 내려찍기 → 회피.'],avalanche:['설산 눈사태','action','눈덩이 점프 · 얼음 주먹 꾹 · 점프 → 눈보라 버티기 → 탭.'],
-  guardparry:['가드 카운터','hold','버티기가 끝나는 순간 손을 떼고 바로 패링! 성공하면 피로도 1.5배 + 반격 피해.'],pincercrush:['집게 절단','action','왼쪽 집게 회피 → 2연타 → 오른쪽 집게 → 내려찍기 → 붙잡기.'],
-  skyfall:['급강하 칼바람','action','견제 탭 → 왼쪽 급강하 → 점프 → 오른쪽 → 깃털 3연타.'],sonicdive:['음속 강하','hidden','초음파 숨은 노트로 시작해 좌우 활강을 섞어요.'],
-  talongrab:['발톱 낚아채기','feint','탭 → 발밑 스치기 점프 → 발톱 잡기 회피 → 내려꽂기(꾹).'],dragonbreath:['화염 브레스','hold','바닥 불길 점프 → 브레스 버티기 → 날개 폭풍 좌·우 → 꼬리 내려찍기.'],
-  stormwing:['천공의 폭풍','action','왼쪽 돌풍+2연타, 오른쪽 돌풍+2연타 → 하강 충격파 점프.'],hexrally:['저주 구체 변주','orb','탭 리듬 사이로 독장판 점프, 숨은 저주탄, 마지막 폭발(꾹).'],
-  mirage:['신기루 환술','dodge','분홍 화살표는 맞기 직전에 방향이 뒤집혀요! 반전 소리를 듣고 반대로 회피.'],frostnova:['절대영도 파동','hold','냉기 폭발 꾹 → 고드름 2연타 → 얼음 가시 점프 → 눈보라 버티기 → 숨은 빙창.'],
-  thunderchain:['연쇄 낙뢰','action','따닥 감전 2연타와 낙뢰 꾹을 두 번 → 바닥 방전 점프.'],lichdoom:['사령의 심판','hard','투명 사령탄 → 중력장 꾹 → 낫 좌우 베기 → 영혼 흡수 버티기 → 마무리 탭.'],
+  anvilcrush:['모루 연타','hold','난타를 버티다 끝나는 순간 손을 떼면 카운터! → 내려찍기(꾹) → 회피 → 탭.'],avalanche:['설산 눈사태','action','눈덩이 점프 · 얼음 주먹 꾹 · 점프 → 눈보라 버티기 → 손 떼며 탭.'],
+  guardparry:['가드 카운터','hold','버티기 → 손 떼며 카운터 → 다시 버티기 → 점프 → 2연타. 손 떼기 카운터는 피로도 1.5배 + 반격 피해.'],pincercrush:['집게 절단','action','◀·▶ 집게 연속 휩쓸기(연속 회피) → 붙잡기 → 내려찍기(꾹) → 2연타.'],
+  skyfall:['급강하 칼바람','action','견제 탭 → ◀ 급강하 → 점프 → ▶ 급강하 → 깃털 3연타.'],sonicdive:['음속 강하','hidden','초음파 숨은 노트로 시작해 좌우 활강을 섞어요.'],
+  talongrab:['발톱 낚아채기','feint','탭 → 발밑 스치기 점프 → 발톱 잡기 회피 → 내려꽂기(꾹).'],dragonbreath:['화염 브레스','hold','바닥 불길 점프 → 브레스 버티기 → 날개 폭풍 ◀·▶ 연속 회피 → 꼬리 내려찍기(꾹).'],
+  stormwing:['천공의 폭풍','action','◀ 돌풍+2연타 · ▶ 돌풍+2연타 → 하강 충격파 점프 → 탭.'],hexrally:['저주 구체 변주','orb','탭 리듬 사이로 독장판 점프, 숨은 저주탄, 마지막 폭발(꾹).'],
+  mirage:['신기루 환술','dodge','분홍 화살표는 맞기 직전에 방향이 뒤집혀요! 반전 소리를 듣고 반대로 회피. 두 번 나와요.'],frostnova:['절대영도 파동','hold','냉기 폭발 꾹 → 고드름 2연타 → 얼음 가시 점프 → 눈보라 버티기 → 손 떼며 숨은 빙창.'],
+  thunderchain:['연쇄 낙뢰','action','따닥 감전 2연타와 낙뢰 꾹을 두 번 → 바닥 방전 점프.'],lichdoom:['사령의 심판','hard','투명 사령탄 → 중력장 꾹 → 낫 ◀·▶ 연속 회피 → 영혼 흡수 버티기 → 손 떼며 마무리.'],
   bonedance:['해골 무도회','action','엇박 칼질 · 하단 발차기 점프 · 왼쪽 베기 · 뒤늦게 날아오는 숨은 뼈.'],cursedbind:['붕대 포박','hold','붕대 잡기 회피 → 조여오는 압박 버티기 → 2차 잡기 → 관짝 내려찍기.'],
-  phantomstep:['유령 보법','hidden','거의 모든 타격이 안개 속에 숨어 있어요. 좌우 통과 뒤 빙의(잡기)까지.'],tentaclerage:['촉수 대소동','hard','크라켄 각성기: 촉수 회피 · 파도 점프 · 휘감기 · 반대쪽 촉수 · 덮치기.'],
-  demonend:['마왕의 종언','hard','마왕 각성기: 패링·숨은 노트·꾹·점프·양방향 회피·잡기를 한 프레이즈에.'],
+  phantomstep:['유령 보법','hidden','안개 속 숨은 타격 · ◀ 통과 · 숨은 2연타 · ▶ 통과 → 바로 빙의(잡기) 연속 회피.'],tentaclerage:['촉수 대소동','hard','크라켄 각성기: ◀ 촉수 · 파도 점프 · 휘감기(잡기) · ▶ 촉수 · 몸통 덮치기(꾹) · 2연타.'],
+  demonend:['마왕의 종언','hard','마왕 각성기: 탭·숨은 탭·꾹·점프·◀·▶·잡기 연속 회피·3연속 패링을 한 프레이즈에.'],
   dotted:['점음표','rhythm','따~단 따~단 (길게-짧게).'],clave:['클라베','rhythm','3-2 손 클라베 리듬.'],tresillo:['트레실로','rhythm','3+3+2 라틴 리듬.'],jack:['잭','rhythm','같은 박에 4연타 두 번.'],
   trip8:['셋잇단 스트림','rhythm','셋잇단으로 7번 쭉.'],shuffle:['셔플','rhythm','통통 튀는 바운스 8연타.'],offbeat:['엇박','rhythm','전부 박과 박 사이(앤드)에 와요.'],
   poly34:['폴리리듬 3:4','rhythm','네 박 위에 세 박 묶음이 겹쳐요.'],callresp:['주고받기','rhythm','3번 · 3번 · 4번으로 대답해요.'],stopgo:['스톱앤고','rhythm','셋 치고 쉬었다가 몰아쳐요.'],
@@ -2339,6 +2339,8 @@ function helpModal(onClose){
   <div class="ctl"><div class="k btn g">↑</div><p><b>점프</b> — <span style="color:#8fe86a">초록 노트(발밑 쓸기)</span>는 위로 스와이프해서 뛰어넘어요.</p></div>
   <div class="ctl"><div class="k btn y" style="background:linear-gradient(#ffe0b0,#ff9b2f)">잡기</div><p><b>잡기</b> — <span style="color:#ffb35a">주황 노트</span>는 가드하면 붙잡혀요. 좌우로 피하거나, 잡히면 마구 연타해서 탈출!</p></div>
   <div class="ctl"><div class="k btn y" style="background:linear-gradient(#fff,#ff9b2f 50%,#e0283f)">연타</div><p><b>기절</b> — 피로도가 가득 차면 「지금 공격!!」 마구 연타! 게이지는 시간과 피해 여유만큼 줄어요.</p></div>
+  <div class="ctl"><div class="k btn r">◀▶</div><p><b>연속 회피</b> — 회피 노트가 바로 이어지면 회피 쿨타임이 짧아져서 ◀·▶를 연달아 피할 수 있어요. 노트마다 한 번씩 스와이프!</p></div>
+  <div class="ctl"><div class="k btn b">꾹→떼기</div><p><b>손 떼기 카운터</b> — 버티기(파란 긴 노트)가 끝나자마자 오는 탭은 손을 떼는 순간으로도 패링돼요. 성공하면 "가드 카운터!" 피로도 1.5배 + 반격 피해.</p></div>
   <div class="ctl"><div class="k btn y" style="background:conic-gradient(#ff3b5c,#ffd23f,#5fd23a,#3a7dff,#b45cff,#ff3b5c)">FEVER</div><p><b>피버(필살기)</b> — 패링할수록 위쪽 피버 게이지가 차요(콤보가 높을수록 빨리). 가득 차면 오른쪽에 무지개색 FEVER 버튼이 나타나요. 원할 때 누르면 3초 동안 자동 연속 공격! 그동안 적은 반격하지 못해요. 게이지는 원정 내내 유지돼요.</p></div>
   <div class="ctl"><div class="k btn y">♪</div><p><b>특수 패턴</b> — 바닥의 노트를 보세요. <b style="color:#ffe14d">노랑</b>=탭, <b style="color:#ff8a8a">빨강</b>=스와이프, <b style="color:#9ad8ff">파랑</b>=꾹. 연속 패링을 전부 성공하면 <b>PERFECT CHAIN</b>! 보라색 <b>?</b>는 페이크.</p></div>
   <div class="ctl"><div class="k btn g">지형</div><p><b>지형 · 몬스터 특성</b> — 챕터마다 땅이 공격해요(낙석·용암·번개…). 몬스터마다 특성이 있어요(재생·독·부활·빙결…). 로비의 스테이지 정보에서 미리 확인!</p></div>
@@ -3127,7 +3129,7 @@ function resolveImpact(){
       else{ok=true;if(a.name==='hzBolt')actOk('번개 흡수!','#ffe14d',1.4);else actOk('철벽!','#bfe6ff',.5);sfx('guard',S.shStage);RK.block();domShake(1);barShake('#pShBar');ripple('#8fd0ff')}}
     else hurt(atk*1.3*red,t<B.evadeUntil?'충격파는 못 피해! 꾹!':'짓눌렸다! 꾹 가드!')}
   else if(t<B.evadeUntil&&n.dir&&B.evadeDir!==n.dir)hurt(atk*1.2*red,'반대쪽!');
-  else if(t<B.evadeUntil){if(n.type==='swipe')fvAdd(.8);ftAt('회피!',B.kx,B.gy-40,'info');RK.dodge(n.dir||B.evadeDir||-1);vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
+  else if(t<B.evadeUntil){if(n.type==='swipe'){fvAdd(.8);B.evadeUntil=t}ftAt('회피!',B.kx,B.gy-40,'info');RK.dodge(n.dir||B.evadeDir||-1);vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
   else if(n.grab)grabStart(atk*red);
   else if(n.type==='swipe'&&a.kind==='barrage')hurt(atk*.35*red,'피격!');
   else if(n.type==='swipe'){if(B.guard){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 붕괴!')}else hurt(atk*1.4*red)}
@@ -3217,7 +3219,9 @@ function onSwipe(dir){
   B.pendWhiff=0;
   if(B.time<B.evadeCd||B.time<(B.stiffUntil||0))return;
   if(B.tutWait==='swipe')coachHide();
-  B.evadeUntil=B.time+430;B.evadeCd=B.time+650+(B.hz==='mud'?150:0);B.evadeT=B.time;B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
+  B.evadeUntil=B.time+430;B.evadeCd=B.time+650+(B.hz==='mud'?150:0);
+  {const a=B.atk;if(B.state==='WINDUP'&&a&&!a.resolved){const nx=a.notes.find((n,k)=>k>a.idx&&!n.res&&n.type==='swipe');   // 연속 회피
+    if(nx&&nx.t-B.time<1100)B.evadeCd=Math.min(B.evadeCd,B.time+Math.max(150,nx.t-B.time-180))}}B.evadeT=B.time;B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
 }
 function setGuard(on){if(!B.active)return;if(on&&B.pendWhiff){B.pendWhiff=0}if(on&&(B.grab||B.state==='FEVER'||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
   if(on&&!B.guard){sfx('guard',0);vib(10)}B.guard=on}
@@ -4470,7 +4474,10 @@ function enterBreak(){
   track('groggy');setState('EXEC');B.exec={charge:-1,until:B.time+3000};B.open=null;B.guard=false;B.v2Stats.breaks++;
   banner('자세 붕괴!','꾹 눌러 힘을 모았다가 금색에서 놓기!');sfx('groggy');flash('#ffffff',.55,300);zoom(1.1);vib([30,40,30]);domShake(2);Music.hype=true;
 }
-function onRelease(){if(B.active&&R&&R.v2&&B.state==='EXEC'&&B.exec&&B.exec.charge>=0)v2Execute()}
+function onRelease(){if(B.active&&R&&R.v2&&B.state==='EXEC'&&B.exec&&B.exec.charge>=0){v2Execute();return}
+  if(!B.active||B.paused||B.state!=='WINDUP')return;const a=B.atk;if(!a||a.resolved||a.idx<1)return;const n=a.notes[a.idx],pv=a.notes[a.idx-1];
+  if(n.type!=='tap'||pv.type!=='hold'||n.t-(pv.t+pv.dur)>beatMs()*.45)return;   // only the quick "guard-cancel" taps
+  const t=inputTime(),w=pWin(),early=a.impact-t;if(early<=w.e&&early>=-w.l){padHit();parrySuccess(early,w.e)}}
 function v2Execute(){
   const e=B.exec,q=(B.time-e.charge)/EXEC_MS,grade=q>=EXEC_SWEET[0]&&q<=EXEC_SWEET[1]?3:(q>=.55&&q<1.15)?2:1;
   const d=Math.round((B.emax*.07+B.wp.groggyTapDamage*2)*grade);B.ehp-=d;B.eHitT=B.time;B.eFlash=200;B.v2Stats.exec.push(grade);
