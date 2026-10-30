@@ -2852,7 +2852,7 @@ function checkPhase(){if(multiBar())return;if((B.st.boss||B.st.label==='보스')
 function update(dt){
   const t=B.time;
   if(R&&R.vault)vaultTick();
-  if(B.pendWhiff&&t>=B.pendWhiff){B.pendWhiff=0;missPenalty(.04);stiffen()}
+  if(B.pendWhiff&&t>=B.pendWhiff){B.pendWhiff=0;if(!quietInput()){missPenalty(.04);stiffen()}}
   if(B.stun>=100&&!B.finalBlow&&!(R&&R.rhythm)&&(B.state==='WINDUP'||B.state==='RECOIL'||B.state==='STRIKE'||B.state==='IDLE')){
     // mid-phrase: keep the rhythm going, stun the moment the last note is done
     if(B.state==='WINDUP'&&B.atk&&!B.atk.resolved&&!B.slam){if(!B.finishReady){B.finishReady=true;B.finishPerfect=true;B.finishNotes=0;ftAt('FINISH!',B.ex,B.gy-B.E.scale*22,'combo');sfx('combo');vib([20,20,20]);lastHud=''}}
@@ -3016,8 +3016,11 @@ function holdHit(sc=1){
 function shieldPos(){return[B.kx+10,B.gy-14]}
 /* game time at the moment of the touch: last frame's time + real time since then (frames can lag behind the finger) */
 function inputTime(){return B.time+(B.tReal!=null?clamp(performance.now()-B.tReal,0,60)*(B.tScale==null?1:B.tScale):0)}
+/* between fights (victory, walking to the next gate, the next monster's entrance and its wait before the first attack) input does nothing */
+const quietInput=()=>!B.active||['INTRO','VICTORY','DEFEAT','WALK','DONE'].includes(B.state)||B.pendingKO||(B.ehp<=0&&!(R&&R.vault))||(B.state==='IDLE'&&B.firstAtk&&!B.tutWait&&!(R&&(R.prologue||R.rhythm)));
 function onTap(){
   if(!B.active||B.paused)return;
+  if(quietInput()&&B.state!=='BOSSIN'){B.pendWhiff=0;return}
   const t=inputTime();
   padHit();
   if(B.tutWait==='tap'&&B.tutStep===0){tutNext();return}

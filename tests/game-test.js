@@ -578,6 +578,15 @@ const BOT = `(()=>{
       hurt = oh; endBattle();
       if (bad.length) return 'not clearable with perfect play: ' + bad.join(', ');
       return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '전투 사이(승리 후 이동 · 다음 몬스터 첫 공격 전)에는 탭해도 실드가 안 깎임', run: () => {
+      endBattle(); startRun(3); R.room = 0; startFight(roomCfg(3, 'min'), false); let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16);
+      if (!B.firstAtk) return 'expected the first attack to be pending';
+      let s0 = B.psh; B.lastParryT = -1e9; B.mashGrace = 0; onTap(); for (let i = 0; i < 20; i++) __tick(16); if (B.psh < s0 || B.stiffUntil > B.time) return 'tapping before the first attack cost shield';
+      B.ehp = 0; B.pendingKO = true; for (let i = 0; i < 3; i++) __tick(16); s0 = B.psh;
+      for (let k = 0; k < 12; k++) { onTap(); __tick(16); __tick(16); } for (let i = 0; i < 30; i++) __tick(16);
+      if (B.psh < s0) return 'tapping after the victory cost shield (state ' + B.state + ')';
+      if (B.state === 'VICTORY' || B.state === 'WALK') { setState('WALK'); s0 = B.psh; onTap(); for (let i = 0; i < 20; i++) __tick(16); if (B.psh < s0) return 'tapping while walking to the next gate cost shield'; }
+      closeModal(); endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = 4; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
