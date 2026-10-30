@@ -3287,7 +3287,7 @@ const feverOn=()=>B.state==='FEVER'&&B.fever>B.time;
 const feverAllowed=()=>!(R&&(R.rhythm||R.prologue||R.trial||R.vault||R.v2));
 const fvReady=()=>!!(B.active&&R&&feverAllowed()&&(R.fv||0)>=FV_NEED&&!feverOn());
 function feverParry(perfect){fvAdd((perfect?1.5:1)*(1+Math.min(B.combo,30)/30))}
-function feverStart(){if(!fvReady())return false;R.fv=0;track('fever');
+function feverStart(){if(!fvReady())return false;R.fv=0;track('fever');dmgTotal(-1);
   if(B.atk&&!B.atk.resolved){B.atk.resolved=true;B.atk.notes.forEach(n=>n.res=true)}B.guard=false;B.pendWhiff=0;B.grab=null;B.finishReady=false;B.cutChain=false;
   const CUT=1600;setState('FEVER');B.fvCut=B.time+CUT;B.fever=B.time+CUT+FEVER_MS;B.fvT0=B.time+CUT;B.fvNext=B.fvT0+230;fvCutIn();B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?Math.max(.14,.25-TIER(B.idx||0)*.012):.40);B.fvK=null;B.fvLeap=false;B.fvFin=false;B.fvPush=0;B.fvIgn=false;
   sfx('fever');sfx('clang',true);vib([30,30,30,30,80]);Music.hype=true;Music.rate=Math.max(Music.rate,1.08);
@@ -3319,12 +3319,12 @@ function feverTick(t){if(t<B.fvCut)return;if(!B.fvIgn){B.fvIgn=true;fvCutOut();f
     const d=Math.round(d0-B.ehp);if(d>0)ftAt(`FEVER FINISH ${fmt(d)}`,B.W/2,B.H*.3,'crit')}}
 /* where the knight is during fever: dashing between slots with a rainbow trail */
 function fvKnightPos(t){const k=B.fvK;if(B.state!=='FEVER'||!k)return null;const q=clamp((t-k.t)/45,0,1);return{x:lerp(k.x0,k.x,ease(q)),y:lerp(k.y0,k.y,ease(q)),q,k,flip:k.x>B.ex+2}}
-function feverEnd(){B.fever=0;B.fvK=null;fvCutOut();Music.hype=false;Music.rate=B.phase2?1.12:1;
+function feverEnd(){dmgTotal(-1);B.fever=0;B.fvK=null;fvCutOut();Music.hype=false;Music.rate=B.phase2?1.12:1;
   if(B.state==='FEVER'){if(B.fvDmg>0)ftAt(`FEVER 피해 ${fmt(Math.round(B.fvDmg))}`,B.W/2,B.H*.34,'combo');setState('IDLE');B.idleDur=500}feverHud()}
 function feverStrike(mult,label){
   const now=performance.now();if(label==='추가'){if(now-(B.fvBashT||0)<70)return;B.fvBashT=now}
   let d=Math.max(1,Math.round(B.wp.groggyTapDamage*mult*rnd(.9,1.15)));if(B.fvCap!=null){if(B.fvDmg>=B.fvCap)d=Math.max(1,Math.round(d*.15));B.fvDmg+=d}
-  B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;B.eFlash=90;B.eRed=90;
+  B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;B.eFlash=90;B.eRed=90;dmgTotal(d);
   B.fvDash=B.time;B.swing=!B.swing;B.swingT=B.time;setKPose('attack');padHit();
   const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;
   addFx('slash',hx,hy,{len:14,ang:B.swing?-.75:.75+Math.PI,dur:140});addFx('pow',hx,hy,{r:8+mult*3,dur:150});
@@ -3389,7 +3389,7 @@ function speedLines(ms){
 function dmgTotal(d){
   const el=document.getElementById('dmgTot');if(!el)return;
   if(d<0){if(el.classList.contains('on')&&B.gTot){el.classList.add('fin');el.innerHTML=`<small>총 피해</small>${fmt(B.gTot)}`;clearTimeout(el._h);el._h=setTimeout(()=>el.classList.remove('on','fin'),900)}B.gTot=0;return}
-  B.gTot=(B.gTot||0)+d;if(B.gTot<=d&&B.state!=='GROGGY')return;
+  B.gTot=(B.gTot||0)+d;if(B.gTot<=d&&B.state!=='GROGGY'&&B.state!=='FEVER')return;
   const[x,y]=toCss(B.ex,B.gy-B.E.scale*26-6);el.style.left=x+'px';el.style.top=Math.max(hudBottom()+40,y)+'px';
   el.innerHTML=`<small>연타 피해</small>${fmt(B.gTot)}`;el.classList.add('on');restartCls(el,'pop','fin');clearTimeout(el._h);
 }

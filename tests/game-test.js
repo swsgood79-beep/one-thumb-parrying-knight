@@ -466,7 +466,8 @@ const BOT = `(()=>{
       const e0 = B.ehp; fb.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); if (B.state !== 'FEVER') return 'FEVER button did not unleash fever (' + B.state + ')';
       lastHud = ''; updHud(); if (!fb.hidden) return 'FEVER button still shown during fever';
       if (!document.querySelector('#fever').classList.contains('on')) return 'fever HUD not shown';
-      let atk = false; vt = 0; while (B.state === 'FEVER' && vt < 8000) { __tick(16); vt += 16; if (B.state === 'WINDUP') atk = true; }
+      let atk = false, seen = false; const dtEl = document.getElementById('dmgTot'); vt = 0; while (B.state === 'FEVER' && vt < 8000) { __tick(16); vt += 16; if (B.state === 'WINDUP') atk = true; if (dtEl.classList.contains('on') && /연타 피해/.test(dtEl.textContent)) seen = true; }
+      if (!seen) return 'combo damage counter not shown during fever strikes'; if (!/총 피해/.test(dtEl.textContent)) return 'no total damage shown when fever ended';
       if (atk) return 'enemy attacked during fever'; if (vt < 4100 || vt > 5600) return 'fever (1.6s cut-in + 3s strikes) should last about 4.6s (' + vt + 'ms)';
       if (!(e0 - B.ehp > B.wp.groggyTapDamage * 25)) return 'fever did not deal rapid damage (' + Math.round(e0 - B.ehp) + ')';
       if ((R.fv || 0) !== 0 || fvReady()) return 'fever gauge not emptied after use';
