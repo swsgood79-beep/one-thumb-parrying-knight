@@ -622,6 +622,29 @@ const BOT = `(()=>{
       if (!fins.length) return 'phrase reward stun never happened';
       for (const f of fins) if (Math.min(f, barMs() - f) > 40) return 'finishing blow not on the downbeat (' + Math.round(f) + 'ms into the bar)';
       __bot.sig = undefined; endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '심박 패턴(리듬 닥터식): 신호 박자 · 칸 표시 · 완벽 입력 무피격 · 박자 보정 · 결과 등급', run: () => {
+      closeModal(); closeModal(); const HBP = ['row7', 'row7swing', 'freeze7', 'oneshot', 'squareshot', 'tripshot']; let hurts = 0; const oh = hurt; hurt = function (d, l, g) { if (!g) hurts++; return oh.apply(this, arguments); };
+      const oc = RK.ok; RK.ok = () => true; const oq = RK.cue; let cueT = []; RK.cue = (ty, k, when) => { cueT.push(B.time); };
+      for (const k of HBP) for (const p2 of [false, true]) { endBattle(); startRun(99); R.room = 0; startFight(roomCfg(99, 'min'), false); B.php = B.pmax = 1e9; B.psh = B.pshMax = 1e9; B.ehp = B.emax = 1e9; let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16);
+        B.hz = null; if (p2) Music.rate = 1.12; B.forcePat = k; B.idleDur = 0; g = 0; while (!(B.state === 'WINDUP' && B.atk && B.atk.name === k) && g++ < 600) __tick(16);
+        const a = B.atk; if (!a || a.name !== k) { hurt = oh; RK.cue = oq; RK.ok = oc; return k + ' did not start'; } if (!a.cues || !a.cues.length) { hurt = oh; RK.cue = oq; RK.ok = oc; return k + ' has no cues'; }
+        hurts = 0; cueT = []; const done = new Set(); g = 0;
+        while (B.atk === a && !a.resolved && g++ < 3000) { const n = a.notes[a.idx]; if (n && !done.has(a.idx) && B.time >= n.t - 8) { done.add(a.idx); onTap(); } __tick(8); }
+        if (hurts || !a.chainOk) { hurt = oh; RK.cue = oq; RK.ok = oc; return `${k}${p2 ? ' (fast)' : ''}: perfect play still got hit`; }
+        if (cueT.length !== a.cues.length) { hurt = oh; RK.cue = oq; RK.ok = oc; return `${k}: ${cueT.length}/${a.cues.length} cues played`; }
+        for (let i = 0; i < a.cues.length; i++) if (Math.abs(cueT[i] - (a.cues[i].t - 80)) > 20) { hurt = oh; RK.cue = oq; RK.ok = oc; return `${k}: cue ${i} off its beat by ${Math.round(cueT[i] - a.cues[i].t + 80)}ms`; }
+        if (a.row && a.lit < a.cues.length) { hurt = oh; RK.cue = oq; RK.ok = oc; return `${k}: pips did not light (${a.lit})`; }
+        Music.rate = 1; }
+      hurt = oh; RK.cue = oq; RK.ok = oc;
+      // calibration: with S.calib = 50, a tap 50 ms late counts as on time
+      endBattle(); startRun(20); R.room = 0; startFight(roomCfg(20, 'min'), false); B.php = B.pmax = 1e9; let g = 0; while (B.state !== 'IDLE' && g++ < 400) __tick(16);
+      B.hz = null; B.forcePat = 'single'; B.idleDur = 0; g = 0; while (!(B.state === 'WINDUP' && B.atk) && g++ < 600) __tick(16);
+      const c0 = S.calib; S.calib = 50; let pf = false; const op = parrySuccess; parrySuccess = function (early, win) { pf = Math.abs(early - 15) <= Math.max(35, win * .22); return op.apply(this, arguments); };
+      const a1 = B.atk; while (B.time < a1.impact + 50) __tick(4); onTap(); parrySuccess = op; S.calib = c0; if (!pf) return 'calibration offset was not applied to the judgement';
+      // result screen shows the rhythm rank
+      R.notes = 40; R.miss = 1; R.offs = [10, 20, -5]; runComplete(); const ok = !!document.querySelector('#mbox .rrank .rk'); const txt = (document.querySelector('#mbox .rrank') || {}).textContent || ''; closeModal();
+      if (!ok || !txt.startsWith('A리듬 등급 · 실수 1/40')) return 'rhythm rank missing on the result screen (' + txt + ')';
+      endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = R.rooms.length - 1; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }

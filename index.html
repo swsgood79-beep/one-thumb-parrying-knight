@@ -541,6 +541,7 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #cine.bossin .ct em.sig{color:#ffd23f;font-weight:800;margin-top:6px}
 .ft.finisher{color:#fff;font-size:26px;text-shadow:0 0 14px #ff5bd8,0 3px 0 #3a0a30,2px 0 0 #3a0a30,-2px 0 0 #3a0a30;animation:ftfin 1s ease-out forwards}
 @keyframes ftfin{0%{transform:translate(-50%,-50%) scale(2.2);opacity:0}12%{transform:translate(-50%,-50%) scale(1);opacity:1}75%{opacity:1}100%{transform:translate(-50%,-90%);opacity:0}}
+.rrank{display:flex;align-items:center;gap:12px;justify-content:center;margin:6px 0}.rrank .rk{font-family:var(--f-display);font-size:40px;color:#ffd23f;text-shadow:0 3px 0 #3a0a30}.rrank .rk-Sp{color:#7cf0ff}.rrank .rk-D{color:#ff7a8a}.rrank span{text-align:left;font-size:13px;line-height:1.4}.rrank em{color:#ffd23f;font-style:normal}
 .ft.groove{color:#7cf0ff;font-size:15px;text-shadow:0 0 10px rgba(80,220,255,.9),0 2px 0 #10204a}
 .ft.sigmv{color:#fff;font-size:17px;font-weight:900;padding:2px 10px;border-radius:10px;background:linear-gradient(90deg,#7a1030,#c4253c);border:2px solid #ffd23f;white-space:nowrap;animation:sigmv 1.1s ease-out forwards}
 @keyframes sigmv{0%{transform:translate(-50%,0) scale(1.6);opacity:0}12%{transform:translate(-50%,0) scale(1);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-14px);opacity:0}}
@@ -1003,6 +1004,20 @@ PATMAKE.rush=()=>PAT.chain(8,.5);
 PATMAKE.tapguard=()=>({kind:'chain',notes:[{o:0,type:'tap'},{o:1,type:'hold',len:1},{o:3,type:'tap'}]});
 PATMAKE.slow=()=>({kind:'single',notes:[{o:0,type:'tap'}],lead:2.1});
 PATMAKE.orb4=()=>orbPat(4);
+/* heartbeat patterns: cues are heard (and shown as pips), the hit lands where the count leads.
+   row7: 6 pulses, hit the 7th · swing: the pulses swing · freeze: the 7th comes one beat late
+   oneshot: a ding, hit one beat later · squareshot: two dings set the gap, hit after the same gap */
+const HB=(notes,cues,extra)=>()=>Object.assign({kind:'chain',notes:notes.map(o=>({o,type:'tap'})),cues:cues.map(c=>typeof c==='number'?{o:c}:c),lead:.6},extra||{});
+Object.assign(PATMAKE,{
+  row7:HB([6],[0,1,2,3,4,5],{row:7}),
+  row7swing:HB([6],[0,1.33,2,3.33,4,5.33],{row:7,swing:true}),
+  freeze7:HB([7],[{o:0,t:'ice'},1,2,3,4,5],{row:7,freeze:true}),
+  oneshot:HB([1,3,5],[{o:0,t:'ding'},{o:2,t:'ding'},{o:4,t:'ding'}]),
+  squareshot:HB([1,3.5],[{o:0,t:'ding'},{o:.5,t:'ding'},{o:2,t:'ding'},{o:2.75,t:'ding'}]),
+  tripshot:HB([.67,2.67],[{o:0,t:'ding'},{o:.33,t:'ding'},{o:2,t:'ding'},{o:2.33,t:'ding'}]),
+});
+/* which heartbeat move each chapter adds to its monsters */
+const HB_BY_CH=[['row7'],['row7','oneshot'],['row7swing','oneshot'],['freeze7','squareshot'],['row7swing','squareshot'],['freeze7','tripshot'],['row7swing','squareshot'],['freeze7','tripshot'],['squareshot','tripshot'],['freeze7','tripshot']];
 PATMAKE.wolfrun=()=>({kind:'chain',notes:[0,.5,1,2,2.5,3].map(o=>({o,type:'tap'}))});
 /* complex patterns: t = parry, s = dodge (≥2.5 beats between dodges), h = hold, g = hidden-until-late tap */
 const MP=(kind,spec,lead)=>()=>({kind,lead,notes:spec.map(([o,c,len])=>({o,type:'sLRkM'.includes(c)?'swipe':c==='h'?'hold':c==='b'?'block':c==='j'?'jump':'tap',len,ghost:c==='g',dir:c==='L'?-1:c==='R'?1:c==='M'?(Math.random()<.5?-1:1):0,grab:c==='k',flip:c==='M'}))});
@@ -2027,6 +2042,9 @@ const RK={
     if(type==='tap'){tone(mf(chordTone(3,79)),.07,'square',.05,0,0,o);tone(1900,.025,'sine',.05,0,0,o)}
     else if(type==='hold'){tone(mf(chordTone(0,55)),.22,'sawtooth',.035,0,0,Object.assign({attack:.02},o))}
     else if(type==='block'){tone(95,.18,'sine',.42,-30,0,o)}
+    else if(type==='pulse'){const k=dir||0;tone(70+k*6,.16,'sine',.5,-25,0,o);tone(mf(chordTone(k%3,60)),.09,'triangle',.07,0,0,o)}
+    else if(type==='ding'){tone(mf(chordTone(2,84)),.22,'sine',.09,0,0,Object.assign({},o,{wet:.5}));tone(mf(chordTone(2,84))*2.76,.12,'sine',.025,0,0,o)}
+    else if(type==='ice'){tone(2400,.3,'sine',.05,-900,0,Object.assign({},o,{wet:.6}));tone(70,.16,'sine',.5,-25,0,o)}
     else if(type==='jump'){tone(300,.12,'sine',.18,500,0,o)}
     else if(type==='grab'){tone(700,.04,'square',.04,0,0,o);tone(700,.04,'square',.04,0,0,Object.assign({},o,{at:at+.06}))}
     else{noise(.09,.1,0,dir<0?1200:3200,Object.assign({type:'bandpass',q:1.2,sweep:dir<0?600:6000},o))}},
@@ -2275,7 +2293,8 @@ const PAT_INFO={
   stutter:['엇박 3연타','rhythm','하나, 쉬고, 따닥.'],echo:['메아리','rhythm','따닥 · 쉬고 · 따닥.'],slowfast:['느-느-빠-빠','rhythm','느리게 둘, 빠르게 셋, 다시 느리게.'],
   syncopa:['엇박 6연타','rhythm','박자 사이사이를 치는 리듬.'],triplet:['셋잇단','rhythm','따다닥 · 따다닥 (한 박에 세 번).'],decel:['감속 5연타','rhythm','점점 느려져요. 서두르지 말 것.'],
   stairs:['계단','rhythm','2연타씩, 묶음마다 박자가 달라져요.'],swing:['스윙','rhythm','바운스 리듬. 마지막 즈음 숨은 노트가 있어요.'],
-  stream8:['8비트 스트림','rhythm','반 박 간격으로 8번 쭉.'],stream16:['16비트 스트림','rhythm','반의반 박 간격 8연타. 손목을 가볍게!'],gallop:['갤럽','rhythm','말발굽처럼 따다닥 ×3.'],wolfrun:['늑대 질주','rhythm','다다닥 · 다다닥 — 반 박 간격 3연타 두 번.'],
+  stream8:['8비트 스트림','rhythm','반 박 간격으로 8번 쭉.'],stream16:['16비트 스트림','rhythm','반의반 박 간격 8연타. 손목을 가볍게!'],gallop:['갤럽','rhythm','말발굽처럼 따다닥 ×3.'],row7:['심박 7박','rhythm','적이 6번 쿵쿵 울려요. 위쪽 7칸이 차오르면 7번째 박에 탭!'],row7swing:['스윙 심박','rhythm','쿵-쿵 박이 출렁거려요(스윙). 그래도 7번째 박에 탭.'],freeze7:['얼린 7박','rhythm','첫 박에 얼음 소리가 나면 7번째가 한 박 늦게 와요. 8번째에 탭!'],oneshot:['원샷','rhythm','띵! 하고 정확히 한 박 뒤에 탭. 세 번.'],squareshot:['스퀘어샷','rhythm','띵-띵 두 번의 간격만큼 기다렸다가 탭. 간격이 매번 달라요.'],tripshot:['셋잇단 샷','rhythm','띵-띵 (셋잇단 간격) 뒤 같은 간격에 탭.'],
+  wolfrun:['늑대 질주','rhythm','다다닥 · 다다닥 — 반 박 간격 3연타 두 번.'],
   fangrush:['송곳니 급습','action','물어뜯기 2연타 → ◀·▶ 연속 덮치기(연속 회피) → 목덜미 물기(잡기) → 탭.'],backstab:['그림자 기습','hidden','측면 베기를 피한 뒤 숨은 노트로 등 뒤를 찔러요.'],
   webtrap:['거미줄 올가미','action','거미줄 잡기 회피 → 탭 → 숨은 탭 → 바닥 쓸기 점프 → 다시 잡기.'],stinger:['독침 연격','action','집게 셋잇단 → 꼬리 내려찍기(꾹) → 왼쪽 회피 → 숨은 독침.'],
   boarcharge:['맹수 돌진','action','몸통 박치기 두 번(꾹·꾹) 뒤 발밑 들이받기(점프)와 2연타.'],quake:['대지 분쇄','action','꾹 → 여진 점프를 두 번. 가드와 점프 전환 속도를 시험해요.'],
@@ -2731,7 +2750,8 @@ const TECHS=[
 ];
 const tech=id=>{const t=TECHS.find(x=>x.id===id);return !!(t&&S&&S.cleared>=t.at&&!(R&&(R.prologue||R.rhythm||R.vault||R.v2||R.trial)))};
 const nextTech=()=>TECHS.find(t=>S.cleared<t.at);
-function movesFor(kind,idx,n){const out=[],add=k=>{if(k&&PATMAKE[k]&&!out.includes(k)&&!/^(hz|desp|fury|barrage)/.test(k))out.push(k)};
+function movesFor(kind,idx,n){const hb=idx>=1?HB_BY_CH[Math.floor(idx/10)]:null,hk=hb?hb[(kind.length+idx)%hb.length]:null;const base=movesFor0(kind,idx,n);if(hk&&!base.includes(hk))base.splice(Math.min(2,base.length),0,hk);return base}
+function movesFor0(kind,idx,n){const out=[],add=k=>{if(k&&PATMAKE[k]&&!out.includes(k)&&!/^(hz|desp|fury|barrage)/.test(k))out.push(k)};
   const own=ownPats(kind,idx);add(own[0]);
   (SIG[kind]||[]).slice().sort((a,b)=>b[1]-a[1]).forEach(([k])=>add(k));
   (MINION_POOLS[kind]||[]).slice().sort((a,b)=>b[1]-a[1]).forEach(([k])=>{if(k!=='single')add(k)});
@@ -2923,6 +2943,8 @@ function enterPhase2(){if(B.p2T)return;B.p2T=p2Tune(B.idx||0);B.st=Object.assign
 function checkPhase(){if(multiBar())return;if((B.st.boss||B.st.label==='보스')&&B.st.pool.p2&&!(R&&(R.rhythm||R.trial))&&!B.phase2&&B.ehp>0&&B.ehp<B.emax*.5&&B.state!=='VICTORY'){B.phase2=true;enterPhase2();Music.rate=1.12;banner('2페이즈!',B.idx===9?'마왕이 분노했다':B.st.name+'이(가) 분노했다! 패턴 변화');flash('#ff2b3b',.45,400);vig('rgba(255,40,60,.9)',800);domShake(3);vib([60,60,60]);sfx('warn')}}
 function update(dt){
   const t=B.time;
+  {const a=B.atk;if(a&&a.cues&&!a.resolved&&B.state==='WINDUP')while(a.ci<a.cues.length&&t>=a.cues[a.ci].t-80){const c=a.cues[a.ci++];
+      if(t-c.t<120){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.atk===a){a.lit=c.k+1;B.eFlash=Math.max(B.eFlash||0,45)}},Math.max(0,c.t-t))}}}
   if(B.ph){const ph=B.ph;while(ph.ci<ph.cues.length&&t>=ph.cues[ph.ci].t-80){const c=ph.cues[ph.ci++];   // scheduled 80 ms ahead on the audio clock, so the call lands exactly on the beat
       if(t-c.t<120&&B.state!=='GROGGY'&&B.state!=='FEVER'&&B.state!=='TRANSFORM'){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.dir,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.ph===ph){B.eFlash=Math.max(B.eFlash||0,55);B.cueT=B.time}},Math.max(0,c.t-t))}}
     if(B.state!=='GROGGY'){const a=B.atk,done=ph.rep*ph.spec.length+(a&&a.phrase===ph.rep?a.idx:0);B.stun=clamp(100*(done-ph.miss)/ph.total,0,99)}}
@@ -3018,10 +3040,11 @@ function beginAttack(){
   let pb=beat;{const os=P.notes.map(n=>n.o).sort((x,y)=>x-y);let md=1e9;for(let k=1;k<os.length;k++)if(os[k]-os[k-1]>.01)md=Math.min(md,os[k]-os[k-1]);
     const minGap=B.idx==null||R&&(R.rhythm||R.prologue)?0:(B.idx<30?135:B.idx<60?110:85);while(!PHR&&md<1e9&&md*pb<minGap&&pb<beat*4)pb*=2}
   const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*pb,type:n.type,dur:(n.len||0)*pb,res:false,ghost:!!n.ghost,dir:n.dir||0,grab:!!n.grab,flip:!!n.flip}));
+  const atkCues=P.cues?P.cues.map((c,k)=>({t:t0+c.o*pb,type:c.t||'pulse',k})):null;
   if(PHR&&PHR.hide!=null)notes.forEach((n,k)=>{if(k>=PHR.hide)n.hidden=true});
   if(!hzA&&!PHR){const gp=(hasT('ghostly')?.35:0)+(B.hz==='vine'?.15:0);notes.forEach((n,k)=>{if(gp&&k>0&&n.type==='tap'&&Math.random()<gp)n.ghost=true;if(B.hz==='sand'&&n.type==='swipe'&&!n.grab&&P.kind!=='barrage')n.dir=B.wind})}
   B.atk={kind:P.kind,name,start:B.time,impact:notes[0].t,dur:lead,notes,idx:0,resolved:false,heavy:notes[0].type==='swipe',chainOk:true,holdOk:true,holdTick:0,ticks:0,pulseT:-9999,parried:0};
-  B.atk.lesson=!!B.isLesson;B.isLesson=false;B.atk.hz=hzA;B.atk.phrase=PHR?PHR.rep:null;
+  B.atk.lesson=!!B.isLesson;B.isLesson=false;B.atk.hz=hzA;if(R&&!hzA)R.notes=(R.notes||0)+notes.length;B.atk.phrase=PHR?PHR.rep:null;if(atkCues){B.atk.cues=atkCues;B.atk.ci=0;B.atk.lit=0;B.atk.row=P.row||0;B.atk.freeze=!!P.freeze}
   if(ambush){B.atk.ambush=true;ftAt('기습!',B.ex,B.gy-B.E.scale*16,'warn')}
   if(P.kind==='fury'){banner('분노의 5연타!','전부 막으면 큰 빈틈!');Music.rate=1.1;sfx('warn');vig('rgba(255,30,50,.8)',600);domShake(1)}
   if(P.kind==='desp'){banner('최후의 발악!','5연타를 모두 막아라!');Music.rate=1.15;sfx('warn');vig('rgba(255,30,50,.9)',800);domShake(2);vib([40,40,40])}
@@ -3099,7 +3122,7 @@ function holdHit(sc=1){
 }
 function shieldPos(){return[B.kx+10,B.gy-14]}
 /* game time at the moment of the touch: last frame's time + real time since then (frames can lag behind the finger) */
-function inputTime(){return B.time+(B.tReal!=null?clamp(performance.now()-B.tReal,0,60)*(B.tScale==null?1:B.tScale):0)}
+function inputTime(){return -(S.calib||0)+B.time+(B.tReal!=null?clamp(performance.now()-B.tReal,0,60)*(B.tScale==null?1:B.tScale):0)}
 /* between fights (victory, walking to the next gate, the next monster's entrance and its wait before the first attack) input does nothing */
 const quietInput=()=>!B.active||['INTRO','VICTORY','DEFEAT','WALK','DONE'].includes(B.state)||B.pendingKO||(B.ehp<=0&&!(R&&R.vault))||(B.state==='IDLE'&&B.firstAtk&&!B.tutWait&&!(R&&(R.prologue||R.rhythm)));
 function onTap(){
@@ -3174,7 +3197,8 @@ function parrySuccess(early,win){
     vig(perfect?'rgba(255,245,170,.95)':'rgba(255,200,60,.8)');
     domShake(perfect?2:1);zoom(perfect?1.15:1.07);ftAt('CLANG!',sx+14,sy-4,'clang')}
   ripple(perfect?'#ffffff':'#fff36b');
-  ftAt(a.notes.length>1?`${perfect?'퍼펙트':'저스트'} ${a.idx+1}/${a.notes.length}`:perfect?'퍼펙트 패링!':'저스트 패링!',sx,sy-18,perfect?'perfect':'parry');
+  const el=perfect?'':(early-15>0?' · 빠름':' · 늦음');if(R&&!R.prologue){R.offs=R.offs||[];R.offs.push(15-early)}
+  ftAt(a.notes.length>1?`${perfect?'퍼펙트':'저스트'} ${a.idx+1}/${a.notes.length}${el}`:(perfect?'퍼펙트 패링!':'저스트 패링'+el),sx,sy-18,perfect?'perfect':'parry');
   B.perfStreak=perfect?B.perfStreak+1:0;
   if(B.fx.perfStreakStun&&B.perfStreak>0&&B.perfStreak%3===0){B.stun=Math.min(100,B.stun+B.fx.perfStreakStun);ftAt('메아리 +'+Math.round(B.fx.perfStreakStun),B.ex,B.gy-44,'info')}
   if(perfect&&B.fx.perfectHealPct&&B.php<B.pmax){const h=Math.max(1,Math.round(B.pmax*B.fx.perfectHealPct/100));B.php=Math.min(B.pmax,B.php+h);ftAt('+'+h,B.kx-10,B.gy-30,'info')}
@@ -3190,6 +3214,7 @@ function parrySuccess(early,win){
 function chip(d,label){d=Math.round(Math.min(d,Math.max(3,B.emax*(multiBar()?.025:.05))));B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;ftAt(label+' '+d,B.ex-B.E.scale*4,B.gy-B.E.scale*14,'crit');if(B.ehp<=0)B.pendingKO=true}
 function hurt(dmg,label,guarded){
   if(!guarded&&B.ph&&B.atk&&B.atk.phrase!=null)B.ph.miss++;
+  if(!guarded&&R&&B.state==='WINDUP'&&B.atk&&!B.atk.hz)R.miss=(R.miss||0)+1;
   if(!guarded&&R&&R.prologue&&B.tutStep===3&&B.state==='WINDUP')tutParried('hit');
   if(R&&R.rhythm){B.combo=0;ftThrottle('MISS',B.kx,B.gy-40,'warn');sfx('whiff');return}
   if(R&&R.vault){vaultHurt(guarded);return}
@@ -3519,6 +3544,8 @@ function drawLane(c,t){
   const a=B.atk;if(B.state!=='WINDUP'||!a||!a.notes){pixCircle(c,jx,y,4,'rgba(255,255,255,.6)');return}
   const near=a.impact-t<120&&curNote().type==='tap';
   pixCircle(c,jx,y,4,near?'#ffe14d':'#ffffff');pixCircle(c,jx,y,5,'rgba(255,255,255,.35)');
+  if(a.row){const N=a.row+(a.freeze?1:0),gx=Math.round(B.W/2-N*4),gy2=y-14;for(let i=0;i<N;i++){const target=i===N-1,frz=a.freeze&&i===N-2,on=i<a.lit;
+      px(c,gx+i*8-1,gy2-1,7,7,K);px(c,gx+i*8,gy2,5,5,target?(on?'#ffffff':'#ff5b6b'):frz?'#7cd4ff':on?'#ffe14d':'#3b3277');if(target&&a.lit>=N-1&&Math.floor(t/80)%2)px(c,gx+i*8,gy2,5,5,'#ffffff')}}
   for(let k=a.idx;k<a.notes.length;k++){const n=a.notes[k];if(n.res||n.hidden)continue;const dt=n.t-t;if(dt>lead)break;
     const x=Math.round(jx+dt*v),hidden=(a.kind==='feint'||n.ghost)&&dt>320;
     if(n.type==='hold'){const x2=Math.round(jx+(n.t+n.dur-t)*v);const xa=Math.max(jx,x);c.fillStyle=K;c.fillRect(xa-1,y-3,x2-xa+3,7);c.fillStyle='#4bb6ff';c.fillRect(xa,y-2,x2-xa+1,5);c.fillStyle='#bfe6ff';c.fillRect(xa,y-2,x2-xa+1,1);continue}
@@ -3795,11 +3822,22 @@ function resumeGame(){B.paused=false;lastTs=0;duckMusic(MUS_VOL)}
 function pauseGame(){if(!B.active||B.paused||B.state==='VICTORY'||B.state==='DEFEAT')return;B.paused=true;B.guard=false;ptrs.clear();duckMusic(MUS_VOL*.3);
   modal(`<h2>일시정지</h2><p>${B.st.name}</p><div class="btns"><button class="btn g" data-m="go">계속하기</button><button class="btn b" data-m="help">조작법</button><button class="btn d" data-m="set">사운드 · 진동 설정</button><button class="btn r" data-m="quit">${R.prologue?'프롤로그 건너뛰기':R.rhythm?'그만하기':'원정 포기 (모은 골드 '+fmt(R.gold)+' 획득)'}</button></div>`,
   {go:()=>{closeModal();resumeGame()},help:()=>helpModal(resumeGame),set:()=>settingsModal(resumeGame),quit:()=>{closeModal();if(R.prologue){endPrologue();return}if(R.rhythm){B.active=false;R=null;endBattle();return}if(R.vault){resumeGame();vaultFinish('quit');return}if(R.trial){B.active=false;R=null;endBattle();return}S.gold+=R.gold;save();toast(`원정 포기 · ${fmt(R.gold)} 골드 획득`);breakStreak(endBattle)}})}
+/* calibration: tap along with 8 clicks; the median offset is subtracted from every judgement */
+function calibModal(onDone){ensureAudio();if(!AC){toast('소리를 켠 뒤 다시 해 주세요');return}
+  const bpm=100,per=60/bpm,t0=AC.currentTime+.6,clicks=[],taps=[];for(let k=0;k<12;k++){const at=t0+k*per;clicks.push(at);tone(k<4?1568:1046,.06,'square',.08,0,0,{at});tone(k<4?784:523,.05,'triangle',.08,0,0,{at})}
+  modal(`<h2>박자 보정</h2><p>처음 4번은 듣기만, 그다음 8번 '딱' 소리에 맞춰 아래 버튼을 탭하세요.</p><div class="btns"><button class="btn y" id="calTap" style="height:120px;font-size:22px">탭!</button></div><p id="calTxt" style="font-size:13px">듣는 중...</p>`,{});
+  const lat=AC.outputLatency||AC.baseLatency||0,b=$('#calTap');
+  b.addEventListener('pointerdown',e=>{e.preventDefault();taps.push(AC.currentTime);$('#calTxt').textContent=`${Math.max(0,taps.length)} / 8`});
+  setTimeout(()=>{const offs=[];for(const tp of taps){let best=null;for(const c of clicks.slice(4)){const d=(tp-(c+lat))*1000;if(best==null||Math.abs(d)<Math.abs(best))best=d}if(best!=null&&Math.abs(best)<250)offs.push(best)}
+    offs.sort((x,y)=>x-y);closeModal();if(offs.length<4){toast('탭이 부족해요. 다시 해 볼까요?');onDone&&onDone();return}
+    const med=Math.round(offs[Math.floor(offs.length/2)]);S.calib=clamp(med,-150,200);save();
+    modal(`<h2>보정 완료</h2><p>평균 <b>${Math.abs(S.calib)}ms ${S.calib>=0?'늦게':'일찍'}</b> 누르는 편이에요.<br>앞으로 판정에서 이만큼 맞춰 드려요.</p><div class="btns"><button class="btn g" data-m="ok">확인</button></div>`,{ok:()=>{closeModal();onDone&&onDone()}})},(t0-AC.currentTime+12*per+.5)*1000)}
 function settingsModal(onClose){
   const row=(k,label,desc)=>`<div class="ctl"><p style="flex:1"><b>${label}</b><br><span style="color:var(--muted);font-size:12px">${desc}</span></p><button class="btn ${S[k]?'g':'d'}" data-m="t_${k}" style="min-width:78px;height:42px">${S[k]?'켜짐':'꺼짐'}</button></div>`;
   const render=()=>modal(`<h2>설정</h2>${row('bgm','배경음악','로비·전투·보스 테마')}<div class="ctl"><p style="flex:1"><b>음악 볼륨</b><br><span style="color:var(--muted);font-size:12px">오디오 상태: ${AC?(AC.state==='running'?'재생 중':'대기 · 화면을 터치하세요'):'화면을 터치하면 켜져요'}${(()=>{try{const l=JSON.parse(localStorage.getItem('otpk-errors')||'[]');return l.length?'<br>최근 오류: '+String(l[l.length-1]).replace(/[<>&]/g,''):''}catch(_){return''}})()}</span></p><button class="btn b" data-m="mvol" style="min-width:78px;height:42px">${['작게','보통','크게'][S.mvol==null?1:S.mvol]}</button></div>${row('snd','효과음','패링·타격·가드 소리')}${row('vib','진동','패링·가드·피격 시 진동')}${row('assist','패링 도우미','판정 시간 +80ms (쉬움 모드)')}
-    <p style="font-size:12px">진동은 안드로이드 브라우저에서 동작해요. 아이폰은 진동 대신 화면 흔들림·번쩍임으로 피드백을 줘요.</p><div class="btns"><button class="btn g" data-m="ok">닫기</button><button class="btn b" data-m="help">조작법 보기</button>${B.active?'':'<button class="btn b" data-m="tut">튜토리얼 다시 하기</button><button class="btn d" data-m="title">타이틀 화면으로</button>'}</div>`,
-    {tut:()=>{closeModal();S.tutReplay=true;startPrologue()},help:()=>helpModal(onClose),title:()=>{closeModal();showTitle()},t_bgm:()=>{S.bgm=!S.bgm;save();render()},mvol:()=>{S.mvol=((S.mvol==null?1:S.mvol)+1)%3;MUS_VOL=MUS_LV[S.mvol];save();duckMusic(MUS_VOL);render()},t_snd:()=>{S.snd=!S.snd;save();render()},t_assist:()=>{S.assist=!S.assist;save();if(B.active)lastHud='';render()},t_vib:()=>{S.vib=!S.vib;save();if(S.vib)vib([40,40,80]);render()},ok:()=>{closeModal();refreshTop();if(!B.active&&tab==='battle')renderLobby();onClose&&onClose()}});
+    <p style="font-size:12px">진동은 안드로이드 브라우저에서 동작해요. 아이폰은 진동 대신 화면 흔들림·번쩍임으로 피드백을 줘요.</p><div class="ctl"><p style="flex:1"><b>박자 보정</b><br><span style="color:var(--muted);font-size:12px">기기 소리 지연 맞추기 · 지금 ${(S.calib||0)>=0?'+':''}${S.calib||0}ms</span></p><button class="btn b" data-m="calib" style="min-width:78px;height:42px">보정</button></div>
+    <div class="btns"><button class="btn g" data-m="ok">닫기</button><button class="btn b" data-m="help">조작법 보기</button>${B.active?'':'<button class="btn b" data-m="tut">튜토리얼 다시 하기</button><button class="btn d" data-m="title">타이틀 화면으로</button>'}</div>`,
+    {calib:()=>{closeModal();calibModal(()=>settingsModal(onClose))},tut:()=>{closeModal();S.tutReplay=true;startPrologue()},help:()=>helpModal(onClose),title:()=>{closeModal();showTitle()},t_bgm:()=>{S.bgm=!S.bgm;save();render()},mvol:()=>{S.mvol=((S.mvol==null?1:S.mvol)+1)%3;MUS_VOL=MUS_LV[S.mvol];save();duckMusic(MUS_VOL);render()},t_snd:()=>{S.snd=!S.snd;save();render()},t_assist:()=>{S.assist=!S.assist;save();if(B.active)lastHud='';render()},t_vib:()=>{S.vib=!S.vib;save();if(S.vib)vib([40,40,80]);render()},ok:()=>{closeModal();refreshTop();if(!B.active&&tab==='battle')renderLobby();onClose&&onClose()}});
   render();
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&B.active&&!B.paused&&B.state!=='VICTORY'&&B.state!=='DEFEAT')pauseGame();if(AC){if(document.hidden)AC.suspend();else AC.resume()}});
@@ -3881,6 +3919,8 @@ function runComplete(){
     ${SR.n>prevStars&&prevStars?`<p class="newbest">최고 기록 갱신! ${starStr(prevStars)} → ${starStr(SR.n)}${starGems?` · 보석 +${starGems}`:''}</p>`:starGems?`<p class="newbest">별 보상 · 보석 +${starGems}</p>`:''}
     <div class="starcond"><span class="ok">✔ 스테이지 클리어</span><span class="${SR.okHp&&!SR.revived?'ok':''}">${SR.okHp&&!SR.revived?'✔':'✘'} 체력 ${Math.round(STAR_HP*100)}% 이상 남기기 (${Math.round(SR.hp*100)}%)</span>
       <span class="${SR.okPerf&&!SR.revived?'ok':''}">${SR.okPerf&&!SR.revived?'✔':'✘'} 퍼펙트 ${Math.round(STAR_PERF*100)}% 이상 (${Math.round(SR.perf*100)}%)</span>${SR.revived?'<span>부활하면 별 1개</span>':''}</div>
+    ${(()=>{const n=R.notes||0,m=R.miss||0,r=n?m/n:0,rk=!n?'-':m===0?'S+':r<=.02?'S':r<=.05?'A':r<=.1?'B':r<=.18?'C':'D',o=R.offs||[],av=o.length?Math.round(o.reduce((x,y)=>x+y,0)/o.length):0;
+      return `<div class="rrank"><b class="rk rk-${rk.replace('+','p')}">${rk}</b><span>리듬 등급 · 실수 ${m}/${n}<br>평균 ${Math.abs(av)}ms ${av>=0?'늦게':'일찍'}${Math.abs(av)>40?' · <em>설정 → 박자 보정을 해 보세요</em>':''}</span></div>`})()}
     <div class="mini"><span>패링 ${R.parries}회</span><span>퍼펙트 ${R.perfects}회</span><span>최대 콤보 ${R.maxCombo}</span></div>
     <div class="btns"><button class="btn y" data-m="ad">▶ 광고 보고 2배 받기 (${fmt(gold*2)})</button><button class="btn g" data-m="take">받기</button></div>`,
   {ad:()=>{closeModal();simulateAd(()=>claim(2),'2배 보상')},take:()=>{closeModal();claim(1)}});
