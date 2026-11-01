@@ -2023,6 +2023,13 @@ const RK={
   groggy(k){if(!RK.ok())return;const at=AC.currentTime,d=[0,1,2,4,5][k%5]+7*(Math.floor(k/5)%2);
     tone(mf(scaleTone(d,72)),.12,'square',.045,0,0,{at,wet:.25})},
   fever(k){if(!RK.ok())return;const at=AC.currentTime;tone(mf(scaleTone(k%14,76)),.1,k%5===4?'sawtooth':'square',.045,0,0,{at,wet:.3});if(k%5===4)tone(mf(scaleTone(k%14,64)),.2,'triangle',.08,0,0,{at})},
+  cue(type,dir,when){if(!RK.ok())return;const at=when||AC.currentTime,o={at,wet:.2};
+    if(type==='tap'){tone(mf(chordTone(3,79)),.07,'square',.05,0,0,o);tone(1900,.025,'sine',.05,0,0,o)}
+    else if(type==='hold'){tone(mf(chordTone(0,55)),.22,'sawtooth',.035,0,0,Object.assign({attack:.02},o))}
+    else if(type==='block'){tone(95,.18,'sine',.42,-30,0,o)}
+    else if(type==='jump'){tone(300,.12,'sine',.18,500,0,o)}
+    else if(type==='grab'){tone(700,.04,'square',.04,0,0,o);tone(700,.04,'square',.04,0,0,Object.assign({},o,{at:at+.06}))}
+    else{noise(.09,.1,0,dir<0?1200:3200,Object.assign({type:'bandpass',q:1.2,sweep:dir<0?600:6000},o))}},
   groove(lv){if(!RK.ok())return;const now=AC.currentTime;let at=Music.next||now;while(at<now+.02)at+=.1;
     [0,1,2,3].slice(0,lv+1).forEach(k=>tone(mf(chordTone(k+2,72)),.09,'square',.04,0,0,{at:at+k*.07,wet:.4}));noise(.4,.08,0,3000,{at,sweep:9000,type:'bandpass',q:.8})},
 };
@@ -2675,6 +2682,43 @@ function sigPool(kind,pool){const sg=BOSS_SIG[kind];if(!sg)return pool;
   return{base:mix(keep.length?keep:pool.base,.6,[.42,.33,.25]),p2}}
 /* every monster fights with its own 2-3 moves, in a rhythm you can learn: A · A · B · A · C · B (with an occasional surprise) */
 const MOVE_ROT=[0,0,1,0,2,1];
+/* ===== boss phrases: call & response on the music's bars =====
+   a phrase = 3 repetitions of one riff. each repetition is 2 bars: the boss CALLS the rhythm (cue sounds), then you ANSWER it.
+   the third answer hides its last notes on screen (the call still sounds) — play it from the beat you just heard.
+   clear 80% of a phrase and the next 2 bars are a reward stun; the finishing blow lands on the downbeat. */
+const phraseOn=()=>multiBar()&&!(R&&(R.prologue||R.rhythm||R.vault||R.trial||R.v2));
+const barMs=()=>beatMs()*4;
+function nextDownbeat(minAhead){   // game time of the next bar start at least minAhead ms away
+  if(AC&&Music.cur&&S.bgm&&AC.state==='running'&&Music.last){const per=Music.last.per,lat=AC.outputLatency||AC.baseLatency||0;
+    let tA=Music.last.t-(Music.last.n%4)*per;while((tA+lat-AC.currentTime)*1000<minAhead)tA+=per*4;return B.time+(tA+lat-AC.currentTime)*1000}
+  const bar=barMs(),o=B.phOrigin||0;return o+Math.ceil((B.time+minAhead-o)/bar)*bar}
+const PH_KINDS=['chain','feint','single','hold','orb'];
+function riffSpec(name){const P=PATMAKE[name]();if(!P||!P.notes)return null;const beat=beatMs();
+  const os=P.notes.map(n=>n.o).sort((a,b)=>a-b);let md=1e9;for(let k=1;k<os.length;k++)if(os[k]-os[k-1]>.01)md=Math.min(md,os[k]-os[k-1]);
+  const minGap=(B.idx||0)<30?135:(B.idx||0)<60?110:85;let sc=1;while(md<1e9&&md*sc*beat<minGap&&sc<4)sc*=2;
+  const spec=P.notes.map(n=>Object.assign({},n,{o:n.o*sc,len:(n.len||0)*sc})).filter(n=>n.o+(n.len||0)<=3.5);
+  return spec.length>=2||(spec.length===1&&P.notes.length===1)?{kind:PH_KINDS.includes(P.kind)?P.kind:'chain',spec}:null}
+function phraseVary(spec){   // phase 2: the last tap of the riff moves half a beat later (if it still fits)
+  const v=spec.map(n=>Object.assign({},n)),l=v[v.length-1];if(l&&l.type==='tap'&&l.o+.5<=3.5)l.o+=.5;return v}
+function phraseNext(){
+  const bar=barMs(),beat=bar/4;let ph=B.ph;
+  if(ph){const nt=ph.t0+(2*ph.rep+1)*bar+ph.spec[0].o*beat;if(nt-B.time<Math.max(380,beat*.9))ph=B.ph=null}   // fell behind (fever, stun...): start fresh
+  if(!ph){const pl=B.st.pool,ms=B.phase2&&pl.moves2?pl.moves2:pl.moves;let name=null,r=null;
+    for(let k=0;k<ms.length&&!r;k++){B.rotI=(B.rotI||0)+1;name=ms[[0,1,0,2][(B.rotI-1)%4]%ms.length];if(name===B.phLast&&ms.length>1)name=ms[(ms.indexOf(name)+1)%ms.length];r=riffSpec(name)}
+    B.phLast=name;
+    if(!r){name='chain3';r=riffSpec(name)}
+    const t0=nextDownbeat(Math.max(250,beat*.5)),spec=r.spec,var2=B.phase2?phraseVary(spec):spec;
+    ph=B.ph={name,kind:r.kind,spec,var2,rep:0,t0,miss:0,imp:0,total:spec.length*3,cues:[],ci:0};
+    for(let k=0;k<3;k++)(k?var2:spec).forEach(n=>ph.cues.push({t:t0+2*k*bar+n.o*beat,type:n.grab?'grab':n.type,dir:n.dir||0,rep:k}));
+    if(!S.phTip){S.phTip=1;save();banner('리듬 보스!','보스가 먼저 박자를 들려줘요 → 똑같이 막기 · 세 번째엔 노트가 숨어요')}}
+  const k=ph.rep,spec=k?ph.var2:ph.spec;
+  return{name:ph.name,kind:ph.kind,spec,rep:k,resp:ph.t0+(2*k+1)*bar,hide:k===2?Math.max(1,spec.length-Math.ceil(spec.length/3)):null}}
+function phraseEnd(){const ph=B.ph;B.ph=null;if(!ph)return false;const ok=(ph.total-ph.miss)/ph.total,perfect=!ph.miss&&!ph.imp;
+  if(ok<.8){ftAt('악절 실패...',B.ex,B.gy-B.E.scale*20,'warn');return false}
+  const bar=barMs();enterGroggy();B.phReward=true;B.phPerfect=perfect;B.phGrid=ph.t0;B.groggyCap=1e15;
+  const end=Math.max(B.time+bar*1.5,ph.t0+8*bar);B.groggyDur=end-B.time;B.groggyEnd=end;
+  ftAt(perfect?'PERFECT PHRASE!':'악절 성공!',B.ex,B.gy-B.E.scale*22,'perfect');RK.chainDone(4);return true}
+const onGrid=()=>{if(!B.phReward)return false;const e=beatMs()/2,off=((B.time-B.phGrid)%e+e)%e;return Math.min(off,e-off)<=70};
 /* techniques: clearing stages teaches the knight new tricks (new things to do, not just bigger numbers) */
 const TECHS=[
   {id:'counter',at:3, name:'카운터 베기',ic:'weapon2',desc:'연속 패링을 전부 막으면 바로 반격 베기! 피해 + 피로도 +8'},
@@ -2715,7 +2759,7 @@ Object.assign(PATMAKE,{hzVineL:MP('hz',[[0,'L']],1.4),hzVineR:MP('hz',[[0,'R']],
 /* guard drain scales with the shield: a guarded hit costs about 15% of a full shield at any stage */
 const drainK=()=>(hasT('burn')?1.6:1)*(B.hz==='lava'?1.4:1)*(B.st&&B.st.atk>0?Math.min(1,B.pshMax*(.14+.18*((B.idx||0)/99))/B.st.atk):1);
 function hzStart(cfg){B.hz=(R&&!(R.prologue||R.rhythm||R.vault||R.trial||R.v2)&&HZ[cfg.hz])?cfg.hz:null;B.lastHz=false;B.wind=Math.random()<.5?-1:1;B.windT=4000+rnd(3000,6000);B.blizOn=false;B.blizT=rnd(5000,8000);
-  B.raged=false;B.p2T=null;B.rotI=0;B.seenMv=null;B.eRevived=false;B.stolen=0;B.poison=null;B.frozenUntil=0;
+  B.raged=false;B.p2T=null;B.rotI=0;B.seenMv=null;B.ph=null;B.phReward=false;B.phPerfect=false;B.phOrigin=0;B.eRevived=false;B.stolen=0;B.poison=null;B.frozenUntil=0;
   if(B.hz==='wave')B.tune=Object.assign({},B.tune,{jit:(B.tune.jit||0)+.06})}
 /* passive map effects + monster traits, every frame */
 function worldTick(t,dt){
@@ -2862,7 +2906,8 @@ function loopBody(ts){
   const dt=lastTs?Math.min(200,ts-lastTs):16;lastTs=ts;
   tutTick();
   if(!B.paused&&!B.tutFreeze){
-    const gdt=performance.now()<B.slowUntil?dt*B.slowF:dt;
+    const lockT=!!(B.ph||B.phReward);if(lockT)_hs=0;
+    const gdt=!lockT&&performance.now()<B.slowUntil?dt*B.slowF:dt;
     checkPhase();
     if(_hs>0){_hs-=dt;_hsFrozen+=dt;if(_hsFrozen>200){_hs=0;_hsFrozen=0;_hsBlockUntil=performance.now()+150}}
     else{_hsFrozen=0;let rem=gdt;while(rem>0){const st=Math.min(rem,34);B.time+=st;update(st);rem-=st;if(!B.active)break}}
@@ -2878,9 +2923,12 @@ function enterPhase2(){if(B.p2T)return;B.p2T=p2Tune(B.idx||0);B.st=Object.assign
 function checkPhase(){if(multiBar())return;if((B.st.boss||B.st.label==='보스')&&B.st.pool.p2&&!(R&&(R.rhythm||R.trial))&&!B.phase2&&B.ehp>0&&B.ehp<B.emax*.5&&B.state!=='VICTORY'){B.phase2=true;enterPhase2();Music.rate=1.12;banner('2페이즈!',B.idx===9?'마왕이 분노했다':B.st.name+'이(가) 분노했다! 패턴 변화');flash('#ff2b3b',.45,400);vig('rgba(255,40,60,.9)',800);domShake(3);vib([60,60,60]);sfx('warn')}}
 function update(dt){
   const t=B.time;
+  if(B.ph){const ph=B.ph;while(ph.ci<ph.cues.length&&t>=ph.cues[ph.ci].t-80){const c=ph.cues[ph.ci++];   // scheduled 80 ms ahead on the audio clock, so the call lands exactly on the beat
+      if(t-c.t<120&&B.state!=='GROGGY'&&B.state!=='FEVER'&&B.state!=='TRANSFORM'){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.dir,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.ph===ph){B.eFlash=Math.max(B.eFlash||0,55);B.cueT=B.time}},Math.max(0,c.t-t))}}
+    if(B.state!=='GROGGY'){const a=B.atk,done=ph.rep*ph.spec.length+(a&&a.phrase===ph.rep?a.idx:0);B.stun=clamp(100*(done-ph.miss)/ph.total,0,99)}}
   if(R&&R.vault)vaultTick();
   if(B.pendWhiff&&t>=B.pendWhiff){B.pendWhiff=0;if(!quietInput()){missPenalty(.04);stiffen()}}
-  if(B.stun>=100&&!B.finalBlow&&!(R&&R.rhythm)&&(B.state==='WINDUP'||B.state==='RECOIL'||B.state==='STRIKE'||B.state==='IDLE')){
+  if(B.stun>=100&&!B.ph&&!B.finalBlow&&!(R&&R.rhythm)&&(B.state==='WINDUP'||B.state==='RECOIL'||B.state==='STRIKE'||B.state==='IDLE')){
     // mid-phrase: keep the rhythm going, stun the moment the last note is done
     if(B.state==='WINDUP'&&B.atk&&!B.atk.resolved&&!B.slam){if(!B.finishReady){B.finishReady=true;B.finishPerfect=true;B.finishNotes=0;ftAt('FINISH!',B.ex,B.gy-B.E.scale*22,'combo');sfx('combo');vib([20,20,20]);lastHud=''}}
     else{if(B.atk)B.atk.resolved=true;B.cutChain=false;B.slam=false;enterGroggy();return}}
@@ -2948,28 +2996,32 @@ function beginAttack(){
     if(ms&&ms.length&&!B.pack&&!(R&&(R.prologue||R.rhythm||R.vault||R.trial||R.v2))&&!(B.firstAtk&&(B.idx||0)<5)){
       B.rotI=(B.rotI||0)+1;name=Math.random()<.15?ms[Math.floor(Math.random()*ms.length)]:ms[MOVE_ROT[(B.rotI-1)%MOVE_ROT.length]%ms.length];
       if(!B.seenMv)B.seenMv={};if(!B.seenMv[name]&&B.st.label!=='보스'&&PAT_INFO[name]){B.seenMv[name]=1;ftAt(PAT_INFO[name][0]+'!',B.ex,B.gy-B.E.scale*22,'sigmv')}}}
+  const PHR=phraseOn()&&!B.forcePat&&B.st.pool&&B.st.pool.moves&&!B.disarm&&!despReady()&&!B.pack?phraseNext():null;
+  if(PHR){name=PHR.name;if(PHR.rep===2)ftAt('기억해서!',B.ex,B.gy-B.E.scale*22,'sigmv')}
   if(R&&R.prologue){name=B.tutStep===4?'hold':B.tutStep===5?'heavy':'single';
     if(B.tutStep>=10&&B.tutStep<10+LESSONS.length){if(!B.lessonGo){lessonShow(B.tutStep-10);setState('IDLE');B.idleDur=1e9;return}B.lessonGo=false;name=LESSONS[B.tutStep-10];B.isLesson=true}}
   if(R&&R.prologue&&B.tutStep===7){name='heavy';B.finalBlow=true;coachSoft('...!? 이 공격은 <b class="r">무언가 다르다</b>...');setTimeout(()=>{if(B.active)ftAt('막을 수 없는 일격이 온다...!',B.kx+10,B.gy-50,'warn')},100)}
   if(!B.disarm&&despReady()){B.despUsed=true;name='desp'}
   if(B.disarm&&!B.disarm.started){B.disarm.started=true;name='barrage'}
   if(B.forcePat){name=B.forcePat;B.forcePat=null}
-  let hzA=null;if(B.hz&&!B.lastHz&&!B.disarm&&name!=='desp'&&HZ[B.hz].ev.length&&Math.random()<HZ[B.hz].rate){name=pick(HZ[B.hz].ev);hzA=B.hz}B.lastHz=!!hzA;
+  let hzA=null;if(!PHR&&B.hz&&!B.lastHz&&!B.disarm&&name!=='desp'&&HZ[B.hz].ev.length&&Math.random()<HZ[B.hz].rate){name=pick(HZ[B.hz].ev);hzA=B.hz}B.lastHz=!!hzA;
   if(PAT_INFO[name]&&R&&!R.prologue&&!(S.seenPat||{})[name]){S.seenPat=S.seenPat||{};S.seenPat[name]=1}
   else if(tipsOn()&&PAT_INFO[name]&&name!=='single'&&!(S.seenPat||{})[name]&&!B.disarm){const nm=name;patTip(nm,()=>{if(B.active&&B.state==='IDLE'){B.forcePat=nm;B.idleDur=350;B.stT=B.time}});setState('IDLE');B.idleDur=1e9;return}
   let ambush=false;if(R&&R.v2){ambush=B.v2Ambush;B.v2Ambush=false;name=ambush?'single':v2Pick()}
   {const sn=B.st.label==='보스'&&SIG_NAME[B.st.kind]&&SIG_NAME[B.st.kind][name];B.sigMove=sn||null;if(sn)ftAt(sn+'!',B.ex,B.gy-B.E.scale*22,'sigmv')}
-  const P=PATMAKE[name](),beat=beatMs();
+  const P=PATMAKE[name](),beat=beatMs();if(PHR){P.kind=PHR.kind;P.notes=PHR.spec;P.off=0}
   let lead=B.st.windup*(P.lead||1)*(1+rnd(-T.jit,T.jit))*(B.phase2?(B.p2T?B.p2T.lead:.88):1);if(ambush)lead=520;
-  if(!(R&&R.prologue)&&!ambush){const minL=Math.round((P.notes.length>1||P.kind==='hold'?560:P.lead&&P.lead<.7?380:460)*(1-.28*((B.idx||0)/99)));lead=alignBeat(Math.max(lead,minL))}
+  if(PHR)lead=PHR.resp-B.time;
+  else if(!(R&&R.prologue)&&!ambush){const minL=Math.round((P.notes.length>1||P.kind==='hold'?560:P.lead&&P.lead<.7?380:460)*(1-.28*((B.idx||0)/99)));lead=alignBeat(Math.max(lead,minL))}
   if(P.off)lead+=P.off*beat;
-  if(hasT('swift')&&!hzA)lead=Math.max(420,lead-beat*.5);
+  if(hasT('swift')&&!hzA&&!PHR)lead=Math.max(420,lead-beat*.5);
   let pb=beat;{const os=P.notes.map(n=>n.o).sort((x,y)=>x-y);let md=1e9;for(let k=1;k<os.length;k++)if(os[k]-os[k-1]>.01)md=Math.min(md,os[k]-os[k-1]);
-    const minGap=B.idx==null||R&&(R.rhythm||R.prologue)?0:(B.idx<30?135:B.idx<60?110:85);while(md<1e9&&md*pb<minGap&&pb<beat*4)pb*=2}
+    const minGap=B.idx==null||R&&(R.rhythm||R.prologue)?0:(B.idx<30?135:B.idx<60?110:85);while(!PHR&&md<1e9&&md*pb<minGap&&pb<beat*4)pb*=2}
   const t0=B.time+lead,notes=P.notes.map(n=>({t:t0+n.o*pb,type:n.type,dur:(n.len||0)*pb,res:false,ghost:!!n.ghost,dir:n.dir||0,grab:!!n.grab,flip:!!n.flip}));
-  if(!hzA){const gp=(hasT('ghostly')?.35:0)+(B.hz==='vine'?.15:0);notes.forEach((n,k)=>{if(gp&&k>0&&n.type==='tap'&&Math.random()<gp)n.ghost=true;if(B.hz==='sand'&&n.type==='swipe'&&!n.grab&&P.kind!=='barrage')n.dir=B.wind})}
+  if(PHR&&PHR.hide!=null)notes.forEach((n,k)=>{if(k>=PHR.hide)n.hidden=true});
+  if(!hzA&&!PHR){const gp=(hasT('ghostly')?.35:0)+(B.hz==='vine'?.15:0);notes.forEach((n,k)=>{if(gp&&k>0&&n.type==='tap'&&Math.random()<gp)n.ghost=true;if(B.hz==='sand'&&n.type==='swipe'&&!n.grab&&P.kind!=='barrage')n.dir=B.wind})}
   B.atk={kind:P.kind,name,start:B.time,impact:notes[0].t,dur:lead,notes,idx:0,resolved:false,heavy:notes[0].type==='swipe',chainOk:true,holdOk:true,holdTick:0,ticks:0,pulseT:-9999,parried:0};
-  B.atk.lesson=!!B.isLesson;B.isLesson=false;B.atk.hz=hzA;
+  B.atk.lesson=!!B.isLesson;B.isLesson=false;B.atk.hz=hzA;B.atk.phrase=PHR?PHR.rep:null;
   if(ambush){B.atk.ambush=true;ftAt('기습!',B.ex,B.gy-B.E.scale*16,'warn')}
   if(P.kind==='fury'){banner('분노의 5연타!','전부 막으면 큰 빈틈!');Music.rate=1.1;sfx('warn');vig('rgba(255,30,50,.8)',600);domShake(1)}
   if(P.kind==='desp'){banner('최후의 발악!','5연타를 모두 막아라!');Music.rate=1.15;sfx('warn');vig('rgba(255,30,50,.9)',800);domShake(2);vib([40,40,40])}
@@ -3087,6 +3139,7 @@ function stiffen(){if(R&&(R.rhythm||R.prologue))return;const t=B.time;B.stiffUnt
 function missPenalty(f){if(R&&(R.rhythm||R.prologue||R.v2))return;const had=B.psh>0,d=B.pshMax*f;B.psh=Math.max(0,B.psh-d);B.guard=B.guard&&B.psh>0;
   barShake('#pShBar');ftThrottle('실드 -'+Math.round(d),B.kx-8,B.gy-24,'hurt');if(had&&B.psh<=0)guardBreak()}
 function parryBlock(){
+  if(B.ph&&B.atk&&B.atk.phrase!=null)B.ph.imp++;
   const a=B.atk;curNote().res=true;a.chainOk=false;B.tapN++;B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.35*(1+cardN('parry2')));if(!midChain())B.hitstop=40;B.shake=2;B.eFlash=80;
   const[sx,sy]=shieldPos();burstParts(sx+2,sy,8,['#bfe6ff','#ffffff'],.08,.0002,.3);addFx('pow',sx+3,sy,{r:6,dur:110});
   sfx('guard',S.shStage);vib([25]);vig('rgba(140,200,255,.7)',300);ripple('#8fd0ff');domShake(1);
@@ -3102,6 +3155,7 @@ function parrySuccess(early,win){
   const a=B.atk;curNote().res=true;a.parried++;B.tapN++;const light=midChain();
   const perfect=Math.abs(early-15)<=Math.max(35,win*.22);
   track('parry');if(perfect)track('perfect');tutParried('parry');rScore(perfect?300:200,perfect?'perfect':'just');
+  if(!perfect&&B.ph&&a.phrase!=null)B.ph.imp++;
   B.auraN=perfect?(B.auraN||0)+1:0;if(tech('aura')&&B.auraN===5)ftAt('퍼펙트 오라!',B.kx,B.gy-56,'perfect');
   const gain=B.sh.stunDamage*B.st.stunMult*(perfect?1.3:1)*(feverOn()?1.5:1)*(tech('aura')&&B.auraN>=5?1.5:1);
   B.stun=Math.min(100,B.stun+gain);B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);B.parries++;if(perfect)B.perfects++;
@@ -3135,6 +3189,7 @@ function parrySuccess(early,win){
 }
 function chip(d,label){d=Math.round(Math.min(d,Math.max(3,B.emax*(multiBar()?.025:.05))));B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;ftAt(label+' '+d,B.ex-B.E.scale*4,B.gy-B.E.scale*14,'crit');if(B.ehp<=0)B.pendingKO=true}
 function hurt(dmg,label,guarded){
+  if(!guarded&&B.ph&&B.atk&&B.atk.phrase!=null)B.ph.miss++;
   if(!guarded&&R&&R.prologue&&B.tutStep===3&&B.state==='WINDUP')tutParried('hit');
   if(R&&R.rhythm){B.combo=0;ftThrottle('MISS',B.kx,B.gy-40,'warn');sfx('whiff');return}
   if(R&&R.vault){vaultHurt(guarded);return}
@@ -3195,11 +3250,12 @@ function grabEnd(ok){const g=B.grab;if(!g)return;B.grab=null;
   if(ok){ftAt('탈출!',B.kx+10,B.gy-44,'perfect');sfx('combo');flash('#ffffff',.4,200);zoom(1.06);B.stun=Math.min(100,B.stun+B.sh.stunDamage*B.st.stunMult*.4);B.ex=EX();B.eFlash=80}
   else{hurt(g.dmg,'내동댕이!');domShake(2)}
   if(B.state==='IDLE'){B.stT=B.time;B.idleDur=500}}
-function nextAfterAttack(){if(B.state==='DEFEAT')return;if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(190,420)*(1.02-TIER(B.idx||0)*.065)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?(B.p2T?B.p2T.idle:.75):1);
+function nextAfterAttack(){if(B.state==='DEFEAT')return;
+  if(B.ph&&B.atk&&B.atk.phrase!=null){B.ph.rep=B.atk.phrase+1;if(B.ph.rep>=3){if(phraseEnd())return;setState('IDLE');B.idleDur=barMs()*.5;return}setState('IDLE');B.idleDur=0;return}if(B.stun>=100)return enterGroggy();setState('IDLE');B.idleDur=rnd(190,420)*(1.02-TIER(B.idx||0)*.065)*(hasT('swift')?.7:1)*(B.raged?.8:1)*(B.phase2?(B.p2T?B.p2T.idle:.75):1);
   if(B.phase2&&B.p2T&&B.st.label==='보스'&&Math.random()<B.p2T.chain){B.idleDur=90;ftThrottle('연계!',B.ex,B.gy-B.E.scale*20,'warn')}}
 /* a stun always lasts at least this many normal hits, however strong the shield is; the % cap only matters for weaker shields */
 const GROGGY_MIN_HITS=12;
-function enterGroggy(){B.gHitK=0;
+function enterGroggy(){B.gHitK=0;B.ph=null;
   B.gTot=0;B.finishBonus=false;fvAdd(6);
   if(B.stolen){R.gold+=B.stolen;ftAt(`+${B.stolen}G 되찾았다!`,B.kx+6,B.gy-52,'combo');sfx('coin');B.stolen=0}
   if(B.finishReady){B.finishReady=false;if(B.finishPerfect&&B.finishNotes>0){B.finishBonus=true;setTimeout(()=>{if(B.active&&B.state==='GROGGY')banner('PERFECT FINISH!','기절 시간 · 연타 피해 UP')},150)}}
@@ -3217,7 +3273,7 @@ function enterGroggy(){B.gHitK=0;
 function milestone(){if([10,25,50,75,100,150].includes(B.combo)){ftAt(B.combo+' COMBO!',B.W/2,B.H*.36,'combo');sfx('combo');vig('rgba(255,210,80,.85)',500)}}
 function groggyHit(){
   {const now=performance.now();if(now-(B.lastBashT||-1e9)<90)return;B.lastBashT=now}
-  const crit=Math.random()<B.wp.critRate;const d=Math.max(1,Math.round(B.wp.groggyTapDamage*(hasT('armored')?.7:1)*(feverOn()?1.3:1)*(B.finishBonus?1.25:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
+  const crit=Math.random()<B.wp.critRate;const d=Math.max(1,Math.round(B.wp.groggyTapDamage*(onGrid()?1.5:1)*(hasT('armored')?.7:1)*(feverOn()?1.3:1)*(B.finishBonus?1.25:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
   RK.groggy(B.gHitK=(B.gHitK||0)+1);B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
   if(B.st.label==='보스'&&B.phase2&&!B.despUsed&&B.ehp<=B.emax*.1&&!(R&&(R.rhythm||R.prologue||R.vault||R.trial))){B.ehp=Math.max(1,B.ehp);B.stun=0;Music.hype=false;setState('IDLE');B.idleDur=450;ftAt(String(d),B.ex,B.gy-30,'dmg');flash('#ff2b3b',.4,300);return}
   {const now=performance.now();if(now>=(B.hsReady||0)){B.hitstop=crit?80:30;B.hsReady=now+(crit?220:140)}}B.shake=crit?4.5:1.8;zoom(crit?1.09:1.025);
@@ -3241,13 +3297,15 @@ function groggyHit(){
 function endGroggy(){
   atkCue(false);dmgTotal(-1);B.mashGrace=B.time+400;
   if(B.groggyDmg>0&&B.ehp>0&&!(R&&(R.prologue||R.rhythm||R.vault||R.v2||R.trial))){   // 결정타
-    let fin=Math.round(B.groggyDmg*(tech('finisher')?1:.6));if(tech('finisher'))fvAdd(4);if(B.st.label==='보스'&&B.phase2&&!B.despUsed)fin=Math.min(fin,Math.max(0,B.ehp-1));B.groggyDmg=0;
+    let fin=Math.round(B.groggyDmg*(tech('finisher')?1:.6)*(B.phPerfect?1.5:1));if(tech('finisher'))fvAdd(4);if(B.st.label==='보스'&&B.phase2&&!B.despUsed)fin=Math.min(fin,Math.max(0,B.ehp-1));B.groggyDmg=0;
     if(fin>0){B.ehp=Math.max(0,B.ehp-fin);B.eHitT=B.time;B.eFlash=220;setKPose('attack');B.swing=!B.swing;B.swingT=B.time;
       const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;addFx('slash',hx,hy,{len:30,ang:-.78,dur:240});addFx('slash',hx,hy,{len:30,ang:.78,dur:240});addFx('burst',hx,hy,{dur:420});
       ftAt('결정타 '+fmt(fin)+'!',hx,hy-14,'finisher');flash('#ffffff',.7,260);zoom(1.14);domShake(2);B.shake=6;B.hitstop=Math.max(B.hitstop,110);sfx('crit',3);vib([30,30,90]);
       if(B.ehp<=0)B.pendingKO=true}}
   B.stun=0;Music.hype=false;if(B.push)B.pushBack=true;
   if(R&&R.prologue){coachHide();B.tutStep=7;setState('IDLE');B.idleDur=900;return}
+  const wasReward=B.phReward;B.phReward=false;B.phPerfect=false;
+  if(wasReward){setState('IDLE');B.idleDur=0;return}
   if(B.st.boss){B.atk={shock:true,start:B.time,impact:B.time+850,dur:850,resolved:false};setState('WAKE');sfx('warn');vig('rgba(255,40,60,.8)',700);vib(20);ftAt('기상 충격파! 스와이프!',B.kx+10,B.gy-50,'warn')}
   else{setState('IDLE');B.idleDur=650}
 }
@@ -3334,7 +3392,7 @@ const feverAllowed=()=>!(R&&(R.rhythm||R.prologue||R.trial||R.vault||R.v2));
 const fvNeed=()=>FV_NEED*(tech('feverplus')?.85:1);
 const fvReady=()=>!!(B.active&&R&&feverAllowed()&&(R.fv||0)>=fvNeed()&&!feverOn());
 function feverParry(perfect){fvAdd((perfect?1.5:1)*(1+Math.min(B.combo,30)/30))}
-function feverStart(){if(!fvReady())return false;R.fv=0;track('fever');dmgTotal(-1);
+function feverStart(){if(!fvReady())return false;B.ph=null;R.fv=0;track('fever');dmgTotal(-1);
   if(B.atk&&!B.atk.resolved){B.atk.resolved=true;B.atk.notes.forEach(n=>n.res=true)}B.guard=false;B.pendWhiff=0;B.grab=null;B.finishReady=false;B.cutChain=false;
   const CUT=1600;setState('FEVER');B.fvCut=B.time+CUT;B.fever=B.time+CUT+FEVER_MS+(tech('feverplus')?1000:0);B.fvT0=B.time+CUT;B.fvNext=B.fvT0+230;fvCutIn();B.fvHits=0;B.fvDmg=0;B.fvCap=B.emax*(multiBar()?Math.max(.14,.25-TIER(B.idx||0)*.012):.40);B.fvK=null;B.fvLeap=false;B.fvFin=false;B.fvPush=0;B.fvIgn=false;
   sfx('fever');sfx('clang',true);vib([30,30,30,30,80]);Music.hype=true;Music.rate=Math.max(Music.rate,1.08);
@@ -3461,7 +3519,7 @@ function drawLane(c,t){
   const a=B.atk;if(B.state!=='WINDUP'||!a||!a.notes){pixCircle(c,jx,y,4,'rgba(255,255,255,.6)');return}
   const near=a.impact-t<120&&curNote().type==='tap';
   pixCircle(c,jx,y,4,near?'#ffe14d':'#ffffff');pixCircle(c,jx,y,5,'rgba(255,255,255,.35)');
-  for(let k=a.idx;k<a.notes.length;k++){const n=a.notes[k];if(n.res)continue;const dt=n.t-t;if(dt>lead)break;
+  for(let k=a.idx;k<a.notes.length;k++){const n=a.notes[k];if(n.res||n.hidden)continue;const dt=n.t-t;if(dt>lead)break;
     const x=Math.round(jx+dt*v),hidden=(a.kind==='feint'||n.ghost)&&dt>320;
     if(n.type==='hold'){const x2=Math.round(jx+(n.t+n.dur-t)*v);const xa=Math.max(jx,x);c.fillStyle=K;c.fillRect(xa-1,y-3,x2-xa+3,7);c.fillStyle='#4bb6ff';c.fillRect(xa,y-2,x2-xa+1,5);c.fillStyle='#bfe6ff';c.fillRect(xa,y-2,x2-xa+1,1);continue}
     if(x>B.W+4)continue;
@@ -4440,7 +4498,7 @@ function bossInTick(e){const b=B.bossIn;if(!b)return;
 function bossInEnd(){if(!B.bossIn)return;B.bossIn=null;B.ex=EX();B.cam=0;B.camT=null;cineText('');cineSub('');const ci=$('#cine');ci.classList.remove('on','bossin');ci.querySelectorAll('.bwarn').forEach(x=>x.remove());
   if(B.state==='BOSSIN'){setState('IDLE');B.idleDur=500}}
 function startTransform(){
-  if(B.atk)B.atk.resolved=true;B.phase2=true;enterPhase2();B.ehp=0;B.pendingKO=false;B.slam=false;B.cutChain=false;B.orbFinal=null;
+  B.ph=null;if(B.atk)B.atk.resolved=true;B.phase2=true;enterPhase2();B.ehp=0;B.pendingKO=false;B.slam=false;B.cutChain=false;B.orbFinal=null;
   if(B.disarm){B.disarm=null;B.psh=B.pshMax*.6}
   Music.rate=1.12;
   setState('TRANSFORM');B.tfDone=false;B.guard=false;B.stun=0;if(B.push)B.pushBack=true;Music.hype=false;B.cineStep=0;

@@ -605,6 +605,23 @@ const BOT = `(()=>{
       if (seen.filter(n => ms.includes(n)).length < 5) return 'attacks do not come from the moveset: ' + seen.join(',');
       endBattle(); const c0 = S.cleared; S.cleared = 2; if (tech('counter')) return 'counter slash unlocked too early'; S.cleared = 3; startRun(5); if (!tech('counter')) return 'counter slash not unlocked after stage 3'; S.cleared = c0;
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '보스 악절: 마디 격자 · 3번째 숨김 + 부르는 소리 · 보상 기절 → 다운비트 결정타 · 슬로모션에도 박자 유지', run: () => {
+      closeModal(); closeModal(); endBattle(); __bot.skill = 1; __bot.sig = 4; startRun(59); R.room = R.rooms.length - 1; startFight(roomCfg(59, 'boss'), false); B.php = B.pmax = 1e9; B.psh = B.pshMax = 1e9;
+      let cues = 0; const oc = RK.ok; RK.ok = () => true; const oq = RK.cue; RK.cue = () => { cues++; };
+      const seen = [], fins = []; let lastA = null, slowTested = false, vt = 0; const oe = endGroggy; endGroggy = function () { if (B.phReward) fins.push(((B.time - B.phGrid) % barMs() + barMs()) % barMs()); return oe.apply(this, arguments); };
+      while (vt < 120000 && fins.length < 2) { __tick(16); vt += 16; if (document.querySelector('#modal').hidden) __botStep();
+        if (B.atk && B.atk !== lastA && B.atk.phrase != null && B.ph) { lastA = B.atk; seen.push({ rep: B.atk.phrase, beats: B.atk.notes.map(n => (n.t - B.ph.t0) / (barMs() / 4)), hid: B.atk.notes.filter(n => n.hidden).length }); }
+        if (!slowTested && B.ph && B.state === 'WINDUP') { slowTested = true; const t1 = B.time; slow(500, .2); for (let i = 0; i < 10; i++) __tick(16); if (B.time - t1 < 150) return 'slow motion stopped the clock during a phrase'; }
+        if (B.state === 'VICTORY' || B.state === 'TRANSFORM') break; }
+      RK.cue = oq; RK.ok = oc; endGroggy = oe;
+      if (seen.length < 3) return 'boss never played a phrase (' + seen.length + ')';
+      for (const x of seen) for (const b of x.beats) if (Math.abs(b * 4 - Math.round(b * 4)) > .04 && Math.abs(b * 3 - Math.round(b * 3)) > .04) return 'phrase note off the beat grid: beat ' + b.toFixed(3);
+      if (!seen.some(x => x.rep === 2 && x.hid > 0)) return 'third repetition hid no notes';
+      if (seen.some(x => x.rep < 2 && x.hid > 0)) return 'notes hidden before the third repetition';
+      if (cues < seen.reduce((a, x) => a + x.beats.length, 0) * .8) return 'call cues missing (' + cues + ')';
+      if (!fins.length) return 'phrase reward stun never happened';
+      for (const f of fins) if (Math.min(f, barMs() - f) > 40) return 'finishing blow not on the downbeat (' + Math.round(f) + 'ms into the bar)';
+      __bot.sig = undefined; endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = R.rooms.length - 1; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
       for (const k in PATMAKE) { const P = PATMAKE[k](); if (!P.notes || !P.notes.length) return 'pattern ' + k + ' has no notes'; }
