@@ -657,6 +657,8 @@ const BOT = `(()=>{
           else if (B.state === 'WINDUP' && a && !a.resolved) { const n = a.notes[a.idx]; if (n) { const key = a.start + ':' + a.idx;
             if (n.type === 'hold') { if (t >= n.t - 120) setGuard(true); } else if (!done.has(key) && (n.type === 'swipe' || n.type === 'jump') && t >= n.t - 60) { done.add(key); setGuard(false); if (n.type === 'swipe') onSwipe(1); else onSwipeUp(); } else if (!done.has(key) && n.type === 'tap' && t >= n.t - 8) { done.add(key); const pv = a.notes[a.idx - 1]; if (pv && pv.type === 'hold' && B.guard && n.t - (pv.t + pv.dur) <= beatMs() * .45) { ptrs.clear(); setGuard(false); onRelease(); } else { setGuard(false); onTap(); } } } }
           else if (B.guard) setGuard(false);
+          if (B.chart && B.chart.built && chartFvReady()) { if (!document.querySelector('#fvBtn') || document.querySelector('#fvBtn').hidden && vt % 400 === 0 && B.state !== 'VICTORY') {} chartFeverArm(); }
+          if (B.chart && B.chart.fvCut && B.atk && B.atk.chart && !B.atk.resolved && B.atk.notes.some(n => !n.res && n.t < B.chart.fvCutEnd)) return `level ${L + 1}: the fever cut-in covered a note`;
           if (B.chart && B.chart.built && hp0 == null) hp0 = B.ehp; if (B.chart && B.chart.built && B.chart.done >= B.chart.total / 2 && hpMid == null) hpMid = B.ehp;
           __tick(8); vt += 8; }
         const mt = document.querySelector('#mbox').textContent; if (!mt.includes('도전 과제')) return `level ${L + 1}: results show no challenges`;
