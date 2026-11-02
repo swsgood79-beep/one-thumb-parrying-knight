@@ -310,7 +310,7 @@ const BOT = `(()=>{
       __bot.sig = undefined; return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '카드 시스템 제거: 관문 사이 카드 없음 · 상단은 피버 게이지', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 3; __bot.skill = 1; __bot.sig = 8;
-      startRun(7); for (let i = 0; i < 5; i++) __tick(16); if (!document.querySelector('#modal').hidden && /카드/.test(document.querySelector('#mbox').textContent)) return 'win streak still offers starting cards';
+      startRun(11); for (let i = 0; i < 5; i++) __tick(16); if (!document.querySelector('#modal').hidden && /카드/.test(document.querySelector('#mbox').textContent)) return 'win streak still offers starting cards';
       if (!document.querySelector('#cGauge').hidden) return 'card gauge still shown'; if (document.querySelector('#fGauge').hidden) return 'fever gauge not shown on top';
       let sawCard = false, rooms = 0, vt = 0; const r0 = R;
       while (vt < 400000 && R === r0 && R && R.room < 2) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.startsWith('카드')) sawCard = true; __botStep(); } else __botStep(); }
@@ -645,23 +645,24 @@ const BOT = `(()=>{
       R.notes = 40; R.miss = 1; R.offs = [10, 20, -5]; runComplete(); const ok = !!document.querySelector('#mbox .rrank .rk'); const txt = (document.querySelector('#mbox .rrank') || {}).textContent || ''; closeModal();
       if (!ok || !txt.startsWith('A리듬 등급 · 실수 1/40')) return 'rhythm rank missing on the result screen (' + txt + ')';
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
-    { name: '1챕터 수직 슬라이스: 손으로 쓴 5곡 · 채보 격자 · 완벽 입력 클리어 · 입력 없으면 전부 실수', run: () => {
+    { name: '1·2챕터 채보 레벨: 손으로 쓴 10곡 · 채보 격자 · 완벽 입력 클리어(회피·점프 포함) · 박자 피버 · 입력 없으면 전부 실수', run: () => {
       closeModal(); closeModal();
-      for (const k of ['c1', 'c2', 'c3', 'c4', 'c5']) { const sg = SONGS[k]; const nb = sg && sg._c.length, lv = Object.values(CHART_LV).find(d => d.song === k); if (!sg || nb < 32 || sg._m.length !== nb * 8 || sg._b.length !== nb * 8 || !lv || nb < lv.bars.length + 1) return 'song ' + k + ' is not full bars covering its chart'; }
-      for (let L = 0; L < 5; L++) { endBattle(); startRun(L); if (!B.chart || R.rooms.join() !== 'chart') return 'stage ' + (L + 1) + ' is not a chart level';
+      for (const k of ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10']) { const sg = SONGS[k]; const nb = sg && sg._c.length, lv = Object.values(CHART_LV).find(d => d.song === k); if (!sg || nb < 32 || sg._m.length !== nb * 8 || sg._b.length !== nb * 8 || !lv || nb < lv.bars.length + 1) return 'song ' + k + ' is not full bars covering its chart'; }
+      let fevers = 0; for (let L = 0; L < 10; L++) { endBattle(); startRun(L); B._lt = 0; if (!B.chart || R.rooms.join() !== 'chart') return 'stage ' + (L + 1) + ' is not a chart level';
         let hurts = 0; const oh = hurt; hurt = function (d, l, g) { if (!g) hurts++; return oh.apply(this, arguments); }; const done = new Set(); let vt = 0, won = false, offGrid = 0, hp0 = null, hpMid = null;
         while (vt < 200000) { const t = B.time, a = B.atk; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.includes('성공')) { won = true; break; } if (h.includes('쓰러')) break; }
           if (B.chart && B.chart.built && a && a.chart && !a._g) { a._g = 1; const bar = barMs(); for (const n of a.notes) { const x = (n.t - B.chart.T0) / bar * 24; if (Math.abs(x - Math.round(x)) > .05) offGrid++; } }
           if (B.state === 'GROGGY') { if (!B._lt || t - B._lt >= beatMs() / 2 - 1) { B._lt = t; B.lastBashT = -1e9; onTap(); } }
           else if (B.state === 'WINDUP' && a && !a.resolved) { const n = a.notes[a.idx]; if (n) { const key = a.start + ':' + a.idx;
-            if (n.type === 'hold') { if (t >= n.t - 120) setGuard(true); } else if (!done.has(key) && n.type === 'tap' && t >= n.t - 8) { done.add(key); const pv = a.notes[a.idx - 1]; if (pv && pv.type === 'hold' && B.guard && n.t - (pv.t + pv.dur) <= beatMs() * .45) { ptrs.clear(); setGuard(false); onRelease(); } else { setGuard(false); onTap(); } } } }
+            if (n.type === 'hold') { if (t >= n.t - 120) setGuard(true); } else if (!done.has(key) && (n.type === 'swipe' || n.type === 'jump') && t >= n.t - 150) { done.add(key); setGuard(false); if (n.type === 'swipe') onSwipe(1); else onSwipeUp(); } else if (!done.has(key) && n.type === 'tap' && t >= n.t - 8) { done.add(key); const pv = a.notes[a.idx - 1]; if (pv && pv.type === 'hold' && B.guard && n.t - (pv.t + pv.dur) <= beatMs() * .45) { ptrs.clear(); setGuard(false); onRelease(); } else { setGuard(false); onTap(); } } } }
           else if (B.guard) setGuard(false);
           if (B.chart && B.chart.built && hp0 == null) hp0 = B.ehp; if (B.chart && B.chart.built && B.chart.done >= B.chart.total / 2 && hpMid == null) hpMid = B.ehp;
           __tick(8); vt += 8; }
-        hurt = oh; closeModal();
+        hurt = oh; closeModal(); fevers += (B.chart && B.chart.fvN) || 0;
         if (!(hp0 && hpMid && hpMid < hp0 * .8)) return `level ${L + 1}: enemy HP did not go down with the song (${Math.round(hp0)} → ${Math.round(hpMid)})`;
         if (!won) return `level ${L + 1} not cleared with perfect play`; if (hurts) return `level ${L + 1}: perfect play got hit ${hurts}x`; if (offGrid) return `level ${L + 1}: ${offGrid} notes off the bar grid`;
         if (vt > (CHART_LV[L].boss ? 150000 : 100000)) return `level ${L + 1} too long (${Math.round(vt / 1000)}s)`; }
+      if (fevers < 5) return `perfect play should trigger the beat fever in most levels (${fevers} in 10)`;
       endBattle(); startRun(0); B.php = B.pmax = 1e9; let vt = 0; while (vt < 120000 && document.querySelector('#modal').hidden) { __tick(16); vt += 16; } closeModal();
       if (!(R.miss >= R.notes - 1 && R.notes > 20)) return `no input should miss every note (miss ${R.miss}/${R.notes})`;
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
