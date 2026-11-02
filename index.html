@@ -2903,15 +2903,17 @@ function chartLive(C,t){const k=chartBarAt(C,t),ar=$('#arena');
   const sg=SONGS[C.def.song],ch=!C.fin&&!!(sg&&sg.secs&&sg.secs[k+1]==='B');if(ch!==C.chorus){ar.classList.toggle('chorus',ch);C.chorus=ch}
   if(ch){const bi=Math.floor((t-C.barT[k])/beatMs());if(bi!==C.chB){C.chB=bi;zoom(1.012);if(bi===0)burstParts(B.W/2,B.gy+2,8,['#ffd23f','#ff9bd0','#7cf0ff'],.08,.0003,.3)}}
   for(const f of C.fakes)if(!f.res&&t>f.t+170){f.res=1;C.held=(C.held||0)+1;ftAt('참았다! 보너스',B.kx+8,B.gy-50,'perfect');if(C.chip){B.ehp=Math.max(1,B.ehp-Math.round(C.chip*.6));B.eHitT=B.time}chartFvAdd(1)}
-  if(C.fvArm&&!C.fin){const kb=chartBarAt(C,t);if(kb!==C.fvArmK){C.fvArmK=kb;if(C.barKind[kb]==='call'&&t-C.barT[kb]<150){C.fvArm=false;C.fvCut=true;C.fvN=(C.fvN||0)+1;track('fever');
-      const cut=Math.min(C.barT[kb+1]-t-60,1500);C.fvCutEnd=t+cut;C.fvT0=t+cut;C.fvEndT=C.barT[Math.min(C.barT.length-1,kb+5)];fvCutIn();sfx('fever');flash('#ff5bb5',.5,260);vib([30,30,30,30,80]);fvMeter()}}}
   if(C.fvCut&&t>=C.fvCutEnd){C.fvCut=false;fvCutOut();C.fvOn=true;banner('FEVER!!','4마디 동안 데미지 UP!');zoom(1.15);flash('#ffffff',.6,220);feverHud()}
   if(C.fvOn){Music.hype=true;if(t>=C.fvEndT||C.fin){C.fvOn=false;Music.hype=B.state==='GROGGY';feverHud();if(!C.fin)ftAt('피버 끝',B.W/2,B.H*.3,'info')}}
   if(B.kc!=null&&B.state==='GROGGY'&&Math.floor(t/100)!==B.kcT){B.kcT=Math.floor(t/100);B.parts.push({ring:true,x:B.kx+4,y:B.gy-12,r:2+Math.min(10,(t-B.kc)/120),vr:.03,life:220,col:'#7cf0ff'})}}
 /* beat fever (chart levels): clean notes fill it, and the next reward stun becomes a FEVER mash on the beat — the song never stops */
 const chartFvReady=()=>!!(B.active&&B.chart&&B.chart.built&&!B.chart.fin&&!B.chart.fvOn&&!B.chart.fvArm&&!B.chart.fvCut&&B.chart.fv>=B.chart.fvNeed);
-/* pressing FEVER arms it; it fires on the next bar where the enemy calls (no notes to hit), so the cut-in never hides a note, then lasts 4 bars */
-function chartFeverArm(){if(!chartFvReady())return false;const C=B.chart;C.fvArm=true;C.fv=0;C.fvArmK=chartBarAt(C,B.time);sfx('combo');ftAt('FEVER 대기!',B.kx+8,B.gy-56,'perfect');fvMeter();return true}
+/* pressing FEVER fires it at once for the rest of this bar + 4 more. The hero cut-in only plays while no note is due (it would hide it); otherwise a flash and banner */
+function chartFeverArm(){if(!chartFvReady())return false;const C=B.chart,t=B.time,k=chartBarAt(C,t);C.fv=0;C.fvN=(C.fvN||0)+1;track('fever');
+  let nx=Infinity;const a=B.atk;if(a&&a.chart&&!a.resolved)for(const n of a.notes)if(!n.res&&n.t>t)nx=Math.min(nx,n.t);for(let i=C.si;i<C.segs.length;i++){const g=C.segs[i];if(g.type==='hit'){nx=Math.min(nx,g.notes[0].t);break}if(g.type==='stun'&&g.t>t){nx=Math.min(nx,g.t);break}}
+  const cut=B.state==='GROGGY'?0:Math.min(1100,nx-t-180);C.fvEndT=C.barT[Math.min(C.barT.length-1,k+5)];sfx('fever');vib([30,30,30,30,80]);
+  if(cut>=350){C.fvCut=true;C.fvCutEnd=t+cut;C.fvT0=t+cut;fvCutIn()}else{C.fvT0=t;C.fvOn=true;banner('FEVER!!','4마디 동안 데미지 UP!');flash('#ff5bb5',.55,260);zoom(1.15);feverHud()}
+  fvMeter();return true}
 function chartFvAdd(v){const C=B.chart;if(!C||!C.built||C.fvOn||C.fvArm||C.fvCut||C.fin)return;const was=C.fv>=C.fvNeed;C.fv=Math.min(C.fvNeed,(C.fv||0)+v);
   if(!was&&C.fv>=C.fvNeed){banner('FEVER 준비!','FEVER 버튼을 눌러 발동!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200);try{loadFeverClip()}catch(e){}}}
 /* dodges and jumps in a chart are judged on the beat too: within 110ms of the note is PERFECT, an earlier swipe is GOOD */
@@ -3710,11 +3712,11 @@ const fcHeroArt=()=>memo('fch'+S.shStage+(S.skin||'')+(S.plume||''),()=>{const c
   const gh=mk(W,H),gg=gh.getContext('2d');gg.shadowColor='#ff5bd8';gg.shadowBlur=8;gg.drawImage(tint('#f4ecff'),P,P);
   return{hero:hero.toDataURL(),ghost:gh.toDataURL()}});
 const fcHeroURL=()=>fcHeroArt().hero;
-function fvCutIn(){const el=$('#fvcut');if(!el)return;{const a=fcHeroArt();el.querySelectorAll('.fc-hero').forEach(im=>{const u=im.classList.contains('gh')?a.ghost:a.hero;if(im.src!==u)im.src=u})}el.classList.remove('on');void el.offsetWidth;el.classList.add('on');$('#banner').classList.remove('show')}
+function fvCutIn(){const el=$('#fvcut');if(!el)return;{const sm=el.querySelector('small');if(sm)sm.textContent=B.chart?'박자 맞춰 데미지 UP!':'필살 연속 공격'}{const a=fcHeroArt();el.querySelectorAll('.fc-hero').forEach(im=>{const u=im.classList.contains('gh')?a.ghost:a.hero;if(im.src!==u)im.src=u})}el.classList.remove('on');void el.offsetWidth;el.classList.add('on');$('#banner').classList.remove('show')}
 function fvCutOut(){const el=$('#fvcut');if(el)el.classList.remove('on')}
 /* every frame: the fever screens must match the real fever state, whatever path ended or interrupted it
    (KO during the cut-in, phase-2 transform, revive, gate clear, defeat...) */
-function feverSync(){const cut=$('#fvcut'),inCut=!!(B.active&&B.state==='FEVER'&&B.time<B.fvCut);
+function feverSync(){const cut=$('#fvcut'),inCut=!!(B.active&&((B.state==='FEVER'&&B.time<B.fvCut)||(B.chart&&B.chart.fvCut)));
   if(cut&&cut.classList.contains('on')&&!inCut)fvCutOut();
   if(B.state==='FEVER'&&B.active&&!inCut&&!(B.fever>B.time)&&!B.pendingKO){feverEnd();return}
   if(B.state!=='FEVER'&&B.fever){B.fever=0;B.fvK=null;Music.hype=false}
@@ -3729,7 +3731,7 @@ function fvMeter(){const m=document.getElementById('fvMeter');if(m&&m.firstChild
     styIf(document.getElementById('sGaugeFill'),'width',(Math.round(f*400)/4)+'%');setIf(document.getElementById('sGaugeTxt'),'textContent',`♪ 곡 ${Math.floor(f*100)}%`);
     const fr=chartFvReady(),q=C.fvOn?clamp((C.fvEndT-B.time)/Math.max(1,C.fvEndT-C.fvT0),0,1):C.fvArm||C.fvCut?1:clamp((C.fv||0)/(C.fvNeed||10),0,1);
     styIf(document.getElementById('fGaugeFill'),'width',(Math.round(q*400)/4)+'%');g.classList.toggle('ready',!!(C.fvOn||fr||C.fvArm||C.fvCut));
-    setIf(document.getElementById('fGaugeTxt'),'textContent',C.fvOn?`FEVER!! ${Math.max(1,C.barT.findIndex(x=>x>=C.fvEndT-1)-chartBarAt(C,B.time))}마디`:C.fvArm||C.fvCut?'FEVER 발동 대기…':fr?'피버 준비! FEVER 버튼':`피버 ${Math.floor(q*100)}%`);return}
+    setIf(document.getElementById('fGaugeTxt'),'textContent',C.fvOn?`FEVER!! ${Math.max(1,C.barT.findIndex(x=>x>=C.fvEndT-1)-chartBarAt(C,B.time))}마디`:C.fvCut?'FEVER!!':fr?'피버 준비! FEVER 버튼':`피버 ${Math.floor(q*100)}%`);return}
   const on=!!(B.active&&R&&feverAllowed());setIf(g,'hidden',!on);if(!on)return;const live=feverOn(),f=live?clamp((B.fever-B.time)/FEVER_MS,0,1):clamp((R.fv||0)/fvNeed(),0,1);
   styIf(document.getElementById('fGaugeFill'),'width',(Math.round(f*400)/4)+'%');g.classList.toggle('ready',!!(live||fvReady()));
   setIf(document.getElementById('fGaugeTxt'),'textContent',live?`FEVER!! ${Math.ceil((B.fever-B.time)/1000)}초`:fvReady()?'피버 준비! FEVER 버튼으로 발동':`피버 게이지 ${Math.floor(f*100)}%`)}
