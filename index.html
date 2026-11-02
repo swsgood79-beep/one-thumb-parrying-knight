@@ -1960,7 +1960,7 @@ SONGS.c4=handSong({bpm:116,kit:'cave',dr:'K.tSK.tS',drB:'KhtSKthS',fill:'KttTTtS
   A:{ch:['A4 C5 E5','F4 A4 C5','C5 E5 G5','G4 B4 D5'],mel:'E5 - - - A5 - G5 - | F5 - - - C5 - - - | E5 - G5 - C6 - B5 - | B5 - A5 - G5 - - -',bass:'A2 . A2 . A2 . A2 . | F2 . F2 . F2 . F2 . | C3 . C3 . C3 . C3 . | G2 . G2 . G2 . G2 .'},
   B:{ch:['F4 A4 C5','G4 B4 D5','E4 G#4 B4','A4 C5 E5'],mel:'A5 - - - C6 - A5 - | B5 - - - D6 - B5 - | G#5 - - - E5 - B4 - | A4 - - - - - - -',bass:'F2 . . F2 . . F2 . | G2 . . G2 . . G2 . | E2 . . E2 . . E2 . | A2 . . A2 . . A2 .'},
   O:{ch:['A4 C5 E5','A4 C5 E5'],mel:'A5 - E5 - C5 - E5 - | A4 - - - - - . .',bass:'A2 . E2 . A2 . E2 . | A2 - - - - - . .'}}});
-SONGS.c5=handSong({bpm:120,kit:'rock',lead:'sawtooth',lv:.065,dr:'KhSKKhSh',drB:'KhSoKKSh',fill:'KSSSTTtt',form:HAND_FORM,sec:{
+SONGS.c5=handSong({bpm:120,kit:'rock',lead:'sawtooth',lv:.065,dr:'KhSKKhSh',drB:'KhSoKKSh',fill:'KSSSTTtt',form:['I','A','A','B','A','B','A','B','A','B','A','B','A','O'],sec:{
   I:{ch:['D5 F5 A5','D5 F5 A5'],mel:'. . . . . . . . | A4 - D5 - F5 - A5 -',bass:'D2 D2 D2 D2 D2 D2 D2 D2 | D2 D2 D2 D2 C2 C2 C#2 C#2'},
   A:{ch:['D5 F5 A5','Bb4 D5 F5','C5 E5 G5','A4 C#5 E5'],mel:'D5 - F5 - A5 - D6 - | D6 - C6 - Bb5 - F5 - | E5 - G5 - C6 - G5 - | A5 - C#6 - E6 - - -',bass:'D2 D2 D3 D2 D2 D2 D3 D2 | Bb1 Bb1 Bb2 Bb1 Bb1 Bb1 Bb2 Bb1 | C2 C2 C3 C2 C2 C2 C3 C2 | A1 A1 A2 A1 A1 A1 A2 A1'},
   B:{ch:['G4 Bb4 D5','A4 C#5 E5','D5 F5 A5','A4 C#5 E5'],mel:'G5 - Bb5 - D6 - Bb5 - | A5 - C#6 - E6 - C#6 - | D6 - A5 - F5 - D5 - | E5 - - - A4 - - -',bass:'G2 G2 G3 G2 G2 G2 G3 G2 | A2 A2 A3 A2 A2 A2 A3 A2 | D2 D2 D3 D2 D2 D2 D3 D2 | A1 A1 A2 A1 A1 A1 C#2 E2'},
@@ -2327,7 +2327,7 @@ const PAT_INFO={
   stutter:['엇박 3연타','rhythm','하나, 쉬고, 따닥.'],echo:['메아리','rhythm','따닥 · 쉬고 · 따닥.'],slowfast:['느-느-빠-빠','rhythm','느리게 둘, 빠르게 셋, 다시 느리게.'],
   syncopa:['엇박 6연타','rhythm','박자 사이사이를 치는 리듬.'],triplet:['셋잇단','rhythm','따다닥 · 따다닥 (한 박에 세 번).'],decel:['감속 5연타','rhythm','점점 느려져요. 서두르지 말 것.'],
   stairs:['계단','rhythm','2연타씩, 묶음마다 박자가 달라져요.'],swing:['스윙','rhythm','바운스 리듬. 마지막 즈음 숨은 노트가 있어요.'],
-  stream8:['8비트 스트림','rhythm','반 박 간격으로 8번 쭉.'],stream16:['16비트 스트림','rhythm','반의반 박 간격 8연타. 손목을 가볍게!'],gallop:['갤럽','rhythm','말발굽처럼 따다닥 ×3.'],row7:['심박 7박','rhythm','적이 6번 쿵쿵 울려요. 위쪽 7칸이 차오르면 7번째 박에 탭!'],row7swing:['스윙 심박','rhythm','쿵-쿵 박이 출렁거려요(스윙). 그래도 7번째 박에 탭.'],freeze7:['얼린 7박','rhythm','첫 박에 얼음 소리가 나면 7번째가 한 박 늦게 와요. 8번째에 탭!'],oneshot:['원샷','rhythm','띵! 하고 정확히 한 박 뒤에 탭. 세 번.'],squareshot:['스퀘어샷','rhythm','띵-띵 두 번의 간격만큼 기다렸다가 탭. 간격이 매번 달라요.'],tripshot:['셋잇단 샷','rhythm','띵-띵 (셋잇단 간격) 뒤 같은 간격에 탭.'],
+  stream8:['8비트 스트림','rhythm','반 박 간격으로 8번 쭉.'],stream16:['16비트 스트림','rhythm','반의반 박 간격 8연타. 손목을 가볍게!'],gallop:['갤럽','rhythm','말발굽처럼 따다닥 ×3.'],row7:['쿵쿵 7박','rhythm','적이 6번 쿵쿵 울려요. 위쪽 7칸이 차오르면 7번째 박에 탭!'],row7swing:['스윙 7박','rhythm','쿵-쿵 박이 출렁거려요(스윙). 그래도 7번째 박에 탭.'],freeze7:['얼린 7박','rhythm','첫 박에 얼음 소리가 나면 7번째가 한 박 늦게 와요. 8번째에 탭!'],oneshot:['원샷','rhythm','띵! 하고 정확히 한 박 뒤에 탭. 세 번.'],squareshot:['스퀘어샷','rhythm','띵-띵 두 번의 간격만큼 기다렸다가 탭. 간격이 매번 달라요.'],tripshot:['셋잇단 샷','rhythm','띵-띵 (셋잇단 간격) 뒤 같은 간격에 탭.'],
   wolfrun:['늑대 질주','rhythm','다다닥 · 다다닥 — 반 박 간격 3연타 두 번.'],
   fangrush:['송곳니 급습','action','물어뜯기 2연타 → ◀·▶ 연속 덮치기(연속 회피) → 목덜미 물기(잡기) → 탭.'],backstab:['그림자 기습','hidden','측면 베기를 피한 뒤 숨은 노트로 등 뒤를 찔러요.'],
   webtrap:['거미줄 올가미','action','거미줄 잡기 회피 → 탭 → 숨은 탭 → 바닥 쓸기 점프 → 다시 잡기.'],stinger:['독침 연격','action','집게 셋잇단 → 꼬리 내려찍기(꾹) → 왼쪽 회피 → 숨은 독침.'],
@@ -2749,13 +2749,16 @@ const CHART_LV={
   2:{song:'c3',name:'출렁출렁 스윙',rule:'새 규칙: 출렁이는 스윙 박',bars:['R',
     'c.....c.....','t.....t.....','c.c...c.c...','t.t...t.t...','c.c...c.c...','t.t...t.t...','c.....c..c..','t.....t..t..','S','S',
     'c.cc.c......','t.tt.t......','c..c.cc.....','t..t.tt.....','c.c..c..c...','t.t..t..t...','c.c..c..c.c.','t.t..t..t.t.','S','S','E']},
-  3:{song:'c4',name:'심장 소리',rule:'새 규칙: 쿵 6번 → 7번째 탭',bars:['R',
+  3:{song:'c4',name:'일곱 번째 박',rule:'새 규칙: 쿵 6번 → 7번째 탭',bars:['R',
     'p.p.p.p.','p.p.t...','p.p.p.p.','p.p.t...','c.c.c...','t.t.t...','p.p.p.p.','p.p.t...','S','S',
     'i.p.p.p.','p.p...t.','c.c.c.c.','t.t.t.t.','p.p.p.p.','p.p.t...','i.p.p.p.','p.p...t.','S','S','E']},
   4:{song:'c5',name:'왕 슬라임의 시험',boss:true,rule:'새 규칙: 세 번째는 숨김',bars:['R',
-    'c.c.c...','t.t.t...','c.c.c...','t.t.t...','c.c.c...','t.t.T...','S','S',
-    'c...c.c.','t...t.t.','c...c.c.','t...t.t.','c...c.c.','t...T.T.','S','S',
-    'q==.c.c.','h==.t.t.','q==.c.c.','h==.t.t.','q==.c.c.','h==.t.T.','S','S','S','E']},
+    /* the boss is chapter 1's final exam: every rule from stages 1-4 comes back, and each phrase's third pass is hidden */
+    'c.c.c...','t.t.t...','c.c.c...','t.t.t...','c.c.c.c.','t.t.t.t.','c.c.c.c.','t.t.T.T.','S','S',
+    'c..c..c.','t..t..t.','q===c.c.','h===t.t.','c..c..c.','t..t..t.','q===c.c.','h===T.T.','S','S',
+    'c.....c..c..','t.....t..t..','c..c..c..c..','t..t..t..t..','c.cc.c..c...','t.tt.t..T...','S','S',
+    'p.p.p.p.','p.p.t...','i.p.p.p.','p.p...t.','p.p.p.p.','p.p.T...','S','S',
+    'cc.cc.c.','tt.tt.t.','c.c.q===','t.t.h===','cccc.ccc','tttt.ttt','q==.cc.c','h==.tt.t','q==.cc.c','h==.TT.T','S','S','S','E']},
 };
 function chartBuild(def,T0){const bar=barMs(),segs=[],cues=[];let total=0,pk=0;
   def.bars.forEach((b,k)=>{const t=T0+k*bar;

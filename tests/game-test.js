@@ -647,7 +647,7 @@ const BOT = `(()=>{
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '1챕터 수직 슬라이스: 손으로 쓴 5곡 · 채보 격자 · 완벽 입력 클리어 · 입력 없으면 전부 실수', run: () => {
       closeModal(); closeModal();
-      for (const k of ['c1', 'c2', 'c3', 'c4', 'c5']) { const sg = SONGS[k]; if (!sg || sg._m.length !== 256 || sg._b.length !== 256 || sg._c.length !== 32) return 'song ' + k + ' is not 32 full bars'; }
+      for (const k of ['c1', 'c2', 'c3', 'c4', 'c5']) { const sg = SONGS[k]; const nb = sg && sg._c.length, lv = Object.values(CHART_LV).find(d => d.song === k); if (!sg || nb < 32 || sg._m.length !== nb * 8 || sg._b.length !== nb * 8 || !lv || nb < lv.bars.length + 1) return 'song ' + k + ' is not full bars covering its chart'; }
       for (let L = 0; L < 5; L++) { endBattle(); startRun(L); if (!B.chart || R.rooms.join() !== 'chart') return 'stage ' + (L + 1) + ' is not a chart level';
         let hurts = 0; const oh = hurt; hurt = function (d, l, g) { if (!g) hurts++; return oh.apply(this, arguments); }; const done = new Set(); let vt = 0, won = false, offGrid = 0, hp0 = null, hpMid = null;
         while (vt < 200000) { const t = B.time, a = B.atk; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.includes('성공')) { won = true; break; } if (h.includes('쓰러')) break; }
@@ -661,7 +661,7 @@ const BOT = `(()=>{
         hurt = oh; closeModal();
         if (!(hp0 && hpMid && hpMid < hp0 * .8)) return `level ${L + 1}: enemy HP did not go down with the song (${Math.round(hp0)} → ${Math.round(hpMid)})`;
         if (!won) return `level ${L + 1} not cleared with perfect play`; if (hurts) return `level ${L + 1}: perfect play got hit ${hurts}x`; if (offGrid) return `level ${L + 1}: ${offGrid} notes off the bar grid`;
-        if (vt > 100000) return `level ${L + 1} too long (${Math.round(vt / 1000)}s)`; }
+        if (vt > (CHART_LV[L].boss ? 150000 : 100000)) return `level ${L + 1} too long (${Math.round(vt / 1000)}s)`; }
       endBattle(); startRun(0); B.php = B.pmax = 1e9; let vt = 0; while (vt < 120000 && document.querySelector('#modal').hidden) { __tick(16); vt += 16; } closeModal();
       if (!(R.miss >= R.notes - 1 && R.notes > 20)) return `no input should miss every note (miss ${R.miss}/${R.notes})`;
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
