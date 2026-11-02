@@ -2766,11 +2766,15 @@ function chartBuild(def,T0){const bar=barMs(),segs=[],cues=[];let total=0,pk=0;
       else if(c==='t'||c==='T')notes.push({t:tt,type:'tap',hidden:c==='T'});
       else if(c==='h'||c==='H'){let j=i+1;while(j<L&&b[j]==='=')j++;notes.push({t:tt,type:'hold',dur:(j-i)*st,hidden:c==='H'})}}
     if(notes.length){segs.push({type:'hit',t,notes});total+=notes.length}});
-  return{segs,cues,ci:0,si:0,total,done:0,T0,bars:def.bars.length,def}}
+  const bounds=[0];let acc=0;for(const g of segs){if(g.type==='hit')acc+=g.notes.length;else if(g.type==='stun')bounds.push(acc)}bounds.push(total);
+  return{segs,cues,ci:0,si:0,total,done:0,T0,bars:def.bars.length,def,bounds}}
 /* the song restarts on the chart's bar 0 so the written music and the chart line up */
 function chartStart(){const C=B.chart;if(C.built)return;const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;let T0=B.time+450;
   if(AC&&Music.cur&&S.bgm&&AC.state==='running'){Music.step=0;Music.next=AC.currentTime+.4;Music.beats=[];Music.last=null;T0=B.time+(.4+lat)*1000}
   Object.assign(C,chartBuild(C.def,T0));C.built=true;B.phGrid=T0}
+/* the gate map in a chart level shows its sections (each ends with a reward stun), the crown is the finish */
+function chartMap(k){let n=1,prev='';for(const b of (B.chart&&B.chart.def.bars)||[]){if(b==='S'&&prev!=='S')n++;prev=b}
+  $('#runMap').innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<k?'done':i===k?'cur':''} ${i===n-1?'boss':''}">${ic(i===n-1?'crown':'swords')}</i>`).join('<b></b>')}
 function chartBegin(){const C=B.chart,bar=barMs();chartStart();
   while(C.si<C.segs.length){const g=C.segs[C.si];
     if(g.type==='hit'){const first=g.notes[0].t;
@@ -2972,7 +2976,7 @@ setTimeout(()=>{try{if(B.active&&R&&feverAllowed()){fcHeroArt();loadFeverClip()}
 }
 function renderRunMap(){
   const icon={min:'swords',pack:'skull',fork:'gift',spring:'potHp',danger:'skull',elite:'skull',boss:'crown'};
-  $('#runMap').innerHTML=R.rooms.map((r,i)=>`<i class="${i<R.room?'done':i===R.room?'cur':''} ${r==='boss'?'boss':''}">${ic(icon[r]||'swords')}</i>`).join('<b></b>');
+  if(B.chart){chartMap(0);return}$('#runMap').innerHTML=R.rooms.map((r,i)=>`<i class="${i<R.room?'done':i===R.room?'cur':''} ${r==='boss'?'boss':''}">${ic(icon[r]||'swords')}</i>`).join('<b></b>');
 }
 function endBattle(){if(R&&R.prologue)duckMusic(MUS_VOL);fvCutOut();B.fever=0;feverHud();B.bossIn=null;$('#cine').classList.remove('bossin');$('#cine').querySelectorAll('.bwarn').forEach(x=>x.remove());const dt0=document.getElementById('dmgTot');if(dt0)dt0.classList.remove('on','fin');$('#cine').classList.remove('on');cineText('');atkCue(false);Music.rate=1;R=null;B.active=false;cancelAnimationFrame(B.raf);B.guard=false;fx.innerHTML='';Music.hype=false;showShell()}
 function showShell(){setTimeout(()=>{if(!offlineShown){offlineShown=true;offlineCheck()}},400);$('#battle').hidden=true;$('#story').hidden=true;$('#title').hidden=true;$('#shell').hidden=false;refreshTop();drawAvatar();setTab(tab==='battle'?'battle':tab);playMusic('lobby');duckMusic(MUS_VOL)}
@@ -3034,7 +3038,10 @@ function update(dt){
       if(t-c.t<120){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.atk===a){a.lit=c.k+1;B.eFlash=Math.max(B.eFlash||0,45)}},Math.max(0,c.t-t))}}}
   if(B.chart&&B.chart.built){const C=B.chart;
     while(C.ci<C.cues.length&&t>=C.cues[C.ci].t-80){const c=C.cues[C.ci++];if(t-c.t<120&&B.state!=='TRANSFORM'){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.chart===C){B.eFlash=Math.max(B.eFlash||0,45);B.cueT=B.time}},Math.max(0,c.t-t))}}
-    if(!C.fin){const a=B.atk,live=a&&a.chart&&!a.counted?a.idx:0;B.ehp=Math.max(1,B.emax*(1-.92*Math.min(1,(C.done+live)/Math.max(1,C.total))));if(B.state!=='GROGGY')B.stun=clamp(99*(C.done+live)/Math.max(1,C.total),0,99)}}
+    if(!C.fin){const a=B.atk,live=a&&a.chart&&!a.counted?a.idx:0;B.ehp=Math.max(1,B.emax*(1-.92*Math.min(1,(C.done+live)/Math.max(1,C.total))));
+      if(B.state!=='GROGGY'){const k=C.segs.slice(0,C.si).filter(g=>g.type==='stun').length,from=C.bounds[k]||0,to=C.bounds[k+1]||C.total;   // fills through the block, full right before its reward stun
+        B.stun=clamp(99*(C.done+live-from)/Math.max(1,to-from),0,99)}}
+    if(Math.floor(t/250)!==C.gT){C.gT=Math.floor(t/250);fvMeter();const k=C.segs.slice(0,C.si).filter(g=>g.type==='stun').length;if(k!==C.mapK){C.mapK=k;chartMap(k)}}}
   if(B.ph){const ph=B.ph;while(ph.ci<ph.cues.length&&t>=ph.cues[ph.ci].t-80){const c=ph.cues[ph.ci++];   // scheduled 80 ms ahead on the audio clock, so the call lands exactly on the beat
       if(t-c.t<120&&B.state!=='GROGGY'&&B.state!=='FEVER'&&B.state!=='TRANSFORM'){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.dir,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.ph===ph){B.eFlash=Math.max(B.eFlash||0,55);B.cueT=B.time}},Math.max(0,c.t-t))}}
     if(B.state!=='GROGGY'){const a=B.atk,done=ph.rep*ph.spec.length+(a&&a.phrase===ph.rep?a.idx:0);B.stun=clamp(100*(done-ph.miss)/ph.total,0,99)}}
@@ -3579,6 +3586,8 @@ function feverSync(){const cut=$('#fvcut'),inCut=!!(B.active&&B.state==='FEVER'&
 /* these run every frame during fever: only touch the DOM when a value really changes (each write restyles the HUD) */
 function setIf(el,k,v){if(el&&el[k]!==v)el[k]=v}function styIf(el,k,v){if(el&&el._s!==undefined&&el._s[k]===v)return;if(!el)return;(el._s||(el._s={}))[k]=v;el.style.setProperty(k,v)}
 function fvMeter(){const m=document.getElementById('fvMeter');if(m&&m.firstChild)m.innerHTML='';const g=document.getElementById('fGauge');if(!g)return;
+  if(B.active&&B.chart){setIf(g,'hidden',false);g.classList.remove('ready');const C=B.chart,f=C.built?clamp((B.time-C.T0)/(C.bars*barMs()),0,1):0;
+    styIf(document.getElementById('fGaugeFill'),'width',(Math.round(f*400)/4)+'%');setIf(document.getElementById('fGaugeTxt'),'textContent',`♪ 곡 진행 ${Math.floor(f*100)}%`);return}
   const on=!!(B.active&&R&&feverAllowed());setIf(g,'hidden',!on);if(!on)return;const live=feverOn(),f=live?clamp((B.fever-B.time)/FEVER_MS,0,1):clamp((R.fv||0)/fvNeed(),0,1);
   styIf(document.getElementById('fGaugeFill'),'width',(Math.round(f*400)/4)+'%');g.classList.toggle('ready',!!(live||fvReady()));
   setIf(document.getElementById('fGaugeTxt'),'textContent',live?`FEVER!! ${Math.ceil((B.fever-B.time)/1000)}초`:fvReady()?'피버 준비! FEVER 버튼으로 발동':`피버 게이지 ${Math.floor(f*100)}%`)}
@@ -3782,7 +3791,7 @@ function updHud(){
   const sig=[Math.round(B.ehp),Math.round(stunPct),Math.round(B.php),Math.round(B.psh),B.combo,B.state,B.guard,B.atk&&B.atk.heavy&&!B.atk.resolved,B.atk&&B.atk.idx,B.atk&&B.atk.kind,B.exec&&B.exec.charge>=0,B.disarm&&B.disarm.steps,B.phase2,Math.round(B.groggyDmg||0),B.finishReady].join('|');
   if(sig===lastHud)return;lastHud=sig;
   hpBar();
-  hud.eStun.style.width=stunPct+'%';hud.eStunBar.classList.toggle('near',B.state!=='GROGGY'&&B.stun>=80&&!B.finishReady);hud.eStunBar.classList.toggle('ready',!!B.finishReady);hud.eStunBar.querySelector('span').textContent=R&&R.v2?'자세':B.chart?'곡 진행':'피로도';hud.eStunBar.classList.toggle('full',B.state==='GROGGY');
+  hud.eStun.style.width=stunPct+'%';hud.eStunBar.classList.toggle('near',B.state!=='GROGGY'&&B.stun>=80&&!B.finishReady);hud.eStunBar.classList.toggle('ready',!!B.finishReady);hud.eStunBar.querySelector('span').textContent=R&&R.v2?'자세':'피로도';hud.eStunBar.classList.toggle('full',B.state==='GROGGY');
   hud.pHp.style.width=(100*B.php/B.pmax)+'%';hud.pHpTxt.textContent=Math.ceil(B.php)+' / '+B.pmax;
   hud.pSh.style.width=(100*B.psh/B.pshMax)+'%';hud.pShTxt.textContent=(R&&R.v2?'스태미나 ':'실드 ')+Math.round(B.psh);hud.pShBar.classList.toggle('low',B.psh<B.pshMax*.25);
   hud.comboN.textContent=B.combo;
