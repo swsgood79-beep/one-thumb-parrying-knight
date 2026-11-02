@@ -2890,7 +2890,7 @@ function chartBegin(){const C=B.chart,bar=barMs();chartStart();
     if(g.type==='stun'){if(B.time<g.t-20){setState('IDLE');B.idleDur=Math.max(16,g.t-B.time-10);return}C.si++;
       enterGroggy();B.phReward=true;B.phPerfect=false;B.phGrid=g.t;C.mashLeft=C.blockBudget;C.mashPer=C.blockBudget/Math.max(1,(g.end-g.t)/bar*8);B.groggyCap=1e15;B.groggyEnd=g.end;B.groggyDur=g.end-B.time;
       C.smode=g.mode;B.kc=null;B.kDone=false;const mtx={grid:'정박에만 연타!',charge:'꾹 모았다가 마지막 박에 떼기!'}[g.mode];if(mtx)atkCue(false);
-      if(C.fvOn){C.mashLeft*=1.2;C.mashPer*=1.2;atkCue(false);ftAt(mtx||'FEVER 연타!',B.ex,B.gy-B.E.scale*22,'perfect')}
+      if(C.fvOn){C.mashLeft*=1.5;C.mashPer*=1.5;atkCue(false);ftAt(mtx||'FEVER 연타!',B.ex,B.gy-B.E.scale*22,'perfect')}
       else ftAt(mtx||'지금 연타!',B.ex,B.gy-B.E.scale*22,'perfect');return}
     if(g.type==='end'){if(B.time<g.t-20){setState('IDLE');B.idleDur=Math.max(16,g.t-B.time-10);return}C.si++;chartFinish();return}}
   setState('IDLE');B.idleDur=1e9}
@@ -2903,30 +2903,29 @@ function chartLive(C,t){const k=chartBarAt(C,t),ar=$('#arena');
   const sg=SONGS[C.def.song],ch=!C.fin&&!!(sg&&sg.secs&&sg.secs[k+1]==='B');if(ch!==C.chorus){ar.classList.toggle('chorus',ch);C.chorus=ch}
   if(ch){const bi=Math.floor((t-C.barT[k])/beatMs());if(bi!==C.chB){C.chB=bi;zoom(1.012);if(bi===0)burstParts(B.W/2,B.gy+2,8,['#ffd23f','#ff9bd0','#7cf0ff'],.08,.0003,.3)}}
   for(const f of C.fakes)if(!f.res&&t>f.t+170){f.res=1;C.held=(C.held||0)+1;ftAt('참았다! 보너스',B.kx+8,B.gy-50,'perfect');if(C.chip){B.ehp=Math.max(1,B.ehp-Math.round(C.chip*.6));B.eHitT=B.time}chartFvAdd(1)}
-  if(C.fvCut&&t>=C.fvCutEnd){C.fvCut=false;fvCutOut();C.fvOn=true;banner('FEVER!!','4마디: 마구 탭해서 공격! 노트는 자동');zoom(1.15);flash('#ffffff',.6,220);feverHud()}
+  if(C.fvCut&&t>=C.fvCutEnd){C.fvCut=false;fvCutOut();C.fvOn=true;banner('FEVER!!','4마디 자동 연속 공격!');zoom(1.15);flash('#ffffff',.6,220);feverHud()}
   if(C.fvOn){Music.hype=true;const a=B.atk,due=B.guard||(B.state==='WINDUP'&&a&&a.chart&&!a.resolved&&a.notes[a.idx]&&a.notes[a.idx].t-t<260);   // never end on top of a note the player can no longer catch
     if(C.fin||(t>=C.fvEndT&&!due)){C.fvOn=false;B.fvK=null;dmgTotal(-1);if(B.guard)setGuard(false);Music.hype=B.state==='GROGGY';feverHud();if(!C.fin)ftAt('피버 끝',B.W/2,B.H*.3,'info')}else chartAuto(t)}
   if(B.kc!=null&&B.state==='GROGGY'&&Math.floor(t/100)!==B.kcT){B.kcT=Math.floor(t/100);B.parts.push({ring:true,x:B.kx+4,y:B.gy-12,r:2+Math.min(10,(t-B.kc)/120),vr:.03,life:220,col:'#7cf0ff'})}}
 /* beat fever (chart levels): clean notes fill it, and the next reward stun becomes a FEVER mash on the beat — the song never stops */
 const chartFvReady=()=>!!(B.active&&B.chart&&B.chart.built&&!B.chart.fin&&!B.chart.fvOn&&!B.chart.fvArm&&!B.chart.fvCut&&B.chart.fv>=B.chart.fvNeed);
 /* pressing FEVER fires it at once for the rest of this bar + 4 more. The hero cut-in only plays while no note is due (it would hide it); otherwise a flash and banner */
-function chartFeverArm(){if(!chartFvReady())return false;const C=B.chart,t=B.time,k=chartBarAt(C,t);C.fv=0;C.fvN=(C.fvN||0)+1;C.fvGot=0;C.fvCap=C.chip*4;track('fever');
+function chartFeverArm(){if(!chartFvReady())return false;const C=B.chart,t=B.time,k=chartBarAt(C,t);C.fv=0;C.fvN=(C.fvN||0)+1;track('fever');
   let nx=Infinity;const a=B.atk;if(a&&a.chart&&!a.resolved)for(const n of a.notes)if(!n.res&&n.t>t)nx=Math.min(nx,n.t);for(let i=C.si;i<C.segs.length;i++){const g=C.segs[i];if(g.type==='hit'){nx=Math.min(nx,g.notes[0].t);break}if(g.type==='stun'&&g.t>t){nx=Math.min(nx,g.t);break}}
   const cut=B.state==='GROGGY'?0:Math.min(1100,nx-t-180);C.fvEndT=C.barT[Math.min(C.barT.length-1,k+5)];sfx('fever');vib([30,30,30,30,80]);
-  if(cut>=350){C.fvCut=true;C.fvCutEnd=t+cut;C.fvT0=t+cut;fvCutIn()}else{C.fvT0=t;C.fvOn=true;banner('FEVER!!','4마디: 마구 탭해서 공격! 노트는 자동');flash('#ff5bb5',.55,260);zoom(1.15);feverHud()}
+  if(cut>=350){C.fvCut=true;C.fvCutEnd=t+cut;C.fvT0=t+cut;fvCutIn()}else{C.fvT0=t;C.fvOn=true;banner('FEVER!!','4마디 자동 연속 공격!');flash('#ff5bb5',.55,260);zoom(1.15);feverHud()}
   fvMeter();return true}
 function chartFvAdd(v){const C=B.chart;if(!C||!C.built||C.fvOn||C.fvArm||C.fvCut||C.fin)return;const was=C.fv>=C.fvNeed;C.fv=Math.min(C.fvNeed,(C.fv||0)+v);
   if(!was&&C.fv>=C.fvNeed){banner('FEVER 준비!','FEVER 버튼을 눌러 발동!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200);try{loadFeverClip()}catch(e){}}}
 /* dodges and jumps in a chart are judged on the beat too: within 110ms of the note is PERFECT, an earlier swipe is GOOD */
 function chartFvHit(){const k=B.fvHk=(B.fvHk||0)+1;RK.fever(k);for(let i=0;i<2;i++)fvSlash(18+rnd(0,10),rnd(-1.3,1.3),3,FV_COLS[(k*2+i)%FV_COLS.length]);burstParts(B.ex-B.E.scale*4,B.gy-B.E.scale*10,8,FV_COLS,.12,.0003,.4)}
-/* chart FEVER: for its 4 bars every note is played for you (perfect, on time) and YOUR taps are attacks — each one a teleport slash,
-   stronger on the 8th-note grid. Total fever tap damage is capped per fever so the song still decides when the enemy falls. */
+/* chart FEVER = auto attack: for its 4 bars the knight plays every note itself (perfect, on time) and slashes the enemy on every 8th note,
+   teleporting around it; the player's taps add bonus slashes. The song and the chart keep running. */
 function chartFvSlash(m){const C=B.chart,k=B.fvHk=(B.fvHk||0)+1,p=fvSlot(k),sc=B.E.scale;fvTeleport(p.x,p.y);RK.fever(k);
   fvSlash(18+rnd(0,10),rnd(-1.3,1.3),3,FV_COLS[k%FV_COLS.length]);if(k%4===0)fvSlash(26,rnd(-1,1),4,'#ffffff');
   const d=Math.max(1,Math.round(C.chip*m));B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;B.eFlash=60;B.swing=!B.swing;B.swingT=B.time;
   ftAt(String(d),B.ex-sc*4+rnd(-9,9),B.gy-sc*12+rnd(-8,4),k%4===0?'dmg2':'dmg');dmgTotal(d);B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);if(k%4===0){zoom(1.04);B.shake=2}}
-function chartFvTap(){const now=performance.now();if(now-(B.fvTapT||0)<70)return;B.fvTapT=now;const C=B.chart,t=inputTime(),k=chartBarAt(C,t),e=beatMs()/2,off=((t-C.barT[k])%e+e)%e,on=Math.min(off,e-off)<=60;
-  const m=Math.min(on?.45:.25,Math.max(0,(C.fvCap-(C.fvGot||0))/Math.max(1,C.chip)));C.fvGot=(C.fvGot||0)+m*C.chip;chartFvSlash(Math.max(m,.02));if(on&&B.fvHk%4===0)ftAt('박자!',B.kx+8,B.gy-52,'perfect')}
+function chartFvTap(){const now=performance.now();if(now-(B.fvTapT||0)<90)return;B.fvTapT=now;chartFvSlash(.15)}
 function chartAuto(t){const C=B.chart,a=B.atk,cal=S.calib||0;B.autoIn=true;try{
   if(B.state==='GROGGY'){if(C.smode==='charge'){if(B.kc==null&&!B.kDone){B.lastBashT=-1e9;onTap()}else if(B.kc!=null&&t>=B.groggyEnd-beatMs()-4+cal)onRelease()}
     else{const e=beatMs()/(C.smode==='grid'?1:2),q=Math.floor((t-cal-B.phGrid)/e);if(q!==B._aq&&t-cal-B.phGrid-q*e<20){B._aq=q;B.lastBashT=-1e9;onTap()}}}
@@ -2935,9 +2934,10 @@ function chartAuto(t){const C=B.chart,a=B.atk,cal=S.calib||0;B.autoIn=true;try{
     else if(B._ak!==key&&(n.type==='swipe'||n.type==='jump')&&t>=n.t-40+cal){B._ak=key;setGuard(false);n.type==='swipe'?onSwipe(1):onSwipeUp()}
     else if(B._ak!==key&&n.type==='tap'&&t>=n.t-4+cal){B._ak=key;const pv=a.notes[a.idx-1];if(pv&&pv.type==='hold'&&B.guard&&n.t-(pv.t+pv.dur)<=beatMs()*.45){setGuard(false);onRelease()}else{setGuard(false);onTap()}}}}
   else if(B.guard)setGuard(false);
+  const k=chartBarAt(C,t),e8=beatMs()/2,q8=Math.floor((t-C.barT[k])/e8);if(q8!==C.fvQ||k!==C.fvQk){C.fvQ=q8;C.fvQk=k;if(B.state!=='VICTORY')chartFvSlash(.12)}
 }finally{B.autoIn=false}}
 function chartNoteOk(n,it){const C=B.chart;if(!C||!C.chip)return;const perfect=it!=null&&Math.abs(n.t-it)<=110,q=perfect?1:.6;B.tapN++;if(perfect){B.perfects++;if(n.hidden)C.hidOk++}
-  const d=Math.round(C.chip*q);if(C.fvOn)chartFvHit();B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg');ftAt(perfect?'퍼펙트!':'굿',B.kx+8,B.gy-54,perfect?'perfect':'info');chartFvAdd(perfect?1:.5)}
+  const d=Math.round(C.chip*q*(C.fvOn?1.25:1));if(C.fvOn)chartFvHit();B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg');ftAt(perfect?'퍼펙트!':'굿',B.kx+8,B.gy-54,perfect?'perfect':'info');chartFvAdd(perfect?1:.5)}
 function chartFinish(){const C=B.chart;C.fin=true;chartFxClear();const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;
   addFx('slash',hx,hy,{len:34,ang:-.78,dur:300});addFx('slash',hx,hy,{len:34,ang:.78,dur:300});addFx('burst',hx,hy,{dur:500});
   ftAt('FINISH!',hx,hy-16,'finisher');flash('#ffffff',.8,320);zoom(1.16);domShake(3);sfx('crit',3);sfx('ko');vib([40,30,140]);B.ehp=0;B.pendingKO=true}
@@ -3431,7 +3431,7 @@ function parrySuccess(early,win){
   const perfect=Math.abs(early-15)<=Math.max(35,win*.22);
   track('parry');if(perfect)track('perfect');tutParried('parry');rScore(perfect?300:200,perfect?'perfect':'just');
   if(!perfect&&B.ph&&a.phrase!=null)B.ph.imp++;
-  if(B.chart&&B.chart.chip){const d=Math.round(B.chart.chip*(perfect?1:.6));if(B.chart.fvOn)chartFvHit();chartFvAdd(perfect?1:.5);if(perfect&&curNote().hidden)B.chart.hidOk++;B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg')}
+  if(B.chart&&B.chart.chip){const d=Math.round(B.chart.chip*(perfect?1:.6)*(B.chart.fvOn?1.25:1));if(B.chart.fvOn)chartFvHit();chartFvAdd(perfect?1:.5);if(perfect&&curNote().hidden)B.chart.hidOk++;B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg')}
   B.auraN=perfect?(B.auraN||0)+1:0;if(tech('aura')&&B.auraN===5)ftAt('퍼펙트 오라!',B.kx,B.gy-56,'perfect');
   const gain=B.sh.stunDamage*B.st.stunMult*(perfect?1.3:1)*(feverOn()?1.5:1)*(tech('aura')&&B.auraN>=5?1.5:1);
   B.stun=Math.min(100,B.stun+gain);B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);B.parries++;if(perfect)B.perfects++;
@@ -3731,7 +3731,7 @@ const fcHeroArt=()=>memo('fch'+S.shStage+(S.skin||'')+(S.plume||''),()=>{const c
   const gh=mk(W,H),gg=gh.getContext('2d');gg.shadowColor='#ff5bd8';gg.shadowBlur=8;gg.drawImage(tint('#f4ecff'),P,P);
   return{hero:hero.toDataURL(),ghost:gh.toDataURL()}});
 const fcHeroURL=()=>fcHeroArt().hero;
-function fvCutIn(){const el=$('#fvcut');if(!el)return;{const sm=el.querySelector('small');if(sm)sm.textContent=B.chart?'마구 탭해서 연속 공격!':'필살 연속 공격'}{const a=fcHeroArt();el.querySelectorAll('.fc-hero').forEach(im=>{const u=im.classList.contains('gh')?a.ghost:a.hero;if(im.src!==u)im.src=u})}el.classList.remove('on');void el.offsetWidth;el.classList.add('on');$('#banner').classList.remove('show')}
+function fvCutIn(){const el=$('#fvcut');if(!el)return;{const sm=el.querySelector('small');if(sm)sm.textContent=B.chart?'4마디 자동 연속 공격!':'필살 연속 공격'}{const a=fcHeroArt();el.querySelectorAll('.fc-hero').forEach(im=>{const u=im.classList.contains('gh')?a.ghost:a.hero;if(im.src!==u)im.src=u})}el.classList.remove('on');void el.offsetWidth;el.classList.add('on');$('#banner').classList.remove('show')}
 function fvCutOut(){const el=$('#fvcut');if(el)el.classList.remove('on')}
 /* every frame: the fever screens must match the real fever state, whatever path ended or interrupted it
    (KO during the cut-in, phase-2 transform, revive, gate clear, defeat...) */
