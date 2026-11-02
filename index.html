@@ -2850,7 +2850,9 @@ function chartBegin(){const C=B.chart,bar=barMs();chartStart();
 /* beat fever (chart levels): clean notes fill it, and the next reward stun becomes a FEVER mash on the beat — the song never stops */
 function chartFvAdd(v){const C=B.chart;if(!C||!C.built||C.fvOn||C.fin)return;const was=C.fv>=C.fvNeed;C.fv=Math.min(C.fvNeed,(C.fv||0)+v);
   if(!was&&C.fv>=C.fvNeed){banner('FEVER 준비!','다음 연타 구간이 피버로 바뀌어요');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200);try{loadFeverClip()}catch(e){}}}
-function chartNoteOk(q){const C=B.chart;if(!C||!C.chip)return;const d=Math.round(C.chip*q);B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg');chartFvAdd(q)}
+/* dodges and jumps in a chart are judged on the beat too: within 110ms of the note is PERFECT, an earlier swipe is GOOD */
+function chartNoteOk(n,it){const C=B.chart;if(!C||!C.chip)return;const perfect=it!=null&&Math.abs(n.t-it)<=110,q=perfect?1:.6;B.tapN++;if(perfect)B.perfects++;
+  const d=Math.round(C.chip*q);B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg');ftAt(perfect?'퍼펙트!':'굿',B.kx+8,B.gy-54,perfect?'perfect':'info');chartFvAdd(perfect?1:.5)}
 function chartFinish(){const C=B.chart;C.fin=true;const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;
   addFx('slash',hx,hy,{len:34,ang:-.78,dur:300});addFx('slash',hx,hy,{len:34,ang:.78,dur:300});addFx('burst',hx,hy,{dur:500});
   ftAt('FINISH!',hx,hy-16,'finisher');flash('#ffffff',.8,320);zoom(1.16);domShake(3);sfx('crit',3);sfx('ko');vib([40,30,140]);B.ehp=0;B.pendingKO=true}
@@ -2984,7 +2986,7 @@ function roomCfg(idx,type){
       pack:mins.map(([kind,name])=>({kind,name,scale:EN[kind].scale,pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)])}})),packEach:each})}
   const st=STAGES[idx],rg=REGIONS[idx],T=PARRY_TUNE[idx],k=(R&&R.room)||0;
   const mv=(k,n)=>({moves:movesFor(k,idx,n)});
-  if(type==='chart'&&CHART_LV[idx]){const L=CHART_LV[idx],base=roomCfg(idx,L.boss?'boss':'min');return Object.assign({},base,{chart:L,music:L.song,hz:null,moves:null,moves2:null,pool:{base:[['single',1]]},label:L.boss?'보스':base.label,gold:st.gold*(L.boss?1:.9)})}
+  if(type==='chart'&&CHART_LV[idx]){const L=CHART_LV[idx],base=roomCfg(idx,L.boss?'boss':'min');return Object.assign({},base,L.boss?{}:{kind:st.kind,name:st.name,scale:EN[st.kind].scale},{chart:L,music:L.song,hz:null,moves:null,moves2:null,pool:{base:[['single',1]]},label:L.boss?'보스':base.label,gold:st.gold*(L.boss?1:.9)})}
   if(type==='boss')return{...(st.boss&&BOSS_SIG[st.kind]?{moves:BOSS_SIG[st.kind].map(x=>x[0]),moves2:(BOSS_P2[st.kind]||[]).map(x=>x[0]).concat([BOSS_SIG[st.kind][0][0]])}:mv(st.kind,3)),kind:st.kind,name:st.name,scale:Math.max(EN[st.kind].scale,3),hp:st.hp*BOSS_HP_MUL,atk:st.atk*atkMul(idx),windup:st.windup,stunMult:st.stunMult,gold:st.gold*.6,
     theme:st.theme,hz:st.hz,boss:!!st.boss,music:'bs'+idx,pool:st.boss?sigPool(st.kind,POOLS[idx]):{base:withOwn(POOLS[idx].base,st.kind,idx,.4),p2:POOLS[idx].p2&&withOwn(POOLS[idx].p2,st.kind,idx,.45)},tune:T,line:st.line,taunt:st.taunt||'',label:'보스'};
   if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{...mv(kind,3),kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.85:.75),atk:st.atk*.88*atkMul(idx),windup:st.windup,
@@ -3402,13 +3404,13 @@ function witchBonus(){if(B.fx.evadeStun){const v=Math.round(B.fx.evadeStun);B.st
 function resolveImpact(){
   if(B.finalBlow){prologueKO();return}
   const a=B.atk,n=curNote();n.res=true;if(n.type==='tap')B.tapN++;const t=B.time,atk=B.st.atk*(a.kind==='desp'||a.kind==='fury'?.7:1)*(B.raged?1.25:1)*(a.hz?.8:1),red=1-B.ar.dmgReduce;let ok=false;
-  if(n.type==='jump'){if(t<(B.jumpUntil||0)){ok=true;chartNoteOk(1);actOk('점프!','#d6ffc0',.4);RK.jump();{const d=(B.jumpT||-1e9)-(B.gcT||-1e9);if(d>=-50&&d<=300){B.gcT=-1e9;actOk('가드 카운터!','#ffd23f',.2);chip(B.wp.groggyTapDamage*1.2,'카운터')}}}else hurt(atk*1.2*red,B.guard?'발밑을 쓸었다!':'↑ 점프했어야!')}
+  if(n.type==='jump'){if(t<(B.jumpUntil||0)){ok=true;chartNoteOk(n,B.jumpIT);actOk('점프!','#d6ffc0',.4);RK.jump();{const d=(B.jumpT||-1e9)-(B.gcT||-1e9);if(d>=-50&&d<=300){B.gcT=-1e9;actOk('가드 카운터!','#ffd23f',.2);chip(B.wp.groggyTapDamage*1.2,'카운터')}}}else hurt(atk*1.2*red,B.guard?'발밑을 쓸었다!':'↑ 점프했어야!')}
   else if(n.type==='block'){if(B.guard&&B.psh>0){B.psh-=drainK()*atk*.6*Math.max(.3,1-.55*cardN('grip'));
       if(B.psh<=0){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 브레이크!')}
       else{ok=true;if(a.name==='hzBolt')actOk('번개 흡수!','#ffe14d',1.4);else actOk('철벽!','#bfe6ff',.5);sfx('guard',S.shStage);RK.block();if(tech('ironwall')){B.stun=Math.min(100,B.stun+10);chip(B.wp.groggyTapDamage*3,'철벽 반사')}domShake(1);barShake('#pShBar');ripple('#8fd0ff')}}
     else hurt(atk*1.3*red,t<B.evadeUntil?'충격파는 못 피해! 꾹!':'짓눌렸다! 꾹 가드!')}
   else if(t<B.evadeUntil&&n.dir&&B.evadeDir!==n.dir)hurt(atk*1.2*red,'반대쪽!');
-  else if(t<B.evadeUntil){if(n.type==='swipe'){fvAdd(.8);B.evadeUntil=t;if(tech('justdodge')&&t-B.evadeT<=180){B.stun=Math.min(100,B.stun+10);fvAdd(1.5);slow(220,.35);ftAt('저스트 회피!',B.kx+6,B.gy-52,'perfect');flash('#bfe8ff',.35,160)}}ftAt('회피!',B.kx,B.gy-40,'info');RK.dodge(n.dir||B.evadeDir||-1);vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok)chartNoteOk(1);if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
+  else if(t<B.evadeUntil){if(n.type==='swipe'){fvAdd(.8);B.evadeUntil=t;if(tech('justdodge')&&t-B.evadeT<=180){B.stun=Math.min(100,B.stun+10);fvAdd(1.5);slow(220,.35);ftAt('저스트 회피!',B.kx+6,B.gy-52,'perfect');flash('#bfe8ff',.35,160)}}ftAt('회피!',B.kx,B.gy-40,'info');RK.dodge(n.dir||B.evadeDir||-1);vib(12);vig('rgba(140,220,255,.55)',300);witchBonus();ok=n.type==='swipe';if(ok)chartNoteOk(n,B.evadeIT);if(ok&&B.disarm)disarmStep();if(R&&R.prologue&&B.tutStep===5&&ok&&!B.atk.lesson){B.tutStep=10;B.lessonTry=0;coachHide();toast('좋아요! 이제 특수 공격을 익혀 봐요')}}
   else if(n.grab)grabStart(atk*red);
   else if(n.type==='swipe'&&a.kind==='barrage')hurt(atk*.35*red,'피격!');
   else if(n.type==='swipe'){if(B.guard){B.psh=0;B.guard=false;guardBreak();hurt(atk*.7*red,'가드 붕괴!')}else hurt(atk*1.4*red)}
@@ -3511,7 +3513,7 @@ function onSwipe(dir){
   if(B.tutWait==='swipe')coachHide();
   B.evadeUntil=B.time+430;B.evadeCd=B.time+650+(B.hz==='mud'?150:0);
   {const a=B.atk;if(B.state==='WINDUP'&&a&&!a.resolved){const nx=a.notes.find((n,k)=>k>a.idx&&!n.res&&n.type==='swipe');   // 연속 회피
-    if(nx&&nx.t-B.time<1100)B.evadeCd=Math.min(B.evadeCd,B.time+Math.max(150,nx.t-B.time-180))}}B.evadeT=B.time;B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
+    if(nx&&nx.t-B.time<1100)B.evadeCd=Math.min(B.evadeCd,B.time+Math.max(150,nx.t-B.time-180))}}B.evadeT=B.time;B.evadeIT=inputTime();B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
 }
 function setGuard(on){if(!B.active)return;if(on&&B.pendWhiff){B.pendWhiff=0}if(on&&(B.grab||B.state==='FEVER'||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
   if(on&&!B.guard){sfx('guard',0);vib(10)}B.guard=on}
@@ -4788,7 +4790,7 @@ function onSwipeUp(){
   if(!B.active||B.paused)return;
   if(!(R&&R.v2)){if(B.finalBlow||B.grab||B.state==='GROGGY'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='TRANSFORM')return;B.pendWhiff=0;
     if(B.time<(B.jumpCd||0)||B.time<(B.stiffUntil||0))return;
-    B.jumpUntil=B.time+430;B.jumpT=B.time;B.jumpCd=B.time+560;{const a=B.atk;if(B.state==='WINDUP'&&a&&!a.resolved){const nx=a.notes.find((n,k)=>k>a.idx&&!n.res&&n.type==='jump');if(nx&&nx.t-B.time<1100)B.jumpCd=Math.min(B.jumpCd,B.time+Math.max(150,nx.t-B.time-180))}}B.guard=false;sfx('dash');
+    B.jumpUntil=B.time+430;B.jumpT=B.time;B.jumpIT=inputTime();B.jumpCd=B.time+560;{const a=B.atk;if(B.state==='WINDUP'&&a&&!a.resolved){const nx=a.notes.find((n,k)=>k>a.idx&&!n.res&&n.type==='jump');if(nx&&nx.t-B.time<1100)B.jumpCd=Math.min(B.jumpCd,B.time+Math.max(150,nx.t-B.time-180))}}B.guard=false;sfx('dash');
     if(tech('bash')&&(B.state==='IDLE'||B.state==='RECOIL')&&!B.firstAtk&&B.time>=(B.bashCd||0)&&B.ehp>0){B.bashCd=B.time+2500;B.stun=Math.min(100,B.stun+7);setKPose('parry');B.ex=Math.min(B.ex+4,EX()+8);
       const[sx,sy]=shieldPos();addFx('pow',sx+6,sy,{r:12,dur:200});sfx('guard',S.shStage);vib(20);chip(B.wp.groggyTapDamage*1.2,'방패 강타')}
     return}
