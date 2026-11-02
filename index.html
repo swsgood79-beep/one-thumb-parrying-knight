@@ -2735,28 +2735,28 @@ const MOVE_ROT=[0,0,1,0,2,1];
 /* ===== hand-written charts: one string per bar (length = grid: 8 = 8th notes, 12 = swing/triplet grid)
    cues (heard, not hit):  c tap-call · q hold-call · p heartbeat · i heartbeat with ice (the hit comes a beat late)
    hits:  t tap · T hidden tap (play it from what you heard) · h hold start, '=' keeps holding
-   whole bar:  R rest (the first two count you in) · S reward stun bar · E finish */
+   whole bar:  R rest (the first one counts you in) · S reward stun bar · E finish */
 const CHART_LV={
-  0:{song:'c1',name:'첫 패링',rule:'불러주면 → 똑같이 탭!',bars:['R','R',
+  0:{song:'c1',name:'첫 패링',rule:'불러주면 → 똑같이 탭!',bars:['R',
     'c...c...','t...t...','c...c...','t...t...','c.c.c...','t.t.t...','c.c.c...','t.t.t...','c...c.c.','t...t.t.','c.c.c.c.','t.t.t.t.','S','S',
     'cc..c...','tt..t...','c...cc..','t...tt..','c.c...c.','t.t...t.','c.c.c.c.','t.t.t.t.','c...c.c.','t...t.t.','c.cc.c..','t.tt.t..','S','S','E']},
-  1:{song:'c2',name:'꾹 버티기',rule:'새 규칙: 길게 울리면 꾹!',bars:['R','R',
+  1:{song:'c2',name:'꾹 버티기',rule:'새 규칙: 길게 울리면 꾹!',bars:['R',
     'c...c...','t...t...','q===....','h===....','q===....','h===....','c.c.q===','t.t.h===','c.c.q===','t.t.h===','S','S',
     'q=..c.c.','h=..t.t.','q=..c.c.','h=..t.t.','c...q===','t...h===','q==.c.c.','h==.t.t.','S','S','E']},
-  2:{song:'c3',name:'출렁출렁 스윙',rule:'새 규칙: 출렁이는 스윙 박',bars:['R','R',
+  2:{song:'c3',name:'출렁출렁 스윙',rule:'새 규칙: 출렁이는 스윙 박',bars:['R',
     'c.....c.....','t.....t.....','c.c...c.c...','t.t...t.t...','c.c...c.c...','t.t...t.t...','c.....c..c..','t.....t..t..','S','S',
     'c.cc.c......','t.tt.t......','c..c.cc.....','t..t.tt.....','c.c..c..c...','t.t..t..t...','c.c..c..c.c.','t.t..t..t.t.','S','S','E']},
-  3:{song:'c4',name:'심장 소리',rule:'새 규칙: 쿵 6번 → 7번째 탭',bars:['R','R',
+  3:{song:'c4',name:'심장 소리',rule:'새 규칙: 쿵 6번 → 7번째 탭',bars:['R',
     'p.p.p.p.','p.p.t...','p.p.p.p.','p.p.t...','c.c.c...','t.t.t...','p.p.p.p.','p.p.t...','S','S',
     'i.p.p.p.','p.p...t.','c.c.c.c.','t.t.t.t.','p.p.p.p.','p.p.t...','i.p.p.p.','p.p...t.','S','S','E']},
-  4:{song:'c5',name:'왕 슬라임의 시험',boss:true,rule:'새 규칙: 세 번째는 숨김',bars:['R','R',
+  4:{song:'c5',name:'왕 슬라임의 시험',boss:true,rule:'새 규칙: 세 번째는 숨김',bars:['R',
     'c.c.c...','t.t.t...','c.c.c...','t.t.t...','c.c.c...','t.t.T...','S','S',
     'c...c.c.','t...t.t.','c...c.c.','t...t.t.','c...c.c.','t...T.T.','S','S',
     'q==.c.c.','h==.t.t.','q==.c.c.','h==.t.t.','q==.c.c.','h==.t.T.','S','S','S','E']},
 };
 function chartBuild(def,T0){const bar=barMs(),segs=[],cues=[];let total=0,pk=0;
   def.bars.forEach((b,k)=>{const t=T0+k*bar;
-    if(b==='R'){if(k<2)for(let q=0;q<4;q++)cues.push({t:t+q*bar/4,type:'count',k:k*4+q});return}
+    if(b==='R'){if(k<1)for(let q=0;q<4;q++)cues.push({t:t+q*bar/4,type:'count',k:k*4+q});return}
     if(b==='S'){const pv=segs[segs.length-1];if(pv&&pv.type==='stun'&&Math.abs(pv.end-t)<1)pv.end=t+bar;else segs.push({type:'stun',t,end:t+bar});return}
     if(b==='E'){segs.push({type:'end',t});return}
     const L=b.length,st=bar/L,notes=[];
@@ -2769,8 +2769,8 @@ function chartBuild(def,T0){const bar=barMs(),segs=[],cues=[];let total=0,pk=0;
   const bounds=[0];let acc=0;for(const g of segs){if(g.type==='hit')acc+=g.notes.length;else if(g.type==='stun')bounds.push(acc)}bounds.push(total);
   return{segs,cues,ci:0,si:0,total,done:0,T0,bars:def.bars.length,def,bounds}}
 /* the song restarts on the chart's bar 0 so the written music and the chart line up */
-function chartStart(){const C=B.chart;if(C.built)return;const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;let T0=B.time+450;
-  if(AC&&Music.cur&&S.bgm&&AC.state==='running'){Music.step=0;Music.next=AC.currentTime+.4;Music.beats=[];Music.last=null;T0=B.time+(.4+lat)*1000}
+function chartStart(){const C=B.chart;if(C.built)return;const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;let T0=B.time+250;
+  if(AC&&Music.cur&&S.bgm&&AC.state==='running'){Music.step=8;Music.next=AC.currentTime+.25;Music.beats=[];Music.last=null;T0=B.time+(.25+lat)*1000}
   Object.assign(C,chartBuild(C.def,T0));C.built=true;B.phGrid=T0}
 /* the gate map in a chart level shows its sections (each ends with a reward stun), the crown is the finish */
 function chartMap(k){let n=1,prev='';for(const b of (B.chart&&B.chart.def.bars)||[]){if(b==='S'&&prev!=='S')n++;prev=b}
@@ -3036,6 +3036,7 @@ function update(dt){
   const t=B.time;
   {const a=B.atk;if(a&&a.cues&&!a.resolved&&B.state==='WINDUP')while(a.ci<a.cues.length&&t>=a.cues[a.ci].t-80){const c=a.cues[a.ci++];
       if(t-c.t<120){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.atk===a){a.lit=c.k+1;B.eFlash=Math.max(B.eFlash||0,45)}},Math.max(0,c.t-t))}}}
+  if(B.chart&&!B.chart.built&&B.active&&B.state!=='BOSSIN'&&B.state!=='WALK'&&B.state!=='VICTORY')chartStart();
   if(B.chart&&B.chart.built){const C=B.chart;
     while(C.ci<C.cues.length&&t>=C.cues[C.ci].t-80){const c=C.cues[C.ci++];if(t-c.t<120&&B.state!=='TRANSFORM'){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.chart===C){B.eFlash=Math.max(B.eFlash||0,45);B.cueT=B.time}},Math.max(0,c.t-t))}}
     if(!C.fin){const a=B.atk,live=a&&a.chart&&!a.counted?a.idx:0;B.ehp=Math.max(1,B.emax*(1-.92*Math.min(1,(C.done+live)/Math.max(1,C.total))));
