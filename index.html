@@ -2920,7 +2920,7 @@ function chartFvAdd(v){const C=B.chart;if(!C||!C.built||C.fvOn||C.fvArm||C.fvCut
   if(!was&&C.fv>=C.fvNeed){banner('FEVER 준비!','FEVER 버튼을 눌러 발동!');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200);try{loadFeverClip()}catch(e){}}}
 /* dodges and jumps in a chart are judged on the beat too: within 110ms of the note is PERFECT, an earlier swipe is GOOD */
 function chartFvHit(){const k=B.fvHk=(B.fvHk||0)+1;RK.fever(k);for(let i=0;i<2;i++)fvSlash(18+rnd(0,10),rnd(-1.3,1.3),3,FV_COLS[(k*2+i)%FV_COLS.length]);burstParts(B.ex-B.E.scale*4,B.gy-B.E.scale*10,8,FV_COLS,.12,.0003,.4)}
-/* chart FEVER = auto attack: for its 4 bars the knight plays every note itself (perfect, on time) and slashes the enemy on every 8th note,
+/* chart FEVER = auto attack: for its 4 bars the knight plays every note itself (perfect, on time) and slashes the enemy on every 16th note (sextuplets in the last bar),
    teleporting around it; the player's taps add bonus slashes. The song and the chart keep running. */
 function chartFvSlash(m){const C=B.chart,k=B.fvHk=(B.fvHk||0)+1,p=fvSlot(k),sc=B.E.scale;fvTeleport(p.x,p.y);RK.fever(k);
   fvSlash(18+rnd(0,10),rnd(-1.3,1.3),3,FV_COLS[k%FV_COLS.length]);if(k%4===0)fvSlash(26,rnd(-1,1),4,'#ffffff');
@@ -2935,7 +2935,8 @@ function chartAuto(t){const C=B.chart,a=B.atk,cal=S.calib||0;B.autoIn=true;try{
     else if(B._ak!==key&&(n.type==='swipe'||n.type==='jump')&&t>=n.t-40+cal){B._ak=key;setGuard(false);n.type==='swipe'?onSwipe(1):onSwipeUp()}
     else if(B._ak!==key&&n.type==='tap'&&t>=n.t-4+cal){B._ak=key;const pv=a.notes[a.idx-1];if(pv&&pv.type==='hold'&&B.guard&&n.t-(pv.t+pv.dur)<=beatMs()*.45){setGuard(false);onRelease()}else{setGuard(false);onTap()}}}}
   else if(B.guard)setGuard(false);
-  const k=chartBarAt(C,t),e8=beatMs()/2,q8=Math.floor((t-C.barT[k])/e8);if(q8!==C.fvQ||k!==C.fvQk){C.fvQ=q8;C.fvQk=k;if(B.state!=='VICTORY')chartFvSlash(.12)}
+  const k=chartBarAt(C,t),last=C.barT[k+1]>=C.fvEndT-1,e8=beatMs()/(last?6:4),q8=Math.floor((t-C.barT[k])/e8);   // 16ths, the last bar in sextuplets
+  if(q8!==C.fvQ||k!==C.fvQk){C.fvQ=q8;C.fvQk=k;if(B.state!=='VICTORY')chartFvSlash(last?.03:.045)}
 }finally{B.autoIn=false}}
 function chartNoteOk(n,it){const C=B.chart;if(!C||!C.chip)return;const perfect=it!=null&&Math.abs(n.t-it)<=110,q=perfect?1:.6;B.tapN++;if(perfect){B.perfects++;if(n.hidden)C.hidOk++}
   const d=Math.round(C.chip*q*(C.fvOn?1.25:1));if(C.fvOn)chartFvHit();B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg');ftAt(perfect?'퍼펙트!':'굿',B.kx+8,B.gy-54,perfect?'perfect':'info');chartFvAdd(perfect?1:.5)}
