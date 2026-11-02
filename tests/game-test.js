@@ -648,16 +648,20 @@ const BOT = `(()=>{
     { name: '1·2챕터 채보 레벨: 손으로 쓴 10곡 · 채보 격자 · 완벽 입력 클리어(회피·점프 포함) · 박자 피버 · 입력 없으면 전부 실수', run: () => {
       closeModal(); closeModal();
       for (const k of ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10']) { const sg = SONGS[k]; const nb = sg && sg._c.length, lv = Object.values(CHART_LV).find(d => d.song === k); if (!sg || nb < 32 || sg._m.length !== nb * 8 || sg._b.length !== nb * 8 || !lv || nb < lv.bars.length + 1) return 'song ' + k + ' is not full bars covering its chart'; }
-      let fevers = 0; for (let L = 0; L < 10; L++) { endBattle(); startRun(L); B._lt = 0; if (B.st.kind !== STAGES[L].kind) return `stage ${L + 1} shows ${B.st.kind}, not its own ${STAGES[L].kind}`; if (!B.chart || R.rooms.join() !== 'chart') return 'stage ' + (L + 1) + ' is not a chart level';
+      let fevers = 0; const LV = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 4, 9]; for (let li = 0; li < LV.length; li++) { const L = LV[li]; S.hardSel = li >= 10; if (S.hardSel) S.cleared = Math.max(S.cleared, 10); endBattle(); startRun(L); if (S.hardSel && !(B.chart.def.hard && R.hard)) return `stage ${L + 1}: hard mode not applied`; S.hardSel = false; B._lt = 0; if (B.st.kind !== STAGES[L].kind) return `stage ${L + 1} shows ${B.st.kind}, not its own ${STAGES[L].kind}`; if (!B.chart || R.rooms.join() !== 'chart') return 'stage ' + (L + 1) + ' is not a chart level';
         let hurts = 0; const oh = hurt; hurt = function (d, l, g) { if (!g) hurts++; return oh.apply(this, arguments); }; const done = new Set(); let vt = 0, won = false, offGrid = 0, hp0 = null, hpMid = null;
         while (vt < 200000) { const t = B.time, a = B.atk; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.includes('성공')) { won = true; break; } if (h.includes('쓰러')) break; }
-          if (B.chart && B.chart.built && a && a.chart && !a._g) { a._g = 1; const bar = barMs(); for (const n of a.notes) { const x = (n.t - B.chart.T0) / bar * 24; if (Math.abs(x - Math.round(x)) > .05) offGrid++; } }
-          if (B.state === 'GROGGY') { if (!B._lt || t - B._lt >= beatMs() / 2 - 1) { B._lt = t; B.lastBashT = -1e9; onTap(); } }
+          if (B.chart && B.chart.built && a && a.chart && !a._g) { a._g = 1; const bar = barMs(); for (const n of a.notes) { const T = B.chart.barT, k = chartBarAt(B.chart, n.t), x = (n.t - T[k]) / (T[k + 1] - T[k]) * 24; if (Math.abs(x - Math.round(x)) > .05) offGrid++; } }
+          if (B.state === 'GROGGY' && B.chart && B.chart.smode === 'charge') { if (B.kc == null && !B.kDone) { B.lastBashT = -1e9; onTap(); } else if (B.kc != null && t >= B.groggyEnd - beatMs() - 4) onRelease(); }
+          else if (B.state === 'GROGGY') { if (!B._lt || t - B._lt >= beatMs() / 2 - 1) { B._lt = t; B.lastBashT = -1e9; onTap(); } }
           else if (B.state === 'WINDUP' && a && !a.resolved) { const n = a.notes[a.idx]; if (n) { const key = a.start + ':' + a.idx;
             if (n.type === 'hold') { if (t >= n.t - 120) setGuard(true); } else if (!done.has(key) && (n.type === 'swipe' || n.type === 'jump') && t >= n.t - 60) { done.add(key); setGuard(false); if (n.type === 'swipe') onSwipe(1); else onSwipeUp(); } else if (!done.has(key) && n.type === 'tap' && t >= n.t - 8) { done.add(key); const pv = a.notes[a.idx - 1]; if (pv && pv.type === 'hold' && B.guard && n.t - (pv.t + pv.dur) <= beatMs() * .45) { ptrs.clear(); setGuard(false); onRelease(); } else { setGuard(false); onTap(); } } } }
           else if (B.guard) setGuard(false);
           if (B.chart && B.chart.built && hp0 == null) hp0 = B.ehp; if (B.chart && B.chart.built && B.chart.done >= B.chart.total / 2 && hpMid == null) hpMid = B.ehp;
           __tick(8); vt += 8; }
+        const mt = document.querySelector('#mbox').textContent; if (!mt.includes('도전 과제')) return `level ${L + 1}: results show no challenges`;
+        if (B.chart.kN && B.chart.kPerf < B.chart.kN) return `level ${L + 1}: on-time charge release not judged perfect (${B.chart.kPerf}/${B.chart.kN})`;
+        if (B.chart.fakes.some(f => f.res !== 1)) return `level ${L + 1}: a fake call was not held through`;
         hurt = oh; closeModal(); fevers += (B.chart && B.chart.fvN) || 0;
         if (B.perfects < B.tapN * .9) return `level ${L + 1}: on-beat inputs not judged perfect (${B.perfects}/${B.tapN})`;
         if (!(hp0 && hpMid && hpMid < hp0 * .8)) return `level ${L + 1}: enemy HP did not go down with the song (${Math.round(hp0)} → ${Math.round(hpMid)})`;

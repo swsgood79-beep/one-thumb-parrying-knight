@@ -212,6 +212,13 @@ img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #battle{background:#000;touch-action:none}
 .arena{position:relative;flex:1;min-height:0;overflow:hidden}
 .arena canvas{position:absolute;inset:0;width:100%;height:100%}
+#arena canvas{transition:transform .35s ease,filter .35s ease}
+#arena.fx-tilt canvas{transform:rotate(-6deg) scale(1.1)}#arena.fx-mirror canvas{transform:scaleX(-1)}#arena.fx-zoom canvas{transform:scale(1.28) translateY(4%)}
+#arena.fx-dark canvas{filter:brightness(.16) contrast(1.4)}#arena.fx-sway canvas{animation:fxsway var(--bt,1000ms) ease-in-out infinite alternate}
+@keyframes fxsway{from{transform:rotate(-4deg) translateX(-3%)}to{transform:rotate(4deg) translateX(3%)}}
+#arena.chorus{box-shadow:inset 0 0 0 3px rgba(255,210,63,.55),inset 0 0 36px 6px rgba(255,155,208,.35)}
+.chal{display:flex;flex-direction:column;gap:2px;font-size:12px;margin:6px auto;text-align:left;max-width:280px}.chal b{font-family:var(--f-display);font-size:13px}.chal span{opacity:.55}.chal span.ok{opacity:1;color:#8ff09a}.chal em{color:var(--gold);font-style:normal}
+button.lchip{font-family:var(--f-display);font-size:13px;cursor:pointer}
 #fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .bhud{position:absolute;left:0;right:0;top:0;padding-top:8px;display:flex;flex-direction:column;gap:5px;pointer-events:none}
 .bh-row{display:flex;align-items:center;gap:8px}
@@ -1970,7 +1977,7 @@ SONGS.c6=handSong({bpm:112,kit:'shanty',lead:'triangle',lv:.1,dr:'K.hSK.hS',drB:
   A:{ch:['D5 F#5 A5','G4 B4 D5','D5 F#5 A5','A4 C#5 E5'],mel:'D5 - F#5 - A5 - F#5 - | G5 - F#5 - E5 - D5 - | F#5 - A5 - D6 - A5 - | E5 - - - C#5 - - -',bass:'D3 . A2 . D3 . A2 . | G2 . D3 . G2 . D3 . | D3 . A2 . D3 . A2 . | A2 . E3 . A2 . E3 .'},
   B:{ch:['G4 B4 D5','A4 C#5 E5','B4 D5 F#5','A4 C#5 E5'],mel:'B5 - A5 - G5 - B5 - | A5 - G5 - F#5 - E5 - | F#5 - - - B5 - A5 - | A5 - - - - - - -',bass:'G2 . G3 . G2 . G3 . | A2 . A3 . A2 . A3 . | B2 . B3 . B2 . B3 . | A2 . A3 . A2 . C#3 .'},
   O:{ch:['D5 F#5 A5','D5 F#5 A5'],mel:'D6 - A5 - F#5 - A5 - | D5 - - - - - . .',bass:'D3 . A2 . D3 . A2 . | D3 - - - - - . .'}}});
-SONGS.c7=handSong({bpm:114,kit:'bells',lead:'square',lv:.06,dr:'K.hSKKhS',drB:'KhoSKhoS',fill:'KSKSSSSS',form:HAND_FORM,sec:{
+SONGS.c7=handSong({bpm:114,kit:'bells',lead:'square',lv:.06,swing:1/3,dr:'K.hSKKhS',drB:'KhoSKhoS',fill:'KSKSSSSS',form:HAND_FORM,sec:{
   I:{ch:['E4 G4 B4','E4 G4 B4'],mel:'. . . . . . . . | . . . . B4 - E5 -',bass:'E2 . . E2 . . E2 . | E2 . . E2 . . D2 .'},
   A:{ch:['E4 G4 B4','C5 E5 G5','D5 F#5 A5','B4 D#5 F#5'],mel:'E5 - G5 - B5 - G5 - | C6 - B5 - G5 - E5 - | D5 - F#5 - A5 - F#5 - | D#5 - - - B4 - - -',bass:'E2 . E3 . E2 . E3 . | C2 . C3 . C2 . C3 . | D2 . D3 . D2 . D3 . | B1 . B2 . B1 . B2 .'},
   B:{ch:['A4 C5 E5','D5 F#5 A5','G4 B4 D5','B4 D#5 F#5'],mel:'A5 - - - E5 - A5 - | F#5 - - - D5 - F#5 - | G5 - B5 - D6 - B5 - | F#5 - - - D#5 - - -',bass:'A2 . A2 . E2 . E2 . | D2 . D2 . A2 . A2 . | G2 . G2 . D2 . D2 . | B1 . B1 . F#2 . B1 .'},
@@ -1980,7 +1987,7 @@ SONGS.c8=handSong({bpm:108,kit:'darbuka',lead:'square',lv:.06,swing:.2,dr:'KhShK
   A:{ch:['Bb4 D5 F5','Eb5 G5 Bb5','F4 A4 C5','Bb4 D5 F5'],mel:'. D5 . F5 . Bb5 . F5 | . G5 . Bb5 . G5 . Eb5 | . C5 . F5 . A5 . F5 | . D5 - - Bb4 - - -',bass:'Bb2 . Bb2 . F2 . F2 . | Eb2 . Eb2 . Bb2 . Bb2 . | F2 . F2 . C3 . C3 . | Bb2 . F2 . Bb2 . F2 .'},
   B:{ch:['G4 Bb4 D5','Eb5 G5 Bb5','C5 Eb5 G5','F4 A4 C5'],mel:'G5 - - - D5 - G5 - | Bb5 - - - G5 - Eb5 - | C5 - Eb5 - G5 - C6 - | A5 - - - F5 - - -',bass:'G2 . G2 . D2 . D2 . | Eb2 . Eb2 . Bb2 . Bb2 . | C3 . C3 . G2 . G2 . | F2 . F2 . C3 . A2 .'},
   O:{ch:['Bb4 D5 F5','Bb4 D5 F5'],mel:'. F5 . D5 . F5 . Bb5 | Bb4 - - - - - . .',bass:'Bb2 . F2 . Bb2 . F2 . | Bb2 - - - - - . .'}}});
-SONGS.c9=handSong({bpm:116,kit:'cave',lead:'sawtooth',lv:.055,dr:'K.tSKKtS',drB:'KhtSKttS',fill:'KTTtttSS',form:HAND_FORM,sec:{
+SONGS.c9=handSong({bpm:116,kit:'cave',lead:'sawtooth',lv:.055,dr:'K..tS.t.',drB:'K.htS.ht',fill:'KTTtttSS',form:HAND_FORM,sec:{
   I:{ch:['E4 G4 B4','F4 A4 C5'],mel:'. . . . . . . . | E5 - F5 - E5 - . .',bass:'E2 . E2 . E2 . E2 . | F2 . F2 . F2 . F2 .'},
   A:{ch:['E4 G4 B4','F4 A4 C5','G4 B4 D5','F4 A4 C5'],mel:'E5 - F5 - G5 - F5 - | E5 - - - C5 - - - | D5 - E5 - F5 - G5 - | F5 - E5 - - - - -',bass:'E2 . E2 E3 E2 . E2 E3 | F2 . F2 F3 F2 . F2 F3 | G2 . G2 G3 G2 . G2 G3 | F2 . F2 F3 E2 . E2 .'},
   B:{ch:['A4 C5 E5','G4 B4 D5','F4 A4 C5','E4 G#4 B4'],mel:'A5 - - - E5 - A5 - | B5 - - - G5 - D5 - | C6 - B5 - A5 - F5 - | G#5 - - - E5 - - -',bass:'A2 . A2 . E2 . E2 . | G2 . G2 . D2 . D2 . | F2 . F2 . C3 . C3 . | E2 . E2 . B1 . E2 .'},
@@ -1994,12 +2001,12 @@ for(const k in SONGS){const s=SONGS[k];s._c=s.ch.map(c=>c.split(' ').map(nf));s.
   s.root=Math.round(69+12*Math.log2(s._c[0][0]/440));s._cm=s._c.map(ch=>ch.map(f=>Math.round(69+12*Math.log2(f/440))))}
 {const base=SONGS;SONGS=new Proxy(base,{get(t,k){if(typeof k==='string'&&!(k in t)&&/^(st|bs)\d+$/.test(k)&&+k.slice(2)<100)t[k]=genSong(k);return t[k]}})}
 const Music={cur:null,step:0,next:0,timer:0,hype:false,rate:1,beats:[]};
-function playMusic(name){if(Music.cur===name)return;Music.cur=name;Music.step=0;Music.next=0;Music.beats=[];Music.last=null;if(!Music.timer)Music.timer=setInterval(schedMusic,25)}
-function stopMusic(){Music.cur=null}
+function playMusic(name){if(Music.cur===name)return;Music.cur=name;Music.tm=null;Music.step=0;Music.next=0;Music.beats=[];Music.last=null;if(!Music.timer)Music.timer=setInterval(schedMusic,25)}
+function stopMusic(){Music.cur=null;Music.tm=null}
 function duckMusic(v){if(musBus)musBus.gain.setTargetAtTime(v,AC.currentTime,.08)}
-function schedMusic(){if(!AC||!Music.cur||!S.bgm||AC.state!=='running')return;const s=SONGS[Music.cur],sp=60/(s.bpm*(Music.rate||1))/2;
+function schedMusic(){if(!AC||!Music.cur||!S.bgm||AC.state!=='running')return;const s=SONGS[Music.cur],sp0=60/(s.bpm*(Music.rate||1))/2;
   if(Music.next<AC.currentTime)Music.next=AC.currentTime+.05;
-  while(Music.next<AC.currentTime+.15){musStep(s,Music.step,Music.next,sp);Music.next+=sp;Music.step++}}
+  while(Music.next<AC.currentTime+.15){const sp=sp0/(Music.tm?Music.tm(Music.step):1);musStep(s,Music.step,Music.next,sp);Music.next+=sp;Music.step++}}   // Music.tm: a chart level's tempo map (speed-ups, slow bridges)
 /* drum kits: one letter per hit, each chapter voices them differently
    K kick · k soft kick · S snare · s ghost · h hat · o open hat · c clap · t/T low/high tom · b kit colour (wood, bell, frog, tek...) · x shaker */
 function drumHit(kit,c,o){const at=o.at,M=(x)=>Object.assign({},o,x||{});
@@ -2104,6 +2111,7 @@ const RK={
     else if(type==='ding'){tone(mf(chordTone(2,84)),.22,'sine',.09,0,0,Object.assign({},o,{wet:.5}));tone(mf(chordTone(2,84))*2.76,.12,'sine',.025,0,0,o)}
     else if(type==='ice'){tone(2400,.3,'sine',.05,-900,0,Object.assign({},o,{wet:.6}));tone(70,.16,'sine',.5,-25,0,o)}
     else if(type==='jump'){tone(300,.12,'sine',.18,500,0,o)}
+    else if(type==='fake'){tone(mf(chordTone(3,79)),.13,'square',.05,-520,0,o);tone(1900,.025,'sine',.04,0,0,o);tone(240,.1,'sine',.12,160,0,Object.assign({},o,{at:at+.09}))}
     else if(type==='grab'){tone(700,.04,'square',.04,0,0,o);tone(700,.04,'square',.04,0,0,Object.assign({},o,{at:at+.06}))}
     else{noise(.09,.1,0,dir<0?1200:3200,Object.assign({type:'bandpass',q:1.2,sweep:dir<0?600:6000},o))}},
   groove(lv){if(!RK.ok())return;const now=AC.currentTime;let at=Music.next||now;while(at<now+.02)at+=.1;
@@ -2114,7 +2122,7 @@ function grooveSet(){const c=B.combo||0,lv=c>=25?3:c>=12?2:c>=5?1:0,was=Music.lv
   if(lv>was&&B.active){RK.groove(lv);ftThrottle(['','GROOVE!','GROOVE ×2','MAX GROOVE!!'][lv],B.kx+4,B.gy-58,'groove')}}
 
 /* ===================== save ===================== */
-const DEF={gold:0,gems:10,energy:30,enT:0,sel:0,cleared:0,shLv:1,shStage:0,eng:{},engrEq:[],engAd:'',pot:{hp:1,sp:1},intro:false,exp:0,adFree:false,snd:true,bgm:true,vib:true,assist:false,mvol:1,prologue:false,streak:0,skins:[],skin:'',plume:'',pass:{season:1,xp:0,prem:false,cf:[],cp:[]},dm:null,wk:null,lastSeen:0,rBest:0,starter:false,daily:'',adBox:'',adBoxN:0,ending:false,vault:null,stars:{},seenPat:{}};
+const DEF={chal:{},hard:{},hardSel:false,gold:0,gems:10,energy:30,enT:0,sel:0,cleared:0,shLv:1,shStage:0,eng:{},engrEq:[],engAd:'',pot:{hp:1,sp:1},intro:false,exp:0,adFree:false,snd:true,bgm:true,vib:true,assist:false,mvol:1,prologue:false,streak:0,skins:[],skin:'',plume:'',pass:{season:1,xp:0,prem:false,cf:[],cp:[]},dm:null,wk:null,lastSeen:0,rBest:0,starter:false,daily:'',adBox:'',adBoxN:0,ending:false,vault:null,stars:{},seenPat:{}};
 let S;
 function load(){let d={};try{d=JSON.parse(localStorage.getItem('otpk-save-v1')||'{}')||{}}catch(e){}
   if(d.owned&&d.shLv==null){const st=Math.min(3,Math.max(0,...(d.owned.s||[0])));d.shStage=st;d.shLv=st*10+1;let r=0;
@@ -2162,9 +2170,10 @@ function renderLobby(){
   const chips=[];
   {const h=HZ[st.hz],tr=TRAITS[EN[st.kind].trait];if(tr)chips.push(`<span class="chip lchip" style="--cc:${tr[2]}"><em>특성</em>${tr[0]}</span>`);if(h)chips.push(`<span class="chip lchip" style="--cc:${STAGE_COL[st.theme]}"><em>지형</em>${h.name}</span>`)}
   if(CHART_LV[i])chips.unshift(`<span class="chip lchip" style="--cc:#ffd23f"><em>레벨 ${i+1}</em>${CHART_LV[i].name}</span>`);
+  if(CHART_LV[i]&&i<S.cleared)chips.splice(1,0,`<span class="chip lchip" style="--cc:#8ff09a"><em>도전</em>${((S.chal||{})[i]||[]).length}/3</span>`,`<button class="chip lchip" id="hardBtn" style="--cc:${S.hardSel?'#ff5b6b':'#b9b3d9'}"><em>어려움</em>${S.hardSel?'켜짐':'꺼짐'}${(S.hard||{})[i]?' ✓':''}</button>`);
   {const nt=nextTech();if(nt)chips.push(`<span class="chip lchip" style="--cc:#7cf0ff"><em>다음 기술</em>${nt.at}스테이지 → ${nt.name}</span>`);else chips.push(`<span class="chip lchip" style="--cc:#7cf0ff"><em>기술</em>전부 습득</span>`)}
   if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승${streakGold()?' · 골드 +'+Math.round(streakGold()*100)+'%':''}</span>`);
-  $('#stChips').innerHTML=chips.join('');
+  $('#stChips').innerHTML=chips.join('');{const hb=$('#hardBtn');if(hb)hb.onclick=()=>{S.hardSel=!S.hardSel;save();sfx('buy');toast(S.hardSel?'어려움 모드: 더 빠르고, 반복되는 답은 숨겨져요':'어려움 모드 꺼짐');renderLobby()}}
   {const done=Math.min(S.cleared,STAGES.length);$('#mTxt').innerHTML=`정복 <b>${done}</b>/${STAGES.length} · 남은 스테이지 <em>${STAGES.length-done}</em> · ${CH[ch].title} ${Math.max(0,Math.min(10,done-ch*10))}/10`;
     $('#mSeg').innerHTML=CH.map((c,k)=>`<i class="${k===ch?'cur':''}" style="--c:${STAGE_COL[c.theme]}" title="${c.title}"><u style="width:${clamp(done-k*10,0,10)*10}%"></u></i>`).join('')}
   const left=HEROES_LEFT[S.cleared];
@@ -2765,71 +2774,105 @@ const MOVE_ROT=[0,0,1,0,2,1];
    hits:  t tap · T hidden tap (play it from what you heard) · h hold start, '=' keeps holding
    whole bar:  R rest (the first one counts you in) · S reward stun bar · E finish */
 const CHART_LV={
-  0:{song:'c1',name:'첫 패링',rule:'불러주면 → 똑같이 탭!',bars:['R',
+  0:{song:'c1',name:'첫 패링',rule:'불러주면 → 똑같이 탭!',habit:'슬라임의 버릇: 통통 튀기!',chal:'perfect',bars:['R',
     'c...c...','t...t...','c...c...','t...t...','c.c.c...','t.t.t...','c.c.c...','t.t.t...','c...c.c.','t...t.t.','c.c.c.c.','t.t.t.t.','S','S',
-    'cc..c...','tt..t...','c...cc..','t...tt..','c.c...c.','t.t...t.','c.c.c.c.','t.t.t.t.','c...c.c.','t...t.t.','c.cc.c..','t.tt.t..','S','S','E']},
-  1:{song:'c2',name:'꾹 버티기',rule:'새 규칙: 길게 울리면 꾹!',bars:['R',
+    'cc..c...','tt..t...','c...cc..','t...tt..','{habit}c.cc.cc.','t.tt.tt.','c.c.c.c.','t.t.t.t.','c...c.c.','t...t.t.','c.cc.c..','t.tt.t..','S','S','E']},
+  1:{song:'c2',name:'꾹 버티기',rule:'새 규칙: 길게 울리면 꾹!',habit:'슬라임의 버릇: 통통 튀기!',chal:'charge',bars:['R',
     'c...c...','t...t...','q===....','h===....','q===....','h===....','c.c.q===','t.t.h===','c.c.q===','t.t.h===','S','S',
-    'q=..c.c.','h=..t.t.','q=..c.c.','h=..t.t.','c...q===','t...h===','q==.c.c.','h==.t.t.','S','S','E']},
-  2:{song:'c3',name:'출렁출렁 스윙',rule:'새 규칙: 출렁이는 스윙 박',bars:['R',
+    'q=..c.c.','h=..t.t.','q=..c.c.','h=..t.t.','{habit}c.cc.cc.','t.tt.tt.','q==.c.c.','h==.t.t.','{say:새 연타: 꾹 모아 베기}K','K','E']},
+  2:{song:'c3',name:'출렁출렁 스윙',rule:'새 규칙: 출렁이는 스윙 박',habit:'왕벌의 버릇: 윙윙윙 3연타!',chal:'grid',bars:['R',
     'c.....c.....','t.....t.....','c.c...c.c...','t.t...t.t...','c.c...c.c...','t.t...t.t...','c.....c..c..','t.....t..t..','S','S',
-    'c.cc.c......','t.tt.t......','c..c.cc.....','t..t.tt.....','c.c..c..c...','t.t..t..t...','c.c..c..c.c.','t.t..t..t.t.','S','S','E']},
-  3:{song:'c4',name:'일곱 번째 박',rule:'새 규칙: 쿵 6번 → 7번째 탭',bars:['R',
+    '{fx:sway}{habit}ccc...ccc...','ttt...ttt...','c..c.cc.....','t..t.tt.....','c.c..c..c...','t.t..t..t...','c.c..c..c.c.','t.t..t..t.t.','{fx:-}{say:새 연타: 정박에만!}G','G','E']},
+  3:{song:'c4',name:'일곱 번째 박',rule:'새 규칙: 쿵 6번 → 7번째 탭',habit:'고블린의 버릇: 엇박 장난!',chal:'grid',bars:['R',
     'p.p.p.p.','p.p.t...','p.p.p.p.','p.p.t...','c.c.c...','t.t.t...','p.p.p.p.','p.p.t...','S','S',
-    'i.p.p.p.','p.p...t.','c.c.c.c.','t.t.t.t.','p.p.p.p.','p.p.t...','i.p.p.p.','p.p...t.','S','S','E']},
-  4:{song:'c5',name:'왕 슬라임의 시험',boss:true,rule:'새 규칙: 세 번째는 숨김',bars:['R',
+    'i.p.p.p.','p.p...t.','{habit}c..c..c.','t..t..t.','{fx:dark}p.p.p.p.','p.p.t...','{fx:-}i.p.p.p.','p.p...t.','G','G','E']},
+  4:{song:'c5',name:'왕 슬라임의 시험',boss:true,rule:'새 규칙: 세 번째는 숨김',chal:'hidden',fvGoal:3,bars:['R',
     /* the boss is chapter 1's final exam: every rule from stages 1-4 comes back, and each phrase's third pass is hidden */
     'c.c.c...','t.t.t...','c.c.c...','t.t.t...','c.c.c.c.','t.t.t.t.','c.c.c.c.','t.t.T.T.','S','S',
-    'c..c..c.','t..t..t.','q===c.c.','h===t.t.','c..c..c.','t..t..t.','q===c.c.','h===T.T.','S','S',
-    'c.....c..c..','t.....t..t..','c..c..c..c..','t..t..t..t..','c.cc.c..c...','t.tt.t..T...','S','S',
-    'p.p.p.p.','p.p.t...','i.p.p.p.','p.p...t.','p.p.p.p.','p.p.T...','S','S',
-    'cc.cc.c.','tt.tt.t.','c.c.q===','t.t.h===','cccc.ccc','tttt.ttt','q==.cc.c','h==.tt.t','q==.cc.c','h==.TT.T','S','S','S','E']},
+    '{fx:tilt}c..c..c.','t..t..t.','q===c.c.','h===t.t.','c..c..c.','t..t..t.','q===c.c.','h===T.T.','{fx:-}K','K',
+    'c.....c..c..','t.....t..t..','c..c..c..c..','t..t..t..t..','c.cc.c..c...','t.tt.t..T...','G','G',
+    'p.p.p.p.','p.p.t...','{fx:dark}i.p.p.p.','p.p...t.','p.p.p.p.','p.p.T...','{fx:-}S','S',
+    '{bpm:1.12}{fx:sway}{say:왕 슬라임이 화났다! 빨라진다!}cc.cc.c.','tt.tt.t.','c.c.q===','t.t.h===','cccc.ccc','tttt.ttt','q==.cc.c','h==.tt.t','q==.cc.c','h==.TT.T','{fx:-}S','S','S','E']},
   /* ===== chapter 2 (goblin lands): new inputs one per level — x call → d swipe (dodge), u call → j jump (swipe up); D/J hidden ===== */
-  5:{song:'c6',name:'옆으로 피해!',rule:'새 규칙: 쉭! 소리엔 옆으로 밀기',bars:['R',
+  5:{song:'c6',name:'옆으로 피해!',rule:'새 규칙: 쉭! 소리엔 옆으로 밀기',habit:'늙은 고블린의 버릇: 느릿느릿 꾹… 툭!',chal:'perfect',bars:['R',
     'x...x...','d...d...','c.c.x...','t.t.d...','x...c.c.','d...t.t.','c.c.c.x.','t.t.t.d.','S','S',
-    'x...x.c.','d...d.t.','c.x.c.x.','t.d.t.d.','x.c.c.x.','d.t.t.d.','c.c.x.c.','t.t.d.t.','S','S','E']},
-  6:{song:'c7',name:'뛰어넘어!',rule:'새 규칙: 뿅! 소리엔 위로 밀어 점프',bars:['R',
-    'u...u...','j...j...','c.c.u...','t.t.j...','u...x...','j...d...','c.u.c.x.','t.j.t.d.','S','S',
-    'u...c.c.','j...t.t.','x...u...','d...j...','q=..u...','h=..j...','c.x.u.c.','t.d.j.t.','S','S','E']},
-  7:{song:'c8',name:'뒷박 잔치',rule:'새 규칙: 반 박 늦게 받아치기 (뒷박)',bars:['R',
-    'c...c...','.t...t..','c...c...','.t...t..','c.c.c...','.t.t.t..','c.c.c.c.','.t.t.t.t','S','S',
-    'x...c...','.d...t..','c...u...','.t...j..','cc..cc..','.tt..tt.','c.c.x.c.','.t.t.d.t','S','S','E']},
-  8:{song:'c9',name:'주술사의 주문',rule:'새 규칙: 한 마디에 전부 섞어서',bars:['R',
-    'c.x.u.c.','t.d.j.t.','q==.c.x.','h==.t.d.','u.c.c.x.','j.t.t.d.','c.c.u.x.','t.t.j.d.','S','S',
-    'p.p.p.p.','p.p.j...','p.p.p.p.','p.p.d...','c.x.c.x.','t.d.t.d.','u.c.u.c.','j.t.j.t.','S','S','E']},
-  9:{song:'c10',name:'고블린 대장의 결투',boss:true,rule:'새 규칙: 반 마디 안에 주고받기',bars:['R',
-    /* the chapter-2 exam: half-bar call & answer, then every chapter-2 rule again, third passes hidden */
+    '{fx:mirror}x...x.c.','d...d.t.','c.x.c.x.','t.d.t.d.','{habit}q===c...','h===t...','c.c.x.c.','t.t.d.t.','{fx:-}G','G','E']},
+  6:{song:'c7',name:'뛰어넘어!',rule:'새 규칙: 뿅! 소리엔 위로 밀어 점프 · 출렁이는 셔플',swing:true,habit:'고블린의 버릇: 엇박 장난!',chal:'charge',bars:['R',
+    'u...u...','j...j...','c.c.u...','t.t.j...','u...x...','j...d...','c.u.c.x.','t.j.t.d.','K','K',
+    '{fx:zoom}u...c.c.','j...t.t.','{habit}c..c..c.','t..t..t.','q=..u...','h=..j...','c.x.u.c.','t.d.j.t.','{fx:-}S','S','E']},
+  7:{song:'c8',name:'뒷박 잔치',rule:'새 규칙: 반 박 늦게 받아치기 (뒷박)',habit:'슬라임의 버릇: 통통 튀기!',chal:'fake',fakeShift:1,bars:['R',
+    'c...c...','.t...t..','{say:가짜 부르기! 따라 치지 말고 참기}c.f.c.f.','.t...t..','c.c.c...','.t.t.t..','{habit}c.cc.cc.','.t.tt.tt','G','G',
+    '{fx:sway}x...c...','.d...t..','c.f.u...','.t...j..','cc..cc..','.tt..tt.','c.c.x.f.','.t.t.d..','{fx:-}S','S','E']},
+  8:{song:'c9',name:'주술사의 주문',rule:'새 규칙: 한 마디에 전부 섞어서',habit:'주술사의 버릇: 주문 숨기기!',chal:'hidden',bars:['R',
+    'c.x.u.c.','t.d.j.t.','q==.c.x.','h==.t.d.','{habit}c.c.c.c.','T.t.T.t.','c.f.u.x.','t...j.d.','S','S',
+    '{bpm:1.08}{fx:dark}{say:주문이 빨라진다!}p.p.p.p.','p.p.j...','{fx:-}p.p.p.p.','p.p.d...','c.x.c.x.','t.d.t.d.','u.c.u.c.','j.t.j.t.','K','K','E']},
+  9:{song:'c10',name:'고블린 대장의 결투',boss:true,rule:'새 규칙: 반 마디 안에 주고받기',chal:'fake',fakeShift:1,fvGoal:3,bars:['R',
+    /* the chapter-2 exam: half-bar call & answer, then every chapter-2 rule again, third passes hidden; a slow bridge, then a rush */
     'c.c.t.t.','c.c.t.t.','c.x.t.d.','c.x.t.d.','c.u.t.j.','c.u.T.J.','S','S',
-    'x.x.c...','d.d.t...','x.x.c...','d.d.t...','x.x.c...','D.D.T...','S','S',
-    'c...c...','.t...t..','c.c.u...','.t.t.j..','c.c.x...','.T.T.D..','S','S',
-    'p.p.p.p.','p.p.j...','i.p.p.p.','p.p...d.','q==.c.u.','h==.t.j.','S','S',
-    'cc.ctt.t','c.x.t.d.','c.c.c.c.','t.t.t.t.','cc.ctt.t','c.u.t.j.','q==.c.x.','h==.t.d.','c.x.u.c.','T.D.J.T.','S','S','S','E']},
+    '{fx:mirror}x.x.c...','d.d.t...','x.x.c...','d.d.t...','x.x.c...','D.D.T...','{fx:-}G','G',
+    '{fx:tilt}c...c...','.t...t..','c.f.u...','.t...j..','c.c.x...','.T.T.D..','{fx:-}K','K',
+    '{bpm:0.85}{fx:dark}{say:대장이 숨을 고른다…}p.p.p.p.','p.p.j...','i.p.p.p.','p.p...d.','{fx:-}q==.c.u.','h==.t.j.','S','S',
+    '{bpm:1.12}{fx:sway}{say:대장이 폭주한다! 빨라진다!}cc.ctt.t','c.x.t.d.','c.c.c.c.','t.t.t.t.','cc.ctt.t','c.u.t.j.','q==.c.x.','h==.t.d.','c.x.u.c.','T.D.J.T.','{fx:-}S','S','S','E']},
 };
-function chartBuild(def,T0){const bar=barMs(),segs=[],cues=[];let total=0,pk=0;
-  def.bars.forEach((b,k)=>{const t=T0+k*bar;
-    if(b==='R'){if(k<1)for(let q=0;q<4;q++)cues.push({t:t+q*bar/4,type:'count',k:k*4+q});return}
-    if(b==='S'){const pv=segs[segs.length-1];if(pv&&pv.type==='stun'&&Math.abs(pv.end-t)<1)pv.end=t+bar;else segs.push({type:'stun',t,end:t+bar});return}
-    if(b==='E'){segs.push({type:'end',t});return}
+
+/* bar tags: a bar may start with {..} tokens — {bpm:1.12} tempo from this bar (× the song's), {fx:tilt|sway|mirror|zoom|dark|-} screen effect from here,
+   {say:text} a callout, {habit} the enemy's habit callout. Whole bars: R rest · S mash stun · G on-beat stun · K charge-and-release stun · E finish.
+   f in a call bar is a FAKE call: nothing comes back — tapping where the answer would be is "fooled", holding back earns a bonus */
+function chartTags(b){const tags=[];while(b[0]==='{'){const j=b.indexOf('}');tags.push(b.slice(1,j));b=b.slice(j+1)}return[b,tags]}
+const STUN_BAR={S:'mash',G:'grid',K:'charge'};
+function chartBarAt(C,t){const T=C.barT;let k=C._bk||0;if(k>=T.length-1||T[k]>t)k=0;while(k+1<T.length-1&&T[k+1]<=t)k++;C._bk=k;return k}
+function chartBuild(def,T0){const bar0=barMs(),segs=[],cues=[],says=[],fxs=[],fakes=[],barT=[],tmK=[];let total=0,pk=0,hidN=0,t=T0,tm=def.tempoAll||1;
+  def.bars.forEach((raw,k)=>{let[b,tags]=chartTags(raw);
+    for(const g of tags){const c=g.indexOf(':'),a=c<0?g:g.slice(0,c),v=c<0?'':g.slice(c+1);
+      if(a==='bpm')tm=(def.tempoAll||1)*(+v);else if(a==='fx')fxs.push({t,kind:v});else if(a==='say')says.push({t,text:v});else if(a==='habit'&&def.habit)says.push({t,text:def.habit,habit:true})}
+    if(def.swing&&b.length===8){let o='';for(let m=0;m<8;m+=2)o+=b[m]+(b[m+1]==='='?'=':'.')+b[m+1];b=o}   // shuffle: 8th offbeats land on the triplet
+    const bar=bar0/tm;barT.push(t);tmK.push(tm);
+    if(b==='R'){if(k<1)for(let q=0;q<4;q++)cues.push({t:t+q*bar/4,type:'count',k:k*4+q});t+=bar;return}
+    if(STUN_BAR[b]){const mode=STUN_BAR[b],pv=segs[segs.length-1];if(pv&&pv.type==='stun'&&pv.mode===mode&&Math.abs(pv.end-t)<1)pv.end=t+bar;else segs.push({type:'stun',t,end:t+bar,mode});t+=bar;return}
+    if(b==='E'){segs.push({type:'end',t});t+=bar;return}
     const L=b.length,st=bar/L,notes=[];
     for(let i=0;i<L;i++){const c=b[i],tt=t+i*st;
       if(c==='c'||c==='q')cues.push({t:tt,type:c==='c'?'tap':'hold',k:0});
+      else if(c==='f'){cues.push({t:tt,type:'fake',k:0});fakes.push({t:tt+bar+(def.fakeShift||0)*st,res:0})}
       else if(c==='x'||c==='u')cues.push({t:tt,type:c==='x'?'swipe':'jump',k:0});
-      else if(c==='d'||c==='D'||c==='j'||c==='J')notes.push({t:tt,type:c==='d'||c==='D'?'swipe':'jump',hidden:c==='D'||c==='J'});
+      else if(c==='d'||c==='D'||c==='j'||c==='J'){notes.push({t:tt,type:c==='d'||c==='D'?'swipe':'jump',hidden:c==='D'||c==='J'});if(c==='D'||c==='J')hidN++}
       else if(c==='p'||c==='i'){cues.push({t:tt,type:c==='i'?'ice':'pulse',k:pk++});if(pk>6)pk=0}
-      else if(c==='t'||c==='T')notes.push({t:tt,type:'tap',hidden:c==='T'});
+      else if(c==='t'||c==='T'){notes.push({t:tt,type:'tap',hidden:c==='T'});if(c==='T')hidN++}
       else if(c==='h'||c==='H'){let j=i+1;while(j<L&&b[j]==='=')j++;notes.push({t:tt,type:'hold',dur:(j-i)*st,hidden:c==='H'})}}
-    if(notes.length){segs.push({type:'hit',t,notes});total+=notes.length}});
+    if(notes.length){segs.push({type:'hit',t,notes});total+=notes.length}t+=bar});
+  barT.push(t);tmK.push(tm);
   const bounds=[0];let acc=0;for(const g of segs){if(g.type==='hit')acc+=g.notes.length;else if(g.type==='stun')bounds.push(acc)}bounds.push(total);
-  return{segs,cues,ci:0,si:0,total,done:0,T0,bars:def.bars.length,def,bounds}}
+  return{segs,cues,says,fxs,fakes,barT,tmK,yi:0,ci:0,si:0,total,done:0,T0,end:t,bars:def.bars.length,def,bounds,hidN,hidOk:0}}
+/* hard mode: the same song a notch faster, and an answer to a call you've already heard is hidden */
+function hardChart(L){const seen=new Set(),bars=L.bars.slice();
+  for(let k=0;k+1<bars.length;k++){const a=chartTags(bars[k])[0],r=chartTags(bars[k+1])[0];if(STUN_BAR[a]||a.length<4||!/[cqxuf]/.test(a)||/[tThHdDjJ]/.test(a))continue;
+    if(seen.has(a))bars[k+1]=bars[k+1].slice(0,bars[k+1].length-r.length)+r.replace(/[thdj]/g,c=>c.toUpperCase());seen.add(a)}
+  return Object.assign({},L,{bars,hard:true,tempoAll:1.1,name:L.name+' · 어려움',rule:'어려움: 더 빠르고, 반복되는 답은 숨겨져요'})}
+/* stage challenges (chart levels): no misses · fevers · one special per stage */
+function chartChal(idx){const L=CHART_LV[idx],C=B.chart;if(!L||!C||!C.built)return null;const fg=L.fvGoal||2,sp=L.chal||'perfect';
+  const list=[['nomiss','실수 0개',(R.miss||0)===0],['fever',`피버 ${fg}번 발동`,(C.fvN||0)>=fg]];
+  if(sp==='hidden')list.push(['hidden','숨긴 노트 전부 퍼펙트',C.hidN>0&&C.hidOk>=C.hidN]);
+  else if(sp==='fake')list.push(['fake','가짜 부르기에 한 번도 안 속기',C.fakes.length>0&&!C.fooled]);
+  else if(sp==='charge')list.push(['charge','모아 베기 전부 완벽',(C.kN||0)>0&&(C.kPerf||0)>=C.kN]);
+  else if(sp==='grid')list.push(['grid','정박 연타에서 박자 실수 0',!C.gMiss&&C.segs.some(g=>g.mode==='grid')]);
+  else list.push(['perfect','퍼펙트 90% 이상',B.perfects>=.9*Math.max(1,B.tapN)]);
+  return list}
+/* charge stun: hold, then let go on the stun's last beat */
+function kRelease(auto){const C=B.chart,e=beatMs(),dt=Math.abs(inputTime()-(B.groggyEnd-e)),held=B.time-B.kc;B.kc=null;B.kDone=true;
+  const g=auto?1:dt<=110&&held>=e*.9?3:dt<=260?2:1;C.kN=(C.kN||0)+1;if(g===3)C.kPerf=(C.kPerf||0)+1;
+  const d=Math.max(1,Math.round(C.mashLeft*[0,.35,.75,1.15][g]));C.mashLeft=0;B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.eHitT=B.time;B.eFlash=200;setKPose('attack');B.swing=true;B.swingT=B.time;
+  const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;addFx('slash',hx,hy,{len:24+g*6,ang:-.6,dur:260});addFx('slash',hx,hy,{len:20+g*5,ang:.9,dur:240});addFx('burst',hx,hy,{dur:380});
+  ftAt(['','모아 베기','좋은 모아 베기!','완벽한 모아 베기!!'][g],B.W/2,B.H*.34,g===3?'combo':'perfect');ftAt(String(d),hx,hy-6,'crit');
+  sfx('crit',3);if(g===3){flash('#ffffff',.7,300);slow(300,.3)}zoom(1.08+g*.03);domShake(g);vib(g===3?[40,30,120]:[40]);dmgTotal(d);B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo)}
 /* the song restarts on the chart's bar 0 so the written music and the chart line up */
 function chartStart(){const C=B.chart;if(C.built)return;const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;let T0=B.time+250;
   if(AC&&Music.cur&&S.bgm&&AC.state==='running'){Music.step=8;Music.next=AC.currentTime+.25;Music.beats=[];Music.last=null;T0=B.time+(.25+lat)*1000}
-  Object.assign(C,chartBuild(C.def,T0));C.built=true;B.phGrid=T0;
+  Object.assign(C,chartBuild(C.def,T0));C.built=true;B.phGrid=T0;Music.tm=st=>C.tmK[clamp(Math.floor(st/8)-1,0,C.tmK.length-1)];
   /* HP budget: parries 30% · reward stuns 45% (on-beat taps hit harder, spamming adds nothing) · their finishing blows 15% · the song's FINISH the rest */
   const tap=B.wp.groggyTapDamage,blocks=Math.max(1,C.bounds.length-2);B.emax=B.ehp=Math.max(60,Math.round(tap*60*(C.def.boss?1.5:1)));
   C.chip=.3*B.emax/Math.max(1,C.total);C.fv=0;C.fvNeed=10;C.blockBudget=.45*B.emax/blocks;C.finPer=.15*B.emax/blocks}
 /* the gate map in a chart level shows its sections (each ends with a reward stun), the crown is the finish */
-function chartMap(k){let n=1,prev='';for(const b of (B.chart&&B.chart.def.bars)||[]){if(b==='S'&&prev!=='S')n++;prev=b}
+function chartMap(k){let n=1,prev=false;for(const raw of (B.chart&&B.chart.def.bars)||[]){const st=!!STUN_BAR[chartTags(raw)[0]];if(st&&!prev)n++;prev=st}
   $('#runMap').innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<k?'done':i===k?'cur':''} ${i===n-1?'boss':''}">${ic(i===n-1?'crown':'swords')}</i>`).join('<b></b>')}
 function chartBegin(){const C=B.chart,bar=barMs();chartStart();
   while(C.si<C.segs.length){const g=C.segs[C.si];
@@ -2842,18 +2885,29 @@ function chartBegin(){const C=B.chart,bar=barMs();chartStart();
       {const nt=notes.find(n=>n.type==='swipe'||n.type==='jump'),tg=C.taught||(C.taught={});if(nt&&!tg[nt.type]){tg[nt.type]=1;ftAt(nt.type==='swipe'?'← 옆으로 밀어 피하기 →':'↑ 위로 밀어 점프!',B.kx+12,B.gy-58,'sigmv')}}
       setState('WINDUP');return}
     if(g.type==='stun'){if(B.time<g.t-20){setState('IDLE');B.idleDur=Math.max(16,g.t-B.time-10);return}C.si++;
-      enterGroggy();B.phReward=true;B.phPerfect=false;B.phGrid=C.T0;C.mashLeft=C.blockBudget;C.mashPer=C.blockBudget/Math.max(1,(g.end-g.t)/bar*8);B.groggyCap=1e15;B.groggyEnd=g.end;B.groggyDur=g.end-B.time;
-      if(C.fv>=C.fvNeed){C.fv=0;C.fvOn=true;C.fvN=(C.fvN||0)+1;C.mashLeft*=1.5;C.mashPer*=1.5;track('fever');sfx('fever');atkCue(false);banner('FEVER!!','박자에 맞춰 연타!');flash('#ff5bb5',.5,260);zoom(1.18);vib([30,30,30,30,80]);feverHud()}
-      else ftAt('지금 연타!',B.ex,B.gy-B.E.scale*22,'perfect');return}
+      enterGroggy();B.phReward=true;B.phPerfect=false;B.phGrid=g.t;C.mashLeft=C.blockBudget;C.mashPer=C.blockBudget/Math.max(1,(g.end-g.t)/bar*8);B.groggyCap=1e15;B.groggyEnd=g.end;B.groggyDur=g.end-B.time;
+      C.smode=g.mode;B.kc=null;B.kDone=false;const mtx={grid:'정박에만 연타!',charge:'꾹 모았다가 마지막 박에 떼기!'}[g.mode];if(mtx)atkCue(false);
+      if(C.fv>=C.fvNeed){C.fv=0;C.fvOn=true;C.fvN=(C.fvN||0)+1;C.mashLeft*=1.5;C.mashPer*=1.5;track('fever');sfx('fever');atkCue(false);banner('FEVER!!',mtx||'박자에 맞춰 연타!');flash('#ff5bb5',.5,260);zoom(1.18);vib([30,30,30,30,80]);feverHud()}
+      else ftAt(mtx||'지금 연타!',B.ex,B.gy-B.E.scale*22,'perfect');return}
     if(g.type==='end'){if(B.time<g.t-20){setState('IDLE');B.idleDur=Math.max(16,g.t-B.time-10);return}C.si++;chartFinish();return}}
   setState('IDLE');B.idleDur=1e9}
+const FX_TXT={tilt:'화면이 기운다!',sway:'흔들흔들!',mirror:'좌우 반전!',zoom:'확대!',dark:'어둠 속에서 — 귀로 들어!'};
+function chartFxClear(){const ar=document.getElementById('arena');if(ar)ar.classList.remove('fx-tilt','fx-sway','fx-mirror','fx-zoom','fx-dark','chorus')}
+function chartLive(C,t){const k=chartBarAt(C,t),ar=$('#arena');
+  while(C.yi<C.says.length&&t>=C.says[C.yi].t){const y=C.says[C.yi++];if(y.habit)banner(y.text,'잘 듣고 따라 해!');else ftAt(y.text,B.W/2,B.H*.3,'sigmv')}
+  let fk='-';for(const f of C.fxs)if(f.t<=t)fk=f.kind;if(C.fin)fk='-';
+  if(fk!==C.fxK){ar.classList.remove('fx-tilt','fx-sway','fx-mirror','fx-zoom','fx-dark');if(fk!=='-'){ar.classList.add('fx-'+fk);ar.style.setProperty('--bt',Math.round(beatMs()*2)+'ms');ftAt(FX_TXT[fk]||'',B.W/2,B.H*.22,'warn')}C.fxK=fk}
+  const sg=SONGS[C.def.song],ch=!C.fin&&!!(sg&&sg.secs&&sg.secs[k+1]==='B');if(ch!==C.chorus){ar.classList.toggle('chorus',ch);C.chorus=ch}
+  if(ch){const bi=Math.floor((t-C.barT[k])/beatMs());if(bi!==C.chB){C.chB=bi;zoom(1.012);if(bi===0)burstParts(B.W/2,B.gy+2,8,['#ffd23f','#ff9bd0','#7cf0ff'],.08,.0003,.3)}}
+  for(const f of C.fakes)if(!f.res&&t>f.t+170){f.res=1;C.held=(C.held||0)+1;ftAt('참았다! 보너스',B.kx+8,B.gy-50,'perfect');if(C.chip){B.ehp=Math.max(1,B.ehp-Math.round(C.chip*.6));B.eHitT=B.time}chartFvAdd(1)}
+  if(B.kc!=null&&B.state==='GROGGY'&&Math.floor(t/100)!==B.kcT){B.kcT=Math.floor(t/100);B.parts.push({ring:true,x:B.kx+4,y:B.gy-12,r:2+Math.min(10,(t-B.kc)/120),vr:.03,life:220,col:'#7cf0ff'})}}
 /* beat fever (chart levels): clean notes fill it, and the next reward stun becomes a FEVER mash on the beat — the song never stops */
 function chartFvAdd(v){const C=B.chart;if(!C||!C.built||C.fvOn||C.fin)return;const was=C.fv>=C.fvNeed;C.fv=Math.min(C.fvNeed,(C.fv||0)+v);
   if(!was&&C.fv>=C.fvNeed){banner('FEVER 준비!','다음 연타 구간이 피버로 바뀌어요');sfx('combo');vib([20,30,20]);flash('#ff9bd0',.35,200);try{loadFeverClip()}catch(e){}}}
 /* dodges and jumps in a chart are judged on the beat too: within 110ms of the note is PERFECT, an earlier swipe is GOOD */
-function chartNoteOk(n,it){const C=B.chart;if(!C||!C.chip)return;const perfect=it!=null&&Math.abs(n.t-it)<=110,q=perfect?1:.6;B.tapN++;if(perfect)B.perfects++;
+function chartNoteOk(n,it){const C=B.chart;if(!C||!C.chip)return;const perfect=it!=null&&Math.abs(n.t-it)<=110,q=perfect?1:.6;B.tapN++;if(perfect){B.perfects++;if(n.hidden)C.hidOk++}
   const d=Math.round(C.chip*q);B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg');ftAt(perfect?'퍼펙트!':'굿',B.kx+8,B.gy-54,perfect?'perfect':'info');chartFvAdd(perfect?1:.5)}
-function chartFinish(){const C=B.chart;C.fin=true;const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;
+function chartFinish(){const C=B.chart;C.fin=true;chartFxClear();const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;
   addFx('slash',hx,hy,{len:34,ang:-.78,dur:300});addFx('slash',hx,hy,{len:34,ang:.78,dur:300});addFx('burst',hx,hy,{dur:500});
   ftAt('FINISH!',hx,hy-16,'finisher');flash('#ffffff',.8,320);zoom(1.16);domShake(3);sfx('crit',3);sfx('ko');vib([40,30,140]);B.ehp=0;B.pendingKO=true}
 /* ===== boss phrases: call & response on the music's bars =====
@@ -2986,7 +3040,7 @@ function roomCfg(idx,type){
       pack:mins.map(([kind,name])=>({kind,name,scale:EN[kind].scale,pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)])}})),packEach:each})}
   const st=STAGES[idx],rg=REGIONS[idx],T=PARRY_TUNE[idx],k=(R&&R.room)||0;
   const mv=(k,n)=>({moves:movesFor(k,idx,n)});
-  if(type==='chart'&&CHART_LV[idx]){const L=CHART_LV[idx],base=roomCfg(idx,L.boss?'boss':'min');return Object.assign({},base,L.boss?{}:{kind:st.kind,name:st.name,scale:EN[st.kind].scale},{chart:L,music:L.song,hz:null,moves:null,moves2:null,pool:{base:[['single',1]]},label:L.boss?'보스':base.label,gold:st.gold*(L.boss?1:.9)})}
+  if(type==='chart'&&CHART_LV[idx]){const L=R&&R.hard&&R.idx===idx?hardChart(CHART_LV[idx]):CHART_LV[idx],base=roomCfg(idx,L.boss?'boss':'min');return Object.assign({},base,L.boss?{}:{kind:st.kind,name:st.name,scale:EN[st.kind].scale},{chart:L,music:L.song,hz:null,moves:null,moves2:null,pool:{base:[['single',1]]},label:L.boss?'보스':base.label,gold:st.gold*(L.boss?1:.9)})}
   if(type==='boss')return{...(st.boss&&BOSS_SIG[st.kind]?{moves:BOSS_SIG[st.kind].map(x=>x[0]),moves2:(BOSS_P2[st.kind]||[]).map(x=>x[0]).concat([BOSS_SIG[st.kind][0][0]])}:mv(st.kind,3)),kind:st.kind,name:st.name,scale:Math.max(EN[st.kind].scale,3),hp:st.hp*BOSS_HP_MUL,atk:st.atk*atkMul(idx),windup:st.windup,stunMult:st.stunMult,gold:st.gold*.6,
     theme:st.theme,hz:st.hz,boss:!!st.boss,music:'bs'+idx,pool:st.boss?sigPool(st.kind,POOLS[idx]):{base:withOwn(POOLS[idx].base,st.kind,idx,.4),p2:POOLS[idx].p2&&withOwn(POOLS[idx].p2,st.kind,idx,.45)},tune:T,line:st.line,taunt:st.taunt||'',label:'보스'};
   if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{...mv(kind,3),kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.85:.75),atk:st.atk*.88*atkMul(idx),windup:st.windup,
@@ -2996,7 +3050,7 @@ function roomCfg(idx,type){
     pool:{base:withOwn((MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)]),kind,idx,.3)},tune:Object.assign({},T,{win:T.win+20,late:T.late+10,ne:T.ne+10,nl:T.nl+8}),line:k===0?st.line:'',taunt:'',label:'졸개'};
 }
 function startRun(idx){
-  R={idx,room:0,rooms:CHART_LV[idx]?['chart']:idx%2?['pack','fork','boss']:ROOMS.slice(),maxHp:hpMax(),hp:hpMax(),cards:{},gold:0,revived:false,parries:0,perfects:0,maxCombo:0,rescued:null,streakGold:streakGold()};
+  R={idx,hard:!!(S.hardSel&&CHART_LV[idx]&&idx<S.cleared),room:0,rooms:CHART_LV[idx]?['chart']:idx%2?['pack','fork','boss']:ROOMS.slice(),maxHp:hpMax(),hp:hpMax(),cards:{},gold:0,revived:false,parries:0,perfects:0,maxCombo:0,rescued:null,streakGold:streakGold()};
   const n=streakCards();
   if(n){toast(`${S.streak}연승 보너스: 시작 카드 ${n}장`);pickCards(n,()=>startFight(roomCfg(idx,'min'),false))}
   else startFight(roomCfg(idx,R.rooms[0]),false);
@@ -3004,7 +3058,7 @@ function startRun(idx){
 const STUN_GAIN=.6;
 /* stagger resistance by stage: ~6 perfect parries to stun on stage 1, ~11 on stage 10 */
 const stagRes=()=>R&&!R.rhythm&&!R.prologue&&!R.trial&&!R.vault?1.4+.18*TIER(R.idx):1;
-function startFight(cfg,walkIn){hbT=-1e9;B.chart=cfg.chart?{def:cfg.chart,built:false}:null;if(cfg.moves&&cfg.pool&&!cfg.pool.moves)cfg=Object.assign({},cfg,{pool:Object.assign({},cfg.pool,{moves:cfg.moves,moves2:cfg.moves2})});   // the moveset travels with the pool
+function startFight(cfg,walkIn){hbT=-1e9;chartFxClear();B.chart=cfg.chart?{def:cfg.chart,built:false}:null;if(cfg.moves&&cfg.pool&&!cfg.pool.moves)cfg=Object.assign({},cfg,{pool:Object.assign({},cfg.pool,{moves:cfg.moves,moves2:cfg.moves2})});   // the moveset travels with the pool
 setTimeout(()=>{try{if(B.active&&R&&feverAllowed()){fcHeroArt();loadFeverClip()}}catch(e){}},1200);
   if(cfg.label!=='시험'&&cfg.label!=='금고')cfg=Object.assign({},cfg,{stunMult:(cfg.stunMult||0)*STUN_GAIN/stagRes()*(R&&!R.prologue&&EN[cfg.kind]&&EN[cfg.kind].trait==='armored'?1.15:1)});
   B.fx=EFX();B.perfStreak=0;
@@ -3103,7 +3157,8 @@ function update(dt){
       if(t-c.t<120){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.atk===a){a.lit=c.k+1;B.eFlash=Math.max(B.eFlash||0,45)}},Math.max(0,c.t-t))}}}
   if(B.chart&&!B.chart.built&&B.active&&B.state!=='BOSSIN'&&B.state!=='WALK'&&B.state!=='VICTORY')chartStart();
   if(B.chart&&B.chart.built){const C=B.chart;
-    while(C.ci<C.cues.length&&t>=C.cues[C.ci].t-80){const c=C.cues[C.ci++];if(t-c.t<120&&B.state!=='TRANSFORM'){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.chart===C){B.eFlash=Math.max(B.eFlash||0,45);B.cueT=B.time}},Math.max(0,c.t-t))}}
+    while(C.ci<C.cues.length&&t>=C.cues[C.ci].t-80){const c=C.cues[C.ci++];if(t-c.t<120&&B.state!=='TRANSFORM'){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.chart===C){B.eFlash=Math.max(B.eFlash||0,45);B.cueT=B.time;if(c.type==='fake')ftAt('…?',B.ex,B.gy-B.E.scale*22,'warn')}},Math.max(0,c.t-t))}}
+    chartLive(C,t);
     if(!C.fin){const a=B.atk,live=a&&a.chart&&!a.counted?a.idx:0;if(B.ehp<1)B.ehp=1;   // the enemy holds on (1 HP) until the song's FINISH
       if(B.state!=='GROGGY'){const k=C.segs.slice(0,C.si).filter(g=>g.type==='stun').length,from=C.bounds[k]||0,to=C.bounds[k+1]||C.total;   // fills through the block, full right before its reward stun
         B.stun=clamp(99*(C.done+live-from)/Math.max(1,to-from),0,99)}}
@@ -3165,7 +3220,7 @@ function update(dt){
   B.fxs=B.fxs.filter(f=>t-f.t0<f.dur);
   if(B.kFlash>0)B.kFlash-=dt;if(B.eFlash>0)B.eFlash-=dt;if(B.eRed>0)B.eRed-=dt;
 }
-function beatMs(){const s=SONGS[Music.cur]||SONGS.battle;return 60000/(s.bpm*(Music.rate||1))}
+function beatMs(){const s=SONGS[Music.cur]||SONGS.battle,C=typeof B!=='undefined'&&B.chart;return 60000/(s.bpm*(Music.rate||1)*(C&&C.built&&C.tmK?C.tmK[chartBarAt(C,B.time)]:1))}
 /* push the first hit onto the next quarter-note of the music so chains land on the beat you hear */
 function alignBeat(lead){
   if(!AC||!Music.cur||!S.bgm||AC.state!=='running')return lead;
@@ -3293,6 +3348,7 @@ function onTap(){
   if(!B.active||B.paused)return;
   if(quietInput()&&B.state!=='BOSSIN'){B.pendWhiff=0;return}
   const t=inputTime();
+  if(B.chart&&B.chart.fakes&&B.state!=='GROGGY'){const f=B.chart.fakes.find(f=>!f.res&&Math.abs(f.t-t)<=170);if(f){f.res=2;B.chart.fooled=(B.chart.fooled||0)+1;B.combo=0;ftAt('속았다!',B.kx+8,B.gy-50,'warn');RK.miss();vib(30);padHit();return}}
   padHit();
   if(B.tutWait==='tap'&&B.tutStep===0){tutNext();return}
   if(B.tutWait==='lesson'){coachHide();B.lessonGo=true;B.idleDur=350;B.stT=B.time;return}
@@ -3343,7 +3399,7 @@ function parrySuccess(early,win){
   const perfect=Math.abs(early-15)<=Math.max(35,win*.22);
   track('parry');if(perfect)track('perfect');tutParried('parry');rScore(perfect?300:200,perfect?'perfect':'just');
   if(!perfect&&B.ph&&a.phrase!=null)B.ph.imp++;
-  if(B.chart&&B.chart.chip){const d=Math.round(B.chart.chip*(perfect?1:.6));chartFvAdd(perfect?1:.5);B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg')}
+  if(B.chart&&B.chart.chip){const d=Math.round(B.chart.chip*(perfect?1:.6));chartFvAdd(perfect?1:.5);if(perfect&&curNote().hidden)B.chart.hidOk++;B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg')}
   B.auraN=perfect?(B.auraN||0)+1:0;if(tech('aura')&&B.auraN===5)ftAt('퍼펙트 오라!',B.kx,B.gy-56,'perfect');
   const gain=B.sh.stunDamage*B.st.stunMult*(perfect?1.3:1)*(feverOn()?1.5:1)*(tech('aura')&&B.auraN>=5?1.5:1);
   B.stun=Math.min(100,B.stun+gain);B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);B.parries++;if(perfect)B.perfects++;
@@ -3464,7 +3520,9 @@ function enterGroggy(){B.gHitK=0;B.ph=null;
 function milestone(){if([10,25,50,75,100,150].includes(B.combo)){ftAt(B.combo+' COMBO!',B.W/2,B.H*.36,'combo');sfx('combo');vig('rgba(255,210,80,.85)',500)}}
 function groggyHit(){
   {const now=performance.now();if(now-(B.lastBashT||-1e9)<90)return;B.lastBashT=now}
-  const crit=Math.random()<B.wp.critRate;const chartD=B.chart&&B.chart.mashPer!=null?Math.round(Math.min(B.chart.mashLeft,B.chart.mashPer*(onGrid()?1.25:.8)*(crit?1.5:1))):null;if(chartD!=null)B.chart.mashLeft-=chartD;
+  if(B.chart&&B.chart.smode==='charge'){if(!B.kDone&&B.kc==null){B.kc=B.time;setKPose('parry');sfx('windup');ftAt('모으는 중…',B.kx+8,B.gy-50,'info')}return}
+  let gridHit=false;if(B.chart&&B.chart.smode==='grid'){const e=beatMs(),off=((inputTime()-B.phGrid)%e+e)%e;if(Math.min(off,e-off)>90){B.chart.gMiss=(B.chart.gMiss||0)+1;ftAt('박자!',B.kx+8,B.gy-46,'info');RK.miss();return}gridHit=true}
+  const crit=Math.random()<B.wp.critRate;const chartD=B.chart&&B.chart.mashPer!=null?Math.round(Math.min(B.chart.mashLeft,B.chart.mashPer*(gridHit?2:onGrid()?1.25:.8)*(crit?1.5:1))):null;if(chartD!=null)B.chart.mashLeft-=chartD;
   const d=chartD!=null?chartD:Math.max(1,Math.round(B.wp.groggyTapDamage*(onGrid()?1.5:1)*(hasT('armored')?.7:1)*(feverOn()?1.3:1)*(B.finishBonus?1.25:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
   (B.chart&&B.chart.fvOn?RK.fever:RK.groggy)(B.gHitK=(B.gHitK||0)+1);if(B.chart&&B.chart.fvOn)fvSlash(16+rnd(0,10),rnd(-1.3,1.3),3,FV_COLS[B.gHitK%FV_COLS.length]);B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
   if(B.st.label==='보스'&&B.phase2&&!B.despUsed&&B.ehp<=B.emax*.1&&!(R&&(R.rhythm||R.prologue||R.vault||R.trial))){B.ehp=Math.max(1,B.ehp);B.stun=0;Music.hype=false;setState('IDLE');B.idleDur=450;ftAt(String(d),B.ex,B.gy-30,'dmg');flash('#ff2b3b',.4,300);return}
@@ -3487,14 +3545,14 @@ function groggyHit(){
   if(!(R&&(R.vault||R.rhythm||R.prologue))&&B.groggyCap&&B.groggyDmg>=B.groggyCap){endGroggy()}   // the 결정타 marks the end of the stun
 }
 function endGroggy(){
-  atkCue(false);dmgTotal(-1);B.mashGrace=B.time+400;
+  if(B.chart&&B.kc!=null)kRelease(true);atkCue(false);dmgTotal(-1);B.mashGrace=B.time+400;
   if(B.groggyDmg>0&&B.ehp>0&&!(R&&(R.prologue||R.rhythm||R.vault||R.v2||R.trial))){   // 결정타
     let fin=B.chart&&B.chart.finPer?Math.round(B.chart.finPer*(tech('finisher')?1.3:1)*(B.chart.fvOn?1.25:1)):Math.round(B.groggyDmg*(tech('finisher')?1:.6)*(B.phPerfect?1.5:1));if(tech('finisher'))fvAdd(4);if(B.st.label==='보스'&&B.phase2&&!B.despUsed)fin=Math.min(fin,Math.max(0,B.ehp-1));B.groggyDmg=0;
     if(fin>0){B.ehp=Math.max(0,B.ehp-fin);B.eHitT=B.time;B.eFlash=220;setKPose('attack');B.swing=!B.swing;B.swingT=B.time;
       const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;addFx('slash',hx,hy,{len:30,ang:-.78,dur:240});addFx('slash',hx,hy,{len:30,ang:.78,dur:240});addFx('burst',hx,hy,{dur:420});
       ftAt('결정타 '+fmt(fin)+'!',hx,hy-14,'finisher');flash('#ffffff',.7,260);zoom(1.14);domShake(2);B.shake=6;B.hitstop=Math.max(B.hitstop,110);sfx('crit',3);vib([30,30,90]);
       if(B.ehp<=0)B.pendingKO=true}}
-  B.stun=0;Music.hype=false;if(B.push)B.pushBack=true;if(B.chart&&B.chart.fvOn){B.chart.fvOn=false;feverHud()}
+  B.stun=0;Music.hype=false;if(B.push)B.pushBack=true;if(B.chart&&B.chart.fvOn){B.chart.fvOn=false;feverHud()}if(B.chart){B.chart.smode=null;B.kc=null}
   if(R&&R.prologue){coachHide();B.tutStep=7;setState('IDLE');B.idleDur=900;return}
   const wasReward=B.phReward;B.phReward=false;B.phPerfect=false;
   if(wasReward||B.chart){setState('IDLE');B.idleDur=0;return}
@@ -3655,7 +3713,7 @@ const fvLook=()=>!!(B.active&&B.chart&&B.chart.fvOn&&B.state==='GROGGY');
 /* these run every frame during fever: only touch the DOM when a value really changes (each write restyles the HUD) */
 function setIf(el,k,v){if(el&&el[k]!==v)el[k]=v}function styIf(el,k,v){if(el&&el._s!==undefined&&el._s[k]===v)return;if(!el)return;(el._s||(el._s={}))[k]=v;el.style.setProperty(k,v)}
 function fvMeter(){const m=document.getElementById('fvMeter');if(m&&m.firstChild)m.innerHTML='';const g=document.getElementById('fGauge');if(!g)return;
-  if(B.active&&B.chart){setIf(g,'hidden',false);g.classList.remove('ready');const C=B.chart,f=C.built?clamp((B.time-C.T0)/(C.bars*barMs()),0,1):0;
+  if(B.active&&B.chart){setIf(g,'hidden',false);g.classList.remove('ready');const C=B.chart,f=C.built?clamp((B.time-C.T0)/Math.max(1,C.end-C.T0),0,1):0;
     styIf(document.getElementById('fGaugeFill'),'width',(Math.round(f*400)/4)+'%');const fr=C.built&&C.fv>=C.fvNeed;g.classList.toggle('ready',!!(C.fvOn||fr));
     setIf(document.getElementById('fGaugeTxt'),'textContent',`♪ 곡 ${Math.floor(f*100)}% · ${C.fvOn?'FEVER!!':fr?'피버 준비!':'피버 '+Math.floor((C.fv||0)/(C.fvNeed||10)*100)+'%'}`);return}
   const on=!!(B.active&&R&&feverAllowed());setIf(g,'hidden',!on);if(!on)return;const live=feverOn(),f=live?clamp((B.fever-B.time)/FEVER_MS,0,1):clamp((R.fv||0)/fvNeed(),0,1);
@@ -4079,9 +4137,12 @@ function runComplete(){
   const newE=ENGRAVINGS.find(e=>e.boss&&e.from===R.idx&&!ownE(e.id));
   const fxR=EFX(),gemsX=Math.round(fxR.gemBonus||0);
   const SR=runStars(),prevStars=S.stars[R.idx]||0;let starGems=0;for(let k=prevStars+1;k<=SR.n;k++)starGems+=STAR_GEMS[k];
+  const CHL=chartChal(R.idx),had=((S.chal||(S.chal={}))[R.idx]||[]),chPer=st.boss?10:5;let chalGems=0,hardGems=0;
+  if(CHL){const got=CHL.filter(c=>c[2]&&!had.includes(c[0])).map(c=>c[0]);chalGems=got.length*chPer;S.chal[R.idx]=had.concat(got)}
+  if(R.hard&&!(S.hard||(S.hard={}))[R.idx]){S.hard[R.idx]=true;hardGems=20}
   plog('clear');
   const newT=first?TECHS.find(t=>t.at===R.idx+1):null;
-  const bonus=first?Math.round(st.gold*.5):0,gold=R.gold+bonus,gems=(first?(st.boss?20:3):0)+gemsX+starGems,exp=30+R.idx*4;
+  const bonus=first?Math.round(st.gold*.5):0,gold=R.gold+bonus,gems=(first?(st.boss?20:3):0)+gemsX+starGems+chalGems+hardGems,exp=30+R.idx*4;
   if(SR.n>prevStars)S.stars[R.idx]=SR.n;
   modal(`<h2>원정 성공!</h2><canvas id="vChest" width="12" height="9" style="width:96px;height:72px"></canvas>
     <p>${REGIONS[R.idx].name}의 주인 <b>${st.name}</b>을(를) 쓰러뜨렸다!${first?'<br><span style="color:var(--gold)">첫 클리어 보너스 +'+fmt(bonus)+'</span>':''}</p>
@@ -4095,6 +4156,7 @@ function runComplete(){
       <span class="${SR.okPerf&&!SR.revived?'ok':''}">${SR.okPerf&&!SR.revived?'✔':'✘'} 퍼펙트 ${Math.round(STAR_PERF*100)}% 이상 (${Math.round(SR.perf*100)}%)</span>${SR.revived?'<span>부활하면 별 1개</span>':''}</div>
     ${(()=>{const n=R.notes||0,m=R.miss||0,r=n?m/n:0,rk=!n?'-':m===0?'S+':r<=.02?'S':r<=.05?'A':r<=.1?'B':r<=.18?'C':'D',o=R.offs||[],av=o.length?Math.round(o.reduce((x,y)=>x+y,0)/o.length):0;
       return `<div class="rrank"><b class="rk rk-${rk.replace('+','p')}">${rk}</b><span>리듬 등급 · 실수 ${m}/${n}<br>평균 ${Math.abs(av)}ms ${av>=0?'늦게':'일찍'}${Math.abs(av)>40?' · <em>설정 → 박자 보정을 해 보세요</em>':''}</span></div>`})()}
+    ${CHL?`<div class="chal"><b>도전 과제${R.hard?' · 어려움 모드':''}</b>${CHL.map(([id,tx,ok])=>{const h=had.includes(id);return `<span class="${ok||h?'ok':''}">${ok||h?'✔':'✘'} ${tx}${ok&&!h?` <em>보석 +${chPer}</em>`:''}</span>`}).join('')}${hardGems?'<span class="ok">★ 어려움 모드 첫 클리어 <em>보석 +20</em></span>':''}</div>`:''}
     <div class="mini"><span>패링 ${R.parries}회</span><span>퍼펙트 ${R.perfects}회</span><span>최대 콤보 ${R.maxCombo}</span></div>
     <div class="btns"><button class="btn y" data-m="ad">▶ 광고 보고 2배 받기 (${fmt(gold*2)})</button><button class="btn g" data-m="take">받기</button></div>`,
   {ad:()=>{closeModal();simulateAd(()=>claim(2),'2배 보상')},take:()=>{closeModal();claim(1)}});
@@ -4807,7 +4869,8 @@ function enterBreak(){
   track('groggy');setState('EXEC');B.exec={charge:-1,until:B.time+3000};B.open=null;B.guard=false;B.v2Stats.breaks++;
   banner('자세 붕괴!','꾹 눌러 힘을 모았다가 금색에서 놓기!');sfx('groggy');flash('#ffffff',.55,300);zoom(1.1);vib([30,40,30]);domShake(2);Music.hype=true;
 }
-function onRelease(){if(B.active&&R&&R.v2&&B.state==='EXEC'&&B.exec&&B.exec.charge>=0){v2Execute();return}
+function onRelease(){if(B.active&&B.state==='GROGGY'&&B.chart&&B.chart.smode==='charge'&&B.kc!=null){kRelease(false);return}
+  if(B.active&&R&&R.v2&&B.state==='EXEC'&&B.exec&&B.exec.charge>=0){v2Execute();return}
   if(!B.active||B.paused||B.state!=='WINDUP')return;const a=B.atk;if(!a||a.resolved||a.idx<1)return;const n=a.notes[a.idx],pv=a.notes[a.idx-1];
   if(n.type!=='tap'||pv.type!=='hold'||n.t-(pv.t+pv.dur)>beatMs()*.45)return;   // only the quick "guard-cancel" taps
   const t=inputTime(),w=pWin(),early=a.impact-t;if(early<=w.e&&early>=-w.l){padHit();parrySuccess(early,w.e)}}
