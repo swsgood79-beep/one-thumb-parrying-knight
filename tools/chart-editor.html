@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>채보 편집기</title>
+<style>
+:root{--bg:#140f2c;--panel:#221a4a;--edge:#3b3277;--ink:#f5f0ff;--muted:#a99fd8;--gold:#ffd23f;--red:#ff5b6b;--blue:#4bb6ff;--green:#5fd23a;--pink:#ec4899}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f4f1ff;--panel:#fff;--edge:#cfc6f5;--ink:#1d1640;--muted:#6a60a0}}
+:root[data-theme="dark"]{--bg:#140f2c;--panel:#221a4a;--edge:#3b3277;--ink:#f5f0ff;--muted:#a99fd8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,'Noto Sans KR',sans-serif;padding:16px}
+h1{font-size:20px;margin:0 0 4px}p{color:var(--muted);margin:0 0 12px;font-size:13px}
+.bar{display:flex;gap:6px;align-items:center;margin:4px 0;flex-wrap:wrap}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+button,select,input{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:6px 10px}
+button.y{background:var(--gold);color:#140f2c;border-color:var(--gold);font-weight:700}
+.num{width:30px;color:var(--muted);font-size:12px;text-align:right}
+.cells{display:grid;gap:3px}
+.cell{width:30px;height:30px;border-radius:6px;border:1px solid var(--edge);background:var(--panel);font-weight:800;display:grid;place-items:center;cursor:pointer;user-select:none;font-size:13px}
+.cell.beat{border-color:var(--muted)}
+.cell[data-v="c"],.cell[data-v="q"]{background:#5a4bb0;color:#fff}.cell[data-v="p"],.cell[data-v="i"]{background:#b03a5a;color:#fff}
+.cell[data-v="t"]{background:var(--gold);color:#140f2c}.cell[data-v="T"]{background:transparent;border:2px dashed var(--gold);color:var(--gold)}
+.cell[data-v="h"],.cell[data-v="="]{background:var(--blue);color:#fff}
+.cell.now{outline:3px solid var(--green)}
+.whole{padding:6px 12px;border-radius:6px;background:var(--panel);border:1px solid var(--edge);font-size:13px}
+textarea{width:100%;min-height:120px;background:var(--panel);color:var(--ink);border:1px solid var(--edge);border-radius:8px;padding:8px;font-family:ui-monospace,monospace;font-size:12px}
+.legend{font-size:12px;color:var(--muted);line-height:1.7}
+.legend b{color:var(--ink)}
+@media (max-width:560px){.cell{width:22px;height:26px;font-size:11px}}
+</style></head><body>
+<h1>원썸 패링 나이트 · 채보 편집기</h1>
+<p>칸을 눌러 기호를 바꾸고, 재생으로 박자를 확인한 뒤 아래 결과를 <code>CHART_LV</code>의 <code>bars</code>에 붙여 넣으세요.</p>
+<div class="top">
+  <label>BPM <input id="bpm" type="number" value="110" min="60" max="200" style="width:70px"></label>
+  <button id="add8">+ 8칸 마디</button><button id="add12">+ 12칸(스윙) 마디</button>
+  <button id="addR">+ 쉼(R)</button><button id="addS">+ 보상 기절(S)</button><button id="addE">+ 끝(E)</button>
+  <button class="y" id="play">▶ 재생</button><button id="stop">■ 정지</button>
+</div>
+<div class="legend">칸 기호 순환: <b>.</b> 쉼 → <b>c</b> 부르기(탭) → <b>t</b> 탭 → <b>T</b> 숨긴 탭 → <b>q</b> 부르기(꾹) → <b>h</b> 꾹 시작 → <b>=</b> 꾹 계속 → <b>p</b> 심박 → <b>i</b> 얼음 심박<br>
+부르기(c·q·p·i)는 소리만 나고, 탭(t·T)과 꾹(h)이 플레이어가 칠 노트예요. 마디 번호를 누르면 그 마디를 지워요.</div>
+<div id="bars" style="margin:10px 0"></div>
+<textarea id="out" spellcheck="false"></textarea>
+<div class="top" style="margin-top:6px"><button id="load">위 텍스트 불러오기</button><button id="copy">결과 복사</button></div>
+<script>
+const CYCLE=['.','c','t','T','q','h','=','p','i'];
+let bars=["R","R","c...c...","t...t...","S","E"];
+const $=s=>document.querySelector(s),out=$('#out');
+function render(){const el=$('#bars');el.innerHTML='';
+  bars.forEach((b,k)=>{const row=document.createElement('div');row.className='bar';
+    const n=document.createElement('span');n.className='num';n.textContent=k+1;n.title='이 마디 지우기';n.style.cursor='pointer';n.onclick=()=>{bars.splice(k,1);render()};row.append(n);
+    if(b==='R'||b==='S'||b==='E'){const w=document.createElement('span');w.className='whole';w.textContent={R:'쉼 (처음 두 마디는 카운트)',S:'보상 기절 마디',E:'끝 · 결정타'}[b];row.append(w)}
+    else{const g=document.createElement('div');g.className='cells';g.style.gridTemplateColumns=`repeat(${b.length},auto)`;
+      [...b].forEach((ch,i)=>{const c=document.createElement('div');c.className='cell'+(i%(b.length/4)===0?' beat':'');c.dataset.v=ch;c.dataset.k=k;c.dataset.i=i;c.textContent=ch==='.'?'':ch;
+        c.onclick=()=>{const arr=[...bars[k]];arr[i]=CYCLE[(CYCLE.indexOf(arr[i])+1)%CYCLE.length];bars[k]=arr.join('');render()};g.append(c)});row.append(g)}
+    el.append(row)});
+  out.value=JSON.stringify(bars).replace(/","/g,'", "')}
+$('#add8').onclick=()=>{bars.splice(Math.max(0,bars.length-1),0,'........');render()};
+$('#add12').onclick=()=>{bars.splice(Math.max(0,bars.length-1),0,'............');render()};
+$('#addR').onclick=()=>{bars.splice(Math.max(0,bars.length-1),0,'R');render()};
+$('#addS').onclick=()=>{bars.splice(Math.max(0,bars.length-1),0,'S');render()};
+$('#addE').onclick=()=>{bars.push('E');render()};
+$('#load').onclick=()=>{try{const v=JSON.parse(out.value.replace(/'/g,'"'));if(Array.isArray(v)){bars=v;render()}}catch(e){alert('형식이 맞지 않아요: ["R","R","c...c...",...]')}};
+$('#copy').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(out.value)};
+/* preview: metronome + call cues + hit sounds, with the playing cell highlighted */
+let AC=null,timer=null,marks=[];
+function tone(f,d,type,v,at){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,at);g.gain.exponentialRampToValueAtTime(.0008,at+d);o.connect(g);g.connect(AC.destination);o.start(at);o.stop(at+d+.05)}
+$('#play').onclick=()=>{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume();stop();
+  const beat=60/(+$('#bpm').value||110),bar=beat*4,t0=AC.currentTime+.3;marks=[];
+  bars.forEach((b,k)=>{const t=t0+k*bar;for(let q=0;q<4;q++)tone(q?880:1320,.03,'square',.03,t+q*beat);
+    if(b.length<2)return;const st=bar/b.length;[...b].forEach((ch,i)=>{const at=t+i*st;marks.push({at,k,i});
+      if(ch==='c')tone(1568,.07,'square',.08,at);else if(ch==='q')tone(392,.2,'sawtooth',.05,at);else if(ch==='p')tone(90,.15,'sine',.5,at);else if(ch==='i'){tone(2400,.25,'sine',.06,at);tone(90,.15,'sine',.5,at)}
+      else if(ch==='t'||ch==='T')tone(1046,.12,'triangle',.25,at);else if(ch==='h')tone(523,.4,'triangle',.2,at)})});
+  timer=setInterval(()=>{const now=AC.currentTime;document.querySelectorAll('.cell.now').forEach(c=>c.classList.remove('now'));
+    const m=[...marks].reverse().find(m=>m.at<=now);if(m){const c=document.querySelector(`.cell[data-k="${m.k}"][data-i="${m.i}"]`);if(c)c.classList.add('now')}
+    if(now>t0+bars.length*bar+.5)stop()},30)};
+function stop(){clearInterval(timer);timer=null;document.querySelectorAll('.cell.now').forEach(c=>c.classList.remove('now'))}
+$('#stop').onclick=stop;
+render();
+</script></body></html>

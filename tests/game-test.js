@@ -310,7 +310,7 @@ const BOT = `(()=>{
       __bot.sig = undefined; return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '카드 시스템 제거: 관문 사이 카드 없음 · 상단은 피버 게이지', run: () => {
       for (let i = 0; i < 200; i++) __tick(16); closeModal(); endBattle(); S.streak = 3; __bot.skill = 1; __bot.sig = 8;
-      startRun(1); for (let i = 0; i < 5; i++) __tick(16); if (!document.querySelector('#modal').hidden && /카드/.test(document.querySelector('#mbox').textContent)) return 'win streak still offers starting cards';
+      startRun(7); for (let i = 0; i < 5; i++) __tick(16); if (!document.querySelector('#modal').hidden && /카드/.test(document.querySelector('#mbox').textContent)) return 'win streak still offers starting cards';
       if (!document.querySelector('#cGauge').hidden) return 'card gauge still shown'; if (document.querySelector('#fGauge').hidden) return 'fever gauge not shown on top';
       let sawCard = false, rooms = 0, vt = 0; const r0 = R;
       while (vt < 400000 && R === r0 && R && R.room < 2) { __tick(16); vt += 16; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.startsWith('카드')) sawCard = true; __botStep(); } else __botStep(); }
@@ -524,7 +524,7 @@ const BOT = `(()=>{
     { name: '피버 화면이 항상 꺼짐: 컷인 중 처치 · 2페이즈 변신 · 부활 · 관문 이동', run: () => {
       const cutOn = () => document.querySelector('#fvcut').classList.contains('on');
       for (const [i, type, kill] of [[0, 'boss', true], [22, 'min', true], [23, 'elite', false], [49, 'boss', true], [99, 'boss', false], [22, 'min', false]]) {
-        endBattle(); startRun(i); R.room = type === 'boss' ? 4 : 1; startFight(roomCfg(i, type), false); let g = 0; while (B.state !== 'IDLE' && g++ < 600) __tick(16);
+        closeModal(); closeModal(); endBattle(); startRun(i); R.room = type === 'boss' ? 4 : 1; startFight(roomCfg(i, type), false); B.php = B.pmax = 1e9; let g = 0; while (B.state !== 'IDLE' && g++ < 600) __tick(16);
         if (kill) B.ehp = Math.max(1, B.emax * .01); R.fv = FV_NEED; if (!feverStart()) return 'fever did not start at stage ' + (i + 1);
         if (!cutOn()) return 'cut-in not shown';
         const e0 = B.ehp; onTap(); if (B.ehp !== e0) return 'taps during the cut-in should not deal damage';
@@ -644,6 +644,24 @@ const BOT = `(()=>{
       // result screen shows the rhythm rank
       R.notes = 40; R.miss = 1; R.offs = [10, 20, -5]; runComplete(); const ok = !!document.querySelector('#mbox .rrank .rk'); const txt = (document.querySelector('#mbox .rrank') || {}).textContent || ''; closeModal();
       if (!ok || !txt.startsWith('A리듬 등급 · 실수 1/40')) return 'rhythm rank missing on the result screen (' + txt + ')';
+      endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
+    { name: '1챕터 수직 슬라이스: 손으로 쓴 5곡 · 채보 격자 · 완벽 입력 클리어 · 입력 없으면 전부 실수', run: () => {
+      closeModal(); closeModal();
+      for (const k of ['c1', 'c2', 'c3', 'c4', 'c5']) { const sg = SONGS[k]; if (!sg || sg._m.length !== 256 || sg._b.length !== 256 || sg._c.length !== 32) return 'song ' + k + ' is not 32 full bars'; }
+      for (let L = 0; L < 5; L++) { endBattle(); startRun(L); if (!B.chart || R.rooms.join() !== 'chart') return 'stage ' + (L + 1) + ' is not a chart level';
+        let hurts = 0; const oh = hurt; hurt = function (d, l, g) { if (!g) hurts++; return oh.apply(this, arguments); }; const done = new Set(); let vt = 0, won = false, offGrid = 0;
+        while (vt < 200000) { const t = B.time, a = B.atk; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.includes('성공')) { won = true; break; } if (h.includes('쓰러')) break; }
+          if (B.chart && B.chart.built && a && a.chart && !a._g) { a._g = 1; const bar = barMs(); for (const n of a.notes) { const x = (n.t - B.chart.T0) / bar * 24; if (Math.abs(x - Math.round(x)) > .05) offGrid++; } }
+          if (B.state === 'GROGGY') { if (!B._lt || t - B._lt >= beatMs() / 2 - 1) { B._lt = t; B.lastBashT = -1e9; onTap(); } }
+          else if (B.state === 'WINDUP' && a && !a.resolved) { const n = a.notes[a.idx]; if (n) { const key = a.start + ':' + a.idx;
+            if (n.type === 'hold') { if (t >= n.t - 120) setGuard(true); } else if (!done.has(key) && n.type === 'tap' && t >= n.t - 8) { done.add(key); const pv = a.notes[a.idx - 1]; if (pv && pv.type === 'hold' && B.guard && n.t - (pv.t + pv.dur) <= beatMs() * .45) { ptrs.clear(); setGuard(false); onRelease(); } else { setGuard(false); onTap(); } } } }
+          else if (B.guard) setGuard(false);
+          __tick(8); vt += 8; }
+        hurt = oh; closeModal();
+        if (!won) return `level ${L + 1} not cleared with perfect play`; if (hurts) return `level ${L + 1}: perfect play got hit ${hurts}x`; if (offGrid) return `level ${L + 1}: ${offGrid} notes off the bar grid`;
+        if (vt > 100000) return `level ${L + 1} too long (${Math.round(vt / 1000)}s)`; }
+      endBattle(); startRun(0); B.php = B.pmax = 1e9; let vt = 0; while (vt < 120000 && document.querySelector('#modal').hidden) { __tick(16); vt += 16; } closeModal();
+      if (!(R.miss >= R.notes - 1 && R.notes > 20)) return `no input should miss every note (miss ${R.miss}/${R.notes})`;
       endBattle(); return __errors.length ? 'error: ' + __errors[0] : null; } },
     { name: '모든 패턴 생성', run: () => {
       startRun(9); R.room = R.rooms.length - 1; startFight(roomCfg(9, 'boss'), false); for (let i = 0; i < 200; i++) __tick(16);
