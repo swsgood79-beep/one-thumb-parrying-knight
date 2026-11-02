@@ -649,15 +649,17 @@ const BOT = `(()=>{
       closeModal(); closeModal();
       for (const k of ['c1', 'c2', 'c3', 'c4', 'c5']) { const sg = SONGS[k]; if (!sg || sg._m.length !== 256 || sg._b.length !== 256 || sg._c.length !== 32) return 'song ' + k + ' is not 32 full bars'; }
       for (let L = 0; L < 5; L++) { endBattle(); startRun(L); if (!B.chart || R.rooms.join() !== 'chart') return 'stage ' + (L + 1) + ' is not a chart level';
-        let hurts = 0; const oh = hurt; hurt = function (d, l, g) { if (!g) hurts++; return oh.apply(this, arguments); }; const done = new Set(); let vt = 0, won = false, offGrid = 0;
+        let hurts = 0; const oh = hurt; hurt = function (d, l, g) { if (!g) hurts++; return oh.apply(this, arguments); }; const done = new Set(); let vt = 0, won = false, offGrid = 0, hp0 = null, hpMid = null;
         while (vt < 200000) { const t = B.time, a = B.atk; const h = (document.querySelector('#mbox h2') || {}).textContent || ''; if (!document.querySelector('#modal').hidden) { if (h.includes('성공')) { won = true; break; } if (h.includes('쓰러')) break; }
           if (B.chart && B.chart.built && a && a.chart && !a._g) { a._g = 1; const bar = barMs(); for (const n of a.notes) { const x = (n.t - B.chart.T0) / bar * 24; if (Math.abs(x - Math.round(x)) > .05) offGrid++; } }
           if (B.state === 'GROGGY') { if (!B._lt || t - B._lt >= beatMs() / 2 - 1) { B._lt = t; B.lastBashT = -1e9; onTap(); } }
           else if (B.state === 'WINDUP' && a && !a.resolved) { const n = a.notes[a.idx]; if (n) { const key = a.start + ':' + a.idx;
             if (n.type === 'hold') { if (t >= n.t - 120) setGuard(true); } else if (!done.has(key) && n.type === 'tap' && t >= n.t - 8) { done.add(key); const pv = a.notes[a.idx - 1]; if (pv && pv.type === 'hold' && B.guard && n.t - (pv.t + pv.dur) <= beatMs() * .45) { ptrs.clear(); setGuard(false); onRelease(); } else { setGuard(false); onTap(); } } } }
           else if (B.guard) setGuard(false);
+          if (B.chart && B.chart.built && hp0 == null) hp0 = B.ehp; if (B.chart && B.chart.built && B.chart.done >= B.chart.total / 2 && hpMid == null) hpMid = B.ehp;
           __tick(8); vt += 8; }
         hurt = oh; closeModal();
+        if (!(hp0 && hpMid && hpMid < hp0 * .8)) return `level ${L + 1}: enemy HP did not go down with the song (${Math.round(hp0)} → ${Math.round(hpMid)})`;
         if (!won) return `level ${L + 1} not cleared with perfect play`; if (hurts) return `level ${L + 1}: perfect play got hit ${hurts}x`; if (offGrid) return `level ${L + 1}: ${offGrid} notes off the bar grid`;
         if (vt > 100000) return `level ${L + 1} too long (${Math.round(vt / 1000)}s)`; }
       endBattle(); startRun(0); B.php = B.pmax = 1e9; let vt = 0; while (vt < 120000 && document.querySelector('#modal').hidden) { __tick(16); vt += 16; } closeModal();

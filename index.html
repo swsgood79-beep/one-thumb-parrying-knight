@@ -2771,7 +2771,10 @@ function chartBuild(def,T0){const bar=barMs(),segs=[],cues=[];let total=0,pk=0;
 /* the song restarts on the chart's bar 0 so the written music and the chart line up */
 function chartStart(){const C=B.chart;if(C.built)return;const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;let T0=B.time+250;
   if(AC&&Music.cur&&S.bgm&&AC.state==='running'){Music.step=8;Music.next=AC.currentTime+.25;Music.beats=[];Music.last=null;T0=B.time+(.25+lat)*1000}
-  Object.assign(C,chartBuild(C.def,T0));C.built=true;B.phGrid=T0}
+  Object.assign(C,chartBuild(C.def,T0));C.built=true;B.phGrid=T0;
+  /* HP budget: parries 30% · reward stuns 45% (on-beat taps hit harder, spamming adds nothing) · their finishing blows 15% · the song's FINISH the rest */
+  const tap=B.wp.groggyTapDamage,blocks=Math.max(1,C.bounds.length-2);B.emax=B.ehp=Math.max(60,Math.round(tap*60*(C.def.boss?1.5:1)));
+  C.chip=.3*B.emax/Math.max(1,C.total);C.blockBudget=.45*B.emax/blocks;C.finPer=.15*B.emax/blocks}
 /* the gate map in a chart level shows its sections (each ends with a reward stun), the crown is the finish */
 function chartMap(k){let n=1,prev='';for(const b of (B.chart&&B.chart.def.bars)||[]){if(b==='S'&&prev!=='S')n++;prev=b}
   $('#runMap').innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<k?'done':i===k?'cur':''} ${i===n-1?'boss':''}">${ic(i===n-1?'crown':'swords')}</i>`).join('<b></b>')}
@@ -2785,7 +2788,7 @@ function chartBegin(){const C=B.chart,bar=barMs();chartStart();
       if(R)R.notes=(R.notes||0)+notes.length;if(notes.some(n=>n.hidden))ftAt('기억해서!',B.ex,B.gy-B.E.scale*22,'sigmv');
       setState('WINDUP');return}
     if(g.type==='stun'){if(B.time<g.t-20){setState('IDLE');B.idleDur=Math.max(16,g.t-B.time-10);return}C.si++;
-      enterGroggy();B.phReward=true;B.phPerfect=false;B.phGrid=C.T0;B.groggyCap=1e15;B.groggyEnd=g.end;B.groggyDur=g.end-B.time;ftAt('지금 연타!',B.ex,B.gy-B.E.scale*22,'perfect');return}
+      enterGroggy();B.phReward=true;B.phPerfect=false;B.phGrid=C.T0;C.mashLeft=C.blockBudget;C.mashPer=C.blockBudget/Math.max(1,(g.end-g.t)/bar*8);B.groggyCap=1e15;B.groggyEnd=g.end;B.groggyDur=g.end-B.time;ftAt('지금 연타!',B.ex,B.gy-B.E.scale*22,'perfect');return}
     if(g.type==='end'){if(B.time<g.t-20){setState('IDLE');B.idleDur=Math.max(16,g.t-B.time-10);return}C.si++;chartFinish();return}}
   setState('IDLE');B.idleDur=1e9}
 function chartFinish(){const C=B.chart;C.fin=true;const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;
@@ -3039,7 +3042,7 @@ function update(dt){
   if(B.chart&&!B.chart.built&&B.active&&B.state!=='BOSSIN'&&B.state!=='WALK'&&B.state!=='VICTORY')chartStart();
   if(B.chart&&B.chart.built){const C=B.chart;
     while(C.ci<C.cues.length&&t>=C.cues[C.ci].t-80){const c=C.cues[C.ci++];if(t-c.t<120&&B.state!=='TRANSFORM'){const lat=AC?(AC.outputLatency||AC.baseLatency||0):0;RK.cue(c.type,c.k,AC?Math.max(AC.currentTime,AC.currentTime+(c.t-t)/1000-lat):0);setTimeout(()=>{if(B.chart===C){B.eFlash=Math.max(B.eFlash||0,45);B.cueT=B.time}},Math.max(0,c.t-t))}}
-    if(!C.fin){const a=B.atk,live=a&&a.chart&&!a.counted?a.idx:0;B.ehp=Math.max(1,B.emax*(1-.92*Math.min(1,(C.done+live)/Math.max(1,C.total))));
+    if(!C.fin){const a=B.atk,live=a&&a.chart&&!a.counted?a.idx:0;if(B.ehp<1)B.ehp=1;   // the enemy holds on (1 HP) until the song's FINISH
       if(B.state!=='GROGGY'){const k=C.segs.slice(0,C.si).filter(g=>g.type==='stun').length,from=C.bounds[k]||0,to=C.bounds[k+1]||C.total;   // fills through the block, full right before its reward stun
         B.stun=clamp(99*(C.done+live-from)/Math.max(1,to-from),0,99)}}
     if(Math.floor(t/250)!==C.gT){C.gT=Math.floor(t/250);fvMeter();const k=C.segs.slice(0,C.si).filter(g=>g.type==='stun').length;if(k!==C.mapK){C.mapK=k;chartMap(k)}}}
@@ -3208,7 +3211,7 @@ function holdUpdate(n,t){
   if(t>=end&&!n.res){n.res=true;
     if(R&&R.rhythm){if(a.holdOk)rScore(300,'ok');else B.rStats.miss++}
     if(R&&R.prologue&&B.tutStep===4){B.tutStep=5;coachHide();if(!a.holdOk)toast('다음엔 끝까지 꾹 눌러 봐요')}
-    if(a.holdOk){RK.holdEnd();B.gcT=B.time;const b=Math.round(9/stagRes());B.stun=Math.min(100,B.stun+b);ftAt('버텼다! 피로도 +'+b,B.kx+10,B.gy-46,'info');sfx('combo');vig('rgba(120,200,255,.9)',400)}else a.chainOk=false;
+    if(a.holdOk){RK.holdEnd();B.gcT=B.time;if(B.chart&&B.chart.chip){B.ehp=Math.max(1,B.ehp-Math.round(B.chart.chip));B.eHitT=B.time}const b=Math.round(9/stagRes());B.stun=Math.min(100,B.stun+b);ftAt('버텼다! 피로도 +'+b,B.kx+10,B.gy-46,'info');sfx('combo');vig('rgba(120,200,255,.9)',400)}else a.chainOk=false;
     advanceNote(a.holdOk)}
 }
 function holdHit(sc=1){
@@ -3278,6 +3281,7 @@ function parrySuccess(early,win){
   const perfect=Math.abs(early-15)<=Math.max(35,win*.22);
   track('parry');if(perfect)track('perfect');tutParried('parry');rScore(perfect?300:200,perfect?'perfect':'just');
   if(!perfect&&B.ph&&a.phrase!=null)B.ph.imp++;
+  if(B.chart&&B.chart.chip){const d=Math.round(B.chart.chip*(perfect?1:.6));B.ehp=Math.max(1,B.ehp-d);B.eHitT=B.time;ftAt(String(d),B.ex-B.E.scale*4+rnd(-6,6),B.gy-B.E.scale*12,'dmg')}
   B.auraN=perfect?(B.auraN||0)+1:0;if(tech('aura')&&B.auraN===5)ftAt('퍼펙트 오라!',B.kx,B.gy-56,'perfect');
   const gain=B.sh.stunDamage*B.st.stunMult*(perfect?1.3:1)*(feverOn()?1.5:1)*(tech('aura')&&B.auraN>=5?1.5:1);
   B.stun=Math.min(100,B.stun+gain);B.combo++;B.maxCombo=Math.max(B.maxCombo,B.combo);B.parries++;if(perfect)B.perfects++;
@@ -3310,7 +3314,7 @@ function parrySuccess(early,win){
   if(a.kind==='desp'||a.kind==='fury'){zoom(1.08+a.idx*.04);domShake(1+a.idx);if(a.idx===a.notes.length-1)slow(500,.2)}
   comboPop();milestone();advanceNote(true);
 }
-function chip(d,label){d=Math.round(Math.min(d,Math.max(3,B.emax*(multiBar()?.025:.05))));B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;ftAt(label+' '+d,B.ex-B.E.scale*4,B.gy-B.E.scale*14,'crit');if(B.ehp<=0)B.pendingKO=true}
+function chip(d,label){d=Math.round(Math.min(d,Math.max(3,B.emax*(multiBar()?.025:.05))));if(B.chart&&B.chart.chip)d=Math.max(1,Math.round(Math.min(d,B.chart.chip*.5)));/* chart levels: bonus hits stay small, the HP budget belongs to the song */B.ehp=Math.max(0,B.ehp-d);B.eHitT=B.time;ftAt(label+' '+d,B.ex-B.E.scale*4,B.gy-B.E.scale*14,'crit');if(B.ehp<=0)B.pendingKO=true}
 function hurt(dmg,label,guarded){
   if(!guarded&&B.ph&&B.atk&&B.atk.phrase!=null)B.ph.miss++;
   if(!guarded&&R&&B.state==='WINDUP'&&B.atk&&!B.atk.hz)R.miss=(R.miss||0)+1;
@@ -3398,7 +3402,8 @@ function enterGroggy(){B.gHitK=0;B.ph=null;
 function milestone(){if([10,25,50,75,100,150].includes(B.combo)){ftAt(B.combo+' COMBO!',B.W/2,B.H*.36,'combo');sfx('combo');vig('rgba(255,210,80,.85)',500)}}
 function groggyHit(){
   {const now=performance.now();if(now-(B.lastBashT||-1e9)<90)return;B.lastBashT=now}
-  const crit=Math.random()<B.wp.critRate;const d=Math.max(1,Math.round(B.wp.groggyTapDamage*(onGrid()?1.5:1)*(hasT('armored')?.7:1)*(feverOn()?1.3:1)*(B.finishBonus?1.25:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
+  const crit=Math.random()<B.wp.critRate;const chartD=B.chart&&B.chart.mashPer!=null?Math.round(Math.min(B.chart.mashLeft,B.chart.mashPer*(onGrid()?1.25:.8)*(crit?1.5:1))):null;if(chartD!=null)B.chart.mashLeft-=chartD;
+  const d=chartD!=null?chartD:Math.max(1,Math.round(B.wp.groggyTapDamage*(onGrid()?1.5:1)*(hasT('armored')?.7:1)*(feverOn()?1.3:1)*(B.finishBonus?1.25:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
   RK.groggy(B.gHitK=(B.gHitK||0)+1);B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
   if(B.st.label==='보스'&&B.phase2&&!B.despUsed&&B.ehp<=B.emax*.1&&!(R&&(R.rhythm||R.prologue||R.vault||R.trial))){B.ehp=Math.max(1,B.ehp);B.stun=0;Music.hype=false;setState('IDLE');B.idleDur=450;ftAt(String(d),B.ex,B.gy-30,'dmg');flash('#ff2b3b',.4,300);return}
   {const now=performance.now();if(now>=(B.hsReady||0)){B.hitstop=crit?80:30;B.hsReady=now+(crit?220:140)}}B.shake=crit?4.5:1.8;zoom(crit?1.09:1.025);
@@ -3422,7 +3427,7 @@ function groggyHit(){
 function endGroggy(){
   atkCue(false);dmgTotal(-1);B.mashGrace=B.time+400;
   if(B.groggyDmg>0&&B.ehp>0&&!(R&&(R.prologue||R.rhythm||R.vault||R.v2||R.trial))){   // 결정타
-    let fin=Math.round(B.groggyDmg*(tech('finisher')?1:.6)*(B.phPerfect?1.5:1));if(tech('finisher'))fvAdd(4);if(B.st.label==='보스'&&B.phase2&&!B.despUsed)fin=Math.min(fin,Math.max(0,B.ehp-1));B.groggyDmg=0;
+    let fin=B.chart&&B.chart.finPer?Math.round(B.chart.finPer*(tech('finisher')?1.3:1)):Math.round(B.groggyDmg*(tech('finisher')?1:.6)*(B.phPerfect?1.5:1));if(tech('finisher'))fvAdd(4);if(B.st.label==='보스'&&B.phase2&&!B.despUsed)fin=Math.min(fin,Math.max(0,B.ehp-1));B.groggyDmg=0;
     if(fin>0){B.ehp=Math.max(0,B.ehp-fin);B.eHitT=B.time;B.eFlash=220;setKPose('attack');B.swing=!B.swing;B.swingT=B.time;
       const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10;addFx('slash',hx,hy,{len:30,ang:-.78,dur:240});addFx('slash',hx,hy,{len:30,ang:.78,dur:240});addFx('burst',hx,hy,{dur:420});
       ftAt('결정타 '+fmt(fin)+'!',hx,hy-14,'finisher');flash('#ffffff',.7,260);zoom(1.14);domShake(2);B.shake=6;B.hitstop=Math.max(B.hitstop,110);sfx('crit',3);vib([30,30,90]);
