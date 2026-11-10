@@ -2173,10 +2173,11 @@ function renderLobby(){
   const chips=[];
   {const h=HZ[st.hz],tr=TRAITS[EN[st.kind].trait];if(tr)chips.push(`<span class="chip lchip" style="--cc:${tr[2]}"><em>특성</em>${tr[0]}</span>`);if(h)chips.push(`<span class="chip lchip" style="--cc:${STAGE_COL[st.theme]}"><em>지형</em>${h.name}</span>`)}
   if(CHART_LV[i])chips.unshift(`<span class="chip lchip" style="--cc:#ffd23f"><em>레벨 ${i+1}</em>${CHART_LV[i].name}</span>`);
-  if(CHART_LV[i]&&i<S.cleared)chips.splice(1,0,`<span class="chip lchip" style="--cc:#8ff09a"><em>도전</em>${((S.chal||{})[i]||[]).length}/3</span>`,`<button class="chip lchip" id="hardBtn" style="--cc:${S.hardSel?'#ff5b6b':'#b9b3d9'}"><em>어려움</em>${S.hardSel?'켜짐':'꺼짐'}${(S.hard||{})[i]?' ✓':''}</button>`);
+  if(i===0)chips.splice(1,0,`<button class="chip lchip" id="abBtn" style="--cc:${S.c1old?'#b9b3d9':'#7cf0ff'}"><em>비교</em>${S.c1old?'A안 · 이전 채보':'B안 · 새 채보'}</button>`);
+  if(CHART_LV[i]&&i<S.cleared)chips.splice(i===0?2:1,0,`<span class="chip lchip" style="--cc:#8ff09a"><em>도전</em>${((S.chal||{})[i]||[]).length}/3</span>`,`<button class="chip lchip" id="hardBtn" style="--cc:${S.hardSel?'#ff5b6b':'#b9b3d9'}"><em>어려움</em>${S.hardSel?'켜짐':'꺼짐'}${(S.hard||{})[i]?' ✓':''}</button>`);
   {const nt=nextTech();if(nt)chips.push(`<span class="chip lchip" style="--cc:#7cf0ff"><em>다음 기술</em>${nt.at}스테이지 → ${nt.name}</span>`);else chips.push(`<span class="chip lchip" style="--cc:#7cf0ff"><em>기술</em>전부 습득</span>`)}
   if(S.streak)chips.unshift(`<span class="chip streak">${S.streak}연승${streakGold()?' · 골드 +'+Math.round(streakGold()*100)+'%':''}</span>`);
-  $('#stChips').innerHTML=chips.join('');{const hb=$('#hardBtn');if(hb)hb.onclick=()=>{S.hardSel=!S.hardSel;save();sfx('buy');toast(S.hardSel?'어려움 모드: 더 빠르고, 반복되는 답은 숨겨져요':'어려움 모드 꺼짐');renderLobby()}}
+  $('#stChips').innerHTML=chips.join('');{const ab=$('#abBtn');if(ab)ab.onclick=()=>{S.c1old=!S.c1old;save();sfx('buy');toast(S.c1old?'A안: 이전 채보 (한 마디 듣고 한 마디 치기)':'B안: 새 채보 (들으면서 앞 마디 치기)');renderLobby()}}{const hb=$('#hardBtn');if(hb)hb.onclick=()=>{S.hardSel=!S.hardSel;save();sfx('buy');toast(S.hardSel?'어려움 모드: 더 빠르고, 반복되는 답은 숨겨져요':'어려움 모드 꺼짐');renderLobby()}}
   {const done=Math.min(S.cleared,STAGES.length);$('#mTxt').innerHTML=`정복 <b>${done}</b>/${STAGES.length} · 남은 스테이지 <em>${STAGES.length-done}</em> · ${CH[ch].title} ${Math.max(0,Math.min(10,done-ch*10))}/10`;
     $('#mSeg').innerHTML=CH.map((c,k)=>`<i class="${k===ch?'cur':''}" style="--c:${STAGE_COL[c.theme]}" title="${c.title}"><u style="width:${clamp(done-k*10,0,10)*10}%"></u></i>`).join('')}
   const left=HEROES_LEFT[S.cleared];
@@ -2777,9 +2778,7 @@ const MOVE_ROT=[0,0,1,0,2,1];
    hits:  t tap · T hidden tap (play it from what you heard) · h hold start, '=' keeps holding
    whole bar:  R rest (the first one counts you in) · S reward stun bar · E finish */
 const CHART_LV={
-  0:{song:'c1',name:'첫 패링',rule:'불러주면 → 똑같이 탭!',habit:'슬라임의 버릇: 통통 튀기!',chal:'perfect',bars:['R',
-    'c...c...','t...t...','c...c...','t...t...','c.c.c...','t.t.t...','c.c.c...','t.t.t...','c...c.c.','t...t.t.','c.c.c.c.','t.t.t.t.','S','S',
-    'cc..c...','tt..t...','c...cc..','t...tt..','{habit}c.cc.cc.','t.tt.tt.','c.c.c.c.','t.t.t.t.','c...c.c.','t...t.t.','c.cc.c..','t.tt.t..','S','S','E']},
+  0:{song:'c1',name:'첫 패링',rule:'들으면서 바로 앞 마디를 따라 쳐요 (한 마디 늦게)',habit:'슬라임의 버릇: 통통 튀기!',chal:'perfect',bars:['R','c.c.c.c.','c...c.c./t.t.t.t.','c.c.cc../t...t.t.','c.c.c.c./t.t.tt..','cc..c.c./t.t.t.t.','c.cc.c../tt..t.t.','c...cccc/t.tt.t..','c.c.c.../t...tttt','......../t.t.t...','S','c.cc.cc.','cc.cc.c./t.tt.tt.','c.c.cc.c/tt.tt.t.','{habit}c..c..c./t.t.tt.t','c..c..cc/t..t..t.','cc.c.cc./t..t..tt','c.c.c.c./tt.t.tt.','cccc.c../t.t.t.t.','......../tttt.t..','S','c.cc.c.c','cc..cc../t.tt.t.t','c..cc..c/tt..tt..','cc.cc.cc/t..tt..t','c.c.cccc/tt.tt.tt','c..c.cc./t.t.tttt','cccc.c.c/t..t.tt.','......../tttt.t.t','S','E']},
   1:{song:'c2',name:'꾹 버티기',rule:'새 규칙: 길게 울리면 꾹!',habit:'슬라임의 버릇: 통통 튀기!',chal:'charge',bars:['R',
     'c...c...','t...t...','q===....','h===....','q===....','h===....','c.c.q===','t.t.h===','c.c.q===','t.t.h===','S','S',
     'q=..c.c.','h=..t.t.','q=..c.c.','h=..t.t.','{habit}c.cc.cc.','t.tt.tt.','q==.c.c.','h==.t.t.','{say:새 연타: 꾹 모아 베기}K','K','E']},
@@ -2823,6 +2822,9 @@ const CHART_LV={
    f in a call bar is a FAKE call: nothing comes back — tapping where the answer would be is "fooled", holding back earns a bonus */
 function chartTags(b){const tags=[];while(b[0]==='{'){const j=b.indexOf('}');tags.push(b.slice(1,j));b=b.slice(j+1)}return[b,tags]}
 const STUN_BAR={S:'mash',G:'grid',K:'charge'};
+const CHART_LV0_OLD={song:'c1',name:'첫 패링',rule:'불러주면 → 똑같이 탭!',habit:'슬라임의 버릇: 통통 튀기!',chal:'perfect',bars:['R',
+    'c...c...','t...t...','c...c...','t...t...','c.c.c...','t.t.t...','c.c.c...','t.t.t...','c...c.c.','t...t.t.','c.c.c.c.','t.t.t.t.','S','S',
+    'cc..c...','tt..t...','c...cc..','t...tt..','{habit}c.cc.cc.','t.tt.tt.','c.c.c.c.','t.t.t.t.','c...c.c.','t...t.t.','c.cc.c..','t.tt.t..','S','S','E']};   // A/B: the previous stage-1 chart, selectable in the lobby
 function chartBarAt(C,t){const T=C.barT;let k=C._bk||0;if(k>=T.length-1||T[k]>t)k=0;while(k+1<T.length-1&&T[k+1]<=t)k++;C._bk=k;return k}
 function chartBuild(def,T0){const bar0=barMs(),segs=[],cues=[],says=[],fxs=[],fakes=[],barT=[],tmK=[],barKind=[];let total=0,pk=0,hidN=0,t=T0,tm=def.tempoAll||1;
   def.bars.forEach((raw,k)=>{let[b,tags]=chartTags(raw);
@@ -2833,7 +2835,7 @@ function chartBuild(def,T0){const bar0=barMs(),segs=[],cues=[],says=[],fxs=[],fa
     if(b==='R'){if(k<1)for(let q=0;q<4;q++)cues.push({t:t+q*bar/4,type:'count',k:k*4+q});t+=bar;return}
     if(STUN_BAR[b]){const mode=STUN_BAR[b],pv=segs[segs.length-1];if(pv&&pv.type==='stun'&&pv.mode===mode&&Math.abs(pv.end-t)<1)pv.end=t+bar;else segs.push({type:'stun',t,end:t+bar,mode});t+=bar;return}
     if(b==='E'){segs.push({type:'end',t});t+=bar;return}
-    const L=b.length,st=bar/L,notes=[];
+    const notes=[],whole=b;for(const b of whole.split('/')){const L=b.length,st=bar/L;   // 'calls/hits': the next call plays while you answer the last one
     for(let i=0;i<L;i++){const c=b[i],tt=t+i*st;
       if(c==='c'||c==='q')cues.push({t:tt,type:c==='c'?'tap':'hold',k:0});
       else if(c==='f'){cues.push({t:tt,type:'fake',k:0});fakes.push({t:tt+bar+(def.fakeShift||0)*st,res:0})}
@@ -2842,7 +2844,7 @@ function chartBuild(def,T0){const bar0=barMs(),segs=[],cues=[],says=[],fxs=[],fa
       else if(c==='p'||c==='i'){cues.push({t:tt,type:c==='i'?'ice':'pulse',k:pk++});if(pk>6)pk=0}
       else if(c==='t'||c==='T'){notes.push({t:tt,type:'tap',hidden:c==='T'});if(c==='T')hidN++}
       else if(c==='h'||c==='H'){let j=i+1;while(j<L&&b[j]==='=')j++;notes.push({t:tt,type:'hold',dur:(j-i)*st,hidden:c==='H'})}}
-    if(notes.length){segs.push({type:'hit',t,notes});total+=notes.length}t+=bar});
+    }notes.sort((x,y)=>x.t-y.t);if(notes.length){segs.push({type:'hit',t,notes});total+=notes.length}t+=bar});
   barT.push(t);tmK.push(tm);
   const bounds=[0];let acc=0;for(const g of segs){if(g.type==='hit')acc+=g.notes.length;else if(g.type==='stun')bounds.push(acc)}bounds.push(total);
   return{segs,cues,says,fxs,fakes,barT,tmK,barKind,yi:0,ci:0,si:0,total,done:0,T0,end:t,bars:def.bars.length,def,bounds,hidN,hidOk:0}}
@@ -3073,7 +3075,7 @@ function roomCfg(idx,type){
       pack:mins.map(([kind,name])=>({kind,name,scale:EN[kind].scale,pool:{base:(MINION_POOLS[kind]||[['single',1]]).concat(MINION_EXTRA[Math.min(Math.round(TIER(idx)),MINION_EXTRA.length-1)])}})),packEach:each})}
   const st=STAGES[idx],rg=REGIONS[idx],T=PARRY_TUNE[idx],k=(R&&R.room)||0;
   const mv=(k,n)=>({moves:movesFor(k,idx,n)});
-  if(type==='chart'&&CHART_LV[idx]){const L=R&&R.hard&&R.idx===idx?hardChart(CHART_LV[idx]):CHART_LV[idx],base=roomCfg(idx,L.boss?'boss':'min');return Object.assign({},base,L.boss?{}:{kind:st.kind,name:st.name,scale:EN[st.kind].scale},{chart:L,music:L.song,hz:null,moves:null,moves2:null,pool:{base:[['single',1]]},label:L.boss?'보스':base.label,gold:st.gold*(L.boss?1:.9)})}
+  if(type==='chart'&&CHART_LV[idx]){const L0=idx===0&&S.c1old?CHART_LV0_OLD:CHART_LV[idx],L=R&&R.hard&&R.idx===idx?hardChart(L0):L0,base=roomCfg(idx,L.boss?'boss':'min');return Object.assign({},base,L.boss?{}:{kind:st.kind,name:st.name,scale:EN[st.kind].scale},{chart:L,music:L.song,hz:null,moves:null,moves2:null,pool:{base:[['single',1]]},label:L.boss?'보스':base.label,gold:st.gold*(L.boss?1:.9)})}
   if(type==='boss')return{...(st.boss&&BOSS_SIG[st.kind]?{moves:BOSS_SIG[st.kind].map(x=>x[0]),moves2:(BOSS_P2[st.kind]||[]).map(x=>x[0]).concat([BOSS_SIG[st.kind][0][0]])}:mv(st.kind,3)),kind:st.kind,name:st.name,scale:Math.max(EN[st.kind].scale,3),hp:st.hp*BOSS_HP_MUL,atk:st.atk*atkMul(idx),windup:st.windup,stunMult:st.stunMult,gold:st.gold*.6,
     theme:st.theme,hz:st.hz,boss:!!st.boss,music:'bs'+idx,pool:st.boss?sigPool(st.kind,POOLS[idx]):{base:withOwn(POOLS[idx].base,st.kind,idx,.4),p2:POOLS[idx].p2&&withOwn(POOLS[idx].p2,st.kind,idx,.45)},tune:T,line:st.line,taunt:st.taunt||'',label:'보스'};
   if(type==='elite'||type==='danger'){const[kind,name]=rg.elite;return{...mv(kind,3),kind,name:(type==='danger'?'위험한 ':'정예 ')+name,scale:EN[kind].scale,hp:st.hp*(type==='danger'?.85:.75),atk:st.atk*.88*atkMul(idx),windup:st.windup,
