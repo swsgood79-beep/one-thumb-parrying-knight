@@ -3807,7 +3807,8 @@ function drawHoldMark(c,x,y,t){const s=Math.floor(t/60)%2;px(c,x-6,y-1,13,7,K);p
 const LANE_GLYPH={L:['..#..','.##..','#####','.##..','..#..'],R:['..#..','..##.','#####','..##.','..#..'],S:['#...#','##.##','#####','##.##','#...#'],
   J:['..#..','.###.','#.#.#','..#..','..#..'],B:['#####','#####','#####','.###.','..#..'],H:['#.#.#','#.#.#','#####','#####','.###.']};
 function drawLane(c,t){
-  const live=B.state==='WINDUP'||B.state==='IDLE'||B.state==='RECOIL'||B.state==='STRIKE';if(!live||(R&&R.prologue&&B.state!=='WINDUP'))return;
+  const cl0=!!(B.chart&&B.chart.built&&!B.chart.fin),live=B.state==='WINDUP'||B.state==='IDLE'||B.state==='RECOIL'||B.state==='STRIKE'||(cl0&&!['VICTORY','DEFEAT','DONE','TRANSFORM'].includes(B.state));   // chart levels: the lane never disappears (stun, fever, wall slam...)
+  if(!live||(R&&R.prologue&&B.state!=='WINDUP'))return;
   const jx=Math.round(B.kx0+10),y=B.gy+8,v=.07,lead=B.tune.lead*(B.blizOn?.55:B.hz==='rock'?.85:1);
   c.fillStyle='rgba(10,6,30,.6)';c.fillRect(jx-7,y-6,B.W-jx+7,13);
   {const bp=clamp(1-(t-(B.beatT||-1e9))/140,0,1);if(bp>0)pixCircle(c,jx,y,6+bp*2,B.beatDown?'rgba(255,225,77,.8)':'rgba(255,255,255,.5)')}

@@ -661,6 +661,7 @@ const BOT = `(()=>{
           else if (B.guard) setGuard(false);
           if (B.chart && B.chart.built && chartFvReady()) { if (!document.querySelector('#fvBtn') || document.querySelector('#fvBtn').hidden && vt % 400 === 0 && B.state !== 'VICTORY') {} chartFeverArm(); }
           if (B.chart && B.chart.fvCut && B.atk && B.atk.chart && !B.atk.resolved && B.atk.notes.some(n => !n.res && n.t < B.chart.fvCutEnd)) return `level ${L + 1}: the fever cut-in covered a note`;
+          if (vt % 200 === 0 && B.chart && B.chart.built && !B.chart.fin && !['VICTORY', 'INTRO'].includes(B.state)) { const pc = pixCircle; let lane = false; window.pixCircle = function (c, x, y) { if (Math.abs(y - (B.gy + 8)) < 1) lane = true; return pc.apply(this, arguments); }; try { draw(); } finally { window.pixCircle = pc; } if (!lane) return `level ${L + 1}: the rhythm lane vanished during ${B.state}`; }
           if (B.state === 'GROGGY' && !B._gIn) { B._gIn = 1; const pv = B.chart.segs[B.chart.si - 2]; if (pv && pv.type === 'hit') { const ln = pv.notes[pv.notes.length - 1], gap = t - ln.t - (ln.dur || 0); if (gap > 450) return `level ${L + 1}: the stun started ${Math.round(gap)}ms after the gauge filled`; } } else if (B.state !== 'GROGGY') B._gIn = 0;
           if (B.chart && B.chart.built && hp0 == null) hp0 = B.ehp; if (B.chart && B.chart.built && B.chart.done >= B.chart.total / 2 && hpMid == null) hpMid = B.ehp;
           __tick(8); vt += 8; }
