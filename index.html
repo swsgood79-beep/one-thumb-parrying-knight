@@ -2779,42 +2779,16 @@ const MOVE_ROT=[0,0,1,0,2,1];
    whole bar:  R rest (the first one counts you in) · S reward stun bar · E finish */
 const CHART_LV={
   0:{song:'c1',name:'첫 패링',rule:'들으면서 바로 앞 마디를 따라 쳐요 (한 마디 늦게)',habit:'슬라임의 버릇: 따닥!',chal:'perfect',bars:['R','c...c...','c...c.../t...t...','c.c.c.../t...t...','c...c.../t.t.t...','c.c.c.../t...t...','c...c.c./t.t.t...','c.c.c.../t...t.t.','c...c.../t.t.t...','......../t...t...','S:c.c.c.c.','c.c.c.../t.t.t.t.','c...c.c./t.t.t...','c.c.c.c./t...t.t.','c.c...c./t.t.t.t.','c.c.c.c./t.t...t.','c...c.c./t.t.t.t.','c.c.c.c./t...t.t.','......../t.t.t.t.','S:c.c.c.c.','cc..c.../t.t.t.t.','{habit}c.c.c.c./tt..t...','c...cc../t.t.t.t.','c.c.c.c./t...tt..','cc..c.c./t.t.t.t.','c.c.cc../tt..t.t.','......../t.t.tt..','S','E']},
-  1:{song:'c2',name:'꾹 버티기',rule:'새 규칙: 길게 울리면 꾹!',habit:'슬라임의 버릇: 통통 튀기!',chal:'charge',bars:['R',
-    'c...c...','t...t...','q===....','h===....','q===....','h===....','c.c.q===','t.t.h===','c.c.q===','t.t.h===','S','S',
-    'q=..c.c.','h=..t.t.','q=..c.c.','h=..t.t.','{habit}c.cc.cc.','t.tt.tt.','q==.c.c.','h==.t.t.','{say:새 연타: 꾹 모아 베기}K','K','E']},
-  2:{song:'c3',name:'출렁출렁 스윙',rule:'새 규칙: 출렁이는 스윙 박',habit:'왕벌의 버릇: 윙윙윙 3연타!',chal:'grid',bars:['R',
-    'c.....c.....','t.....t.....','c.c...c.c...','t.t...t.t...','c.c...c.c...','t.t...t.t...','c.....c..c..','t.....t..t..','S','S',
-    '{habit}ccc...ccc...','ttt...ttt...','c..c.cc.....','t..t.tt.....','c.c..c..c...','t.t..t..t...','c.c..c..c.c.','t.t..t..t.t.','{say:새 연타: 정박에만!}G','G','E']},
-  3:{song:'c4',name:'일곱 번째 박',rule:'새 규칙: 쿵 6번 → 7번째 탭',habit:'고블린의 버릇: 엇박 장난!',chal:'grid',bars:['R',
-    'p.p.p.p.','p.p.t...','p.p.p.p.','p.p.t...','c.c.c...','t.t.t...','p.p.p.p.','p.p.t...','S','S',
-    'i.p.p.p.','p.p...t.','{habit}c..c..c.','t..t..t.','p.p.p.p.','p.p.t...','i.p.p.p.','p.p...t.','G','G','E']},
-  4:{song:'c5',name:'왕 슬라임의 시험',boss:true,rule:'새 규칙: 세 번째는 숨김',fxSay:'왕 슬라임의 특성: 출렁출렁 젤리 화면!',chal:'hidden',fvGoal:2,bars:['R',
-    /* the boss is chapter 1's final exam: every rule from stages 1-4 comes back, and each phrase's third pass is hidden */
-    'c.c.c...','t.t.t...','c.c.c...','t.t.t...','c.c.c.c.','t.t.t.t.','c.c.c.c.','t.t.T.T.','S','S',
-    '{fx:sway}c..c..c.','t..t..t.','q===c.c.','h===t.t.','c..c..c.','t..t..t.','q===c.c.','h===T.T.','{fx:-}K','K',
-    'c.....c..c..','t.....t..t..','c..c..c..c..','t..t..t..t..','c.cc.c..c...','t.tt.t..T...','G','G',
-    'p.p.p.p.','p.p.t...','i.p.p.p.','p.p...t.','p.p.p.p.','p.p.T...','S','S',
-    '{bpm:1.12}{fx:sway}{say:왕 슬라임이 화났다! 빨라진다!}cc.cc.c.','tt.tt.t.','c.c.q===','t.t.h===','cccc.ccc','tttt.ttt','q==.cc.c','h==.tt.t','q==.cc.c','h==.TT.T','{fx:-}S','S','S','E']},
+  1:{song:'c2',name:'꾹 버티기',rule:'새 규칙: 길게 울리면 꾹!',habit:'슬라임의 버릇: 통통 튀기!',chal:'charge',bars:['R','c.c.c...','q==.c.../t.t.t...','c.c.c.../h==.t...','q==.c.c./t.t.t...','c.c.c.c./h==.t.t.','c.c.q==./t.t.t.t.','q==.c.c./t.t.h==.','c.c.c.../h==.t.t.','......../t.t.t...','S:c.c.c.c.','q==.c.c./t.t.t.t.','{habit}c.cc.cc./h==.t.t.','c.c.q==./t.tt.tt.','q==.c.c./t.t.h==.','c.c.c.c./h==.t.t.','q==.c.c./t.t.t.t.','......../h==.t.t.','K:c.c.q==.','c.c.c.c./t.t.h==.','q==.c.c./t.t.t.t.','c.cc.c../h==.t.t.','c.c.q==./t.tt.t..','q==.c.c./t.t.h==.','......../h==.t.t.','S','E']},
+  2:{song:'c3',name:'출렁출렁 스윙',rule:'새 규칙: 출렁이는 스윙 박',habit:'왕벌의 버릇: 윙윙윙 3연타!',chal:'grid',bars:['R','c.....c.....','c..c..c...../t.....t.....','c.....c..c../t..t..t.....','c..c..c..c../t.....t..t..','c.....c..c../t..t..t..t..','c..c..c...../t.....t..t..','c..c..c..c../t..t..t.....','......../t..t..t..t..','{habit}S:ccc...c.....','c..c.cc...../ttt...t.....','c.c..c..c.../t..t.tt.....','c..c..c..c../t.t..t..t...','c..c..c..c../t..t..t..t..','c..c..c..c../t..t..t..t..','c..c.cc...../t..t..t..t..','......../t..t.tt.....','{say:새 연타: 정박에만!}G:c.c..c..c...','c..c.cc..c../t.t..t..t...','c..c..c..c../t..t.tt..t..','c..c..c...../t..t..t..t..','ccc...c...../t..t..t.....','c..c..c..c../ttt...t.....','......../t..t..t..t..','S','E']},
+  3:{song:'c4',name:'일곱 번째 박',rule:'새 규칙: 쿵 6번 → 7번째 탭',habit:'고블린의 버릇: 엇박 장난!',chal:'grid',bars:['R','c.c.c...','c.c.c.c./t.t.t...','c.cc.c../t.t.t.t.','c.c.c.c./t.tt.t..','cc.c.c../t.t.t.t.','p.p.p.p./tt.t.t..','p.p.t...','S:c.c.c.c.','{habit}c..c..c./t.t.t.t.','c.c.c.c./t..t..t.','c.cc.c../t.t.t.t.','cc.c.cc./t.tt.t..','i.p.p.p./tt.t.tt.','p.p...t.','G:c.c.c.c.','c.cc.cc./t.t.t.t.','c..c..c./t.tt.tt.','cc.cc.c./t..t..t.','c.c.cc../tt.tt.t.','p.p.p.p./t.t.tt..','p.p.t...','S','E']},
+  4:{song:'c5',name:'왕 슬라임의 시험',boss:true,rule:'새 규칙: 세 번째는 숨김',fxSay:'왕 슬라임의 특성: 출렁출렁 젤리 화면!',chal:'hidden',fvGoal:2,bars:['R','c.c.c...','c.c.c.../t.t.t...','c.c.c.../t.t.t...','c.c.c.c./T.T.T...','c.c.c.c./t.t.t.t.','c.c.c.c./t.t.t.t.','......../T.T.T.T.','{fx:sway}S:c..c..c.','c..c..c./t..t..t.','c..c..c./t..t..t.','q==.c.c./T..T..T.','q==.c.c./h==.t.t.','q==.c.c./h==.t.t.','......../H==.T.T.','{fx:-}K:c.....c..c..','c.....c..c../t.....t..t..','c.....c..c../t.....t..t..','c..c..c..c../T.....T..T..','c..c..c..c../t..t..t..t..','c..c..c..c../t..t..t..t..','......../T..T..T..T..','G:c.c.c.c.','c.cc.cc./t.t.t.t.','cc.c.cc./t.tt.tt.','i.p.p.p./tt.t.tt.','p.p...t.','{bpm:1.12}{fx:sway}{say:왕 슬라임이 화났다! 빨라진다!}S:cc.cc.c.','cc.cc.c./tt.tt.t.','cc.cc.c./tt.tt.t.','cccc.ccc/TT.TT.T.','q==.cc.c/tttt.ttt','q==.cc.c/h==.tt.t','q==.cc.c/h==.tt.t','......../H==.TT.T','{fx:-}S','E']},
   /* ===== chapter 2 (goblin lands): new inputs one per level — x call → d swipe (dodge), u call → j jump (swipe up); D/J hidden ===== */
-  5:{song:'c6',name:'옆으로 피해!',rule:'새 규칙: 쉭! 소리엔 옆으로 밀기',habit:'늙은 고블린의 버릇: 느릿느릿 꾹… 툭!',chal:'perfect',bars:['R',
-    'x...x...','d...d...','c.c.x...','t.t.d...','x...c.c.','d...t.t.','c.c.c.x.','t.t.t.d.','S','S',
-    'x...x.c.','d...d.t.','c.x.c.x.','t.d.t.d.','{habit}q===c...','h===t...','c.c.x.c.','t.t.d.t.','G','G','E']},
-  6:{song:'c7',name:'뛰어넘어!',rule:'새 규칙: 뿅! 소리엔 위로 밀어 점프 · 출렁이는 셔플',swing:true,habit:'고블린의 버릇: 엇박 장난!',chal:'charge',bars:['R',
-    'u...u...','j...j...','c.c.u...','t.t.j...','u...x...','j...d...','c.u.c.x.','t.j.t.d.','K','K',
-    'u...c.c.','j...t.t.','{habit}c..c..c.','t..t..t.','q=..u...','h=..j...','c.x.u.c.','t.d.j.t.','S','S','E']},
-  7:{song:'c8',name:'뒷박 잔치',rule:'새 규칙: 반 박 늦게 받아치기 (뒷박)',habit:'슬라임의 버릇: 통통 튀기!',chal:'fake',fakeShift:1,bars:['R',
-    'c...c...','.t...t..','{say:가짜 부르기! 따라 치지 말고 참기}c.f.c.f.','.t...t..','c.c.c...','.t.t.t..','{habit}c.cc.cc.','.t.tt.tt','G','G',
-    'x...c...','.d...t..','c.f.u...','.t...j..','cc..cc..','.tt..tt.','c.c.x.f.','.t.t.d..','S','S','E']},
-  8:{song:'c9',name:'주술사의 주문',rule:'새 규칙: 한 마디에 전부 섞어서',habit:'주술사의 버릇: 주문 숨기기!',chal:'hidden',bars:['R',
-    'c.x.u.c.','t.d.j.t.','q==.c.x.','h==.t.d.','{habit}c.c.c.c.','T.t.T.t.','c.f.u.x.','t...j.d.','S','S',
-    '{bpm:1.08}{say:주문이 빨라진다!}p.p.p.p.','p.p.j...','p.p.p.p.','p.p.d...','c.x.c.x.','t.d.t.d.','u.c.u.c.','j.t.j.t.','K','K','E']},
-  9:{song:'c10',name:'고블린 대장의 결투',boss:true,rule:'새 규칙: 반 마디 안에 주고받기',fxSay:'고블린 대장의 특성: 속임수 좌우 반전!',chal:'fake',fakeShift:1,fvGoal:2,bars:['R',
-    /* the chapter-2 exam: half-bar call & answer, then every chapter-2 rule again, third passes hidden; a slow bridge, then a rush */
-    'c.c.t.t.','c.c.t.t.','c.x.t.d.','c.x.t.d.','c.u.t.j.','c.u.T.J.','S','S',
-    '{fx:mirror}x.x.c...','d.d.t...','x.x.c...','d.d.t...','x.x.c...','D.D.T...','{fx:-}G','G',
-    'c...c...','.t...t..','c.f.u...','.t...j..','c.c.x...','.T.T.D..','K','K',
-    '{bpm:0.85}{say:대장이 숨을 고른다…}p.p.p.p.','p.p.j...','i.p.p.p.','p.p...d.','q==.c.u.','h==.t.j.','S','S',
-    '{bpm:1.12}{fx:mirror}{say:대장이 폭주한다! 빨라진다!}cc.ctt.t','c.x.t.d.','c.c.c.c.','t.t.t.t.','cc.ctt.t','c.u.t.j.','q==.c.x.','h==.t.d.','c.x.u.c.','T.D.J.T.','{fx:-}S','S','S','E']},
+  5:{song:'c6',name:'옆으로 피해!',rule:'새 규칙: 쉭! 소리엔 옆으로 밀기',habit:'늙은 고블린의 버릇: 느릿느릿 꾹… 툭!',chal:'perfect',bars:['R','x...x.c.','c.c.x.c./d...d.t.','x.c.c.c./t.t.d.t.','c.c.c.x./d.t.t.t.','x...x.c./t.t.t.d.','c.x.c.x./d...d.t.','c.c.x.c./t.d.t.d.','......../t.t.d.t.','S:x.c.c.x.','{habit}q===c.../d.t.t.d.','c.x.c.x./h===t...','x...c.c./t.d.t.d.','c.c.x.c./d...t.t.','x.c.x.c./t.t.d.t.','c.x.c.c./d.t.d.t.','......../t.d.t.t.','G:c.x.c.x.','x.c.c.x./t.d.t.d.','c.c.x.c./d.t.t.d.','x.x.c.c./t.t.d.t.','c.x.x.c./d.d.t.t.','c.c.c.x./t.d.d.t.','cc.c.x../t.t.t.d.','......../tt.t.d..','S','E']},
+  6:{song:'c7',name:'뛰어넘어!',rule:'새 규칙: 뿅! 소리엔 위로 밀어 점프 · 출렁이는 셔플',swing:true,habit:'고블린의 버릇: 엇박 장난!',chal:'charge',bars:['R','u...u.c.','c.c.u.c./j...j.t.','u.c.x.c./t.t.j.t.','c.u.c.x./j.t.d.t.','u.c.c.c./t.j.t.d.','c.c.u.c./j.t.t.t.','x.c.u.c./t.t.j.t.','......../d.t.j.t.','{habit}K:c..c..c.','q=..u.c./t..t..t.','c.x.u.c./h=..j.t.','u.c.c.u./t.d.j.t.','c.u.x.c./j.t.t.j.','u.c.c.c./t.j.d.t.','c.c.x.u./j.t.t.t.','......../t.t.d.j.','S:c.u.c.x.','u.c.x.c./t.j.t.d.','c.c.u.c./j.t.d.t.','x.u.c.c./t.t.j.t.','u.c.u.c./d.j.t.t.','c.x.u.c./j.t.j.t.','cc.c.u../t.d.j.t.','......../tt.t.j..','S','E']},
+  7:{song:'c8',name:'뒷박 잔치',rule:'새 규칙: 반 박 늦게 받아치기 (뒷박)',habit:'슬라임의 버릇: 통통 튀기!',chal:'fake',fakeShift:1,bars:['R','c.cc.c..','{say:가짜 부르기! 따라 치지 말고 참기}c.f.c.f./.t.tt.t.','cc.cc.c./.t...t..','{habit}c.cc.cc./.tt.tt.t','c.cc.cc./.t.tt.tt','c.c.c.c./.t.tt.tt','x.c.cc../.t.t.t.t','......../.d.t.tt.','G:c.c.u...','cc.cc.c./.t.t.j..','c.c.x.f./.tt.tt.t','c.f.u.c./.t.t.d..','c.cc.cc./.t...j.t','x.c.cc../.t.tt.tt','c.cc.cc./.d.t.tt.','......../.t.tt.tt','S:c.c.u.c.','cc.cc.c./.t.t.j.t','c.f.cc.c/.tt.tt.t','x.c.cc../.t...tt.','c.cc.cc./.d.t.tt.','u.c.cc../.t.tt.tt','cc.cc.c./.j.t.tt.','......../.tt.tt.t','S','E']},
+  8:{song:'c9',name:'주술사의 주문',rule:'새 규칙: 한 마디에 전부 섞어서',habit:'주술사의 버릇: 주문 숨기기!',chal:'hidden',bars:['R','c.x.u.c.','q==.c.x./t.d.j.t.','u.c.c.x./h==.t.d.','c.c.u.x./j.t.t.d.','{habit}cc.cc.c./t.t.j.d.','c.f.u.x./TT.tt.T.','x.cc.u../t...j.d.','......../d.tt.j..','{bpm:1.08}{say:주문이 빨라진다!}S:c.x.c.x.','u.c.u.c./t.d.t.d.','c.c.x.u./j.t.j.t.','q==.c.x./t.t.d.j.','x.u.cc../h==.t.d.','c.u.x.c./d.j.tt..','cc.c.u../t.j.d.t.','......../tt.t.j..','K:cc.x.u..','x.cc.u../tt.d.j..','cc.c.x../d.tt.j..','u.cc.x../tt.t.d..','cc.cc.x./j.tt.d..','p.p.p.p./tt.tt.d.','p.p.j...','S','E']},
+  9:{song:'c10',name:'고블린 대장의 결투',boss:true,rule:'새 규칙: 반 마디 안에 주고받기',fxSay:'고블린 대장의 특성: 속임수 좌우 반전!',chal:'fake',fakeShift:1,fvGoal:2,bars:['R','cc.ctt.t','cc.ctt.t','cc.xtt.d','cc.xtt.d','cc.utt.j','cc.uTT.J','{fx:mirror}S:x.x.c.c.','x.x.c.c./d.d.t.t.','x.x.c.c./d.d.t.t.','cc.x.cc./D.D.T.T.','cc.x.cc./tt.d.tt.','cc.x.cc./tt.d.tt.','......../TT.D.TT.','{fx:-}G:cc.cc...','c.f.u.c./.tt.tt..','cc.c.x../.t...j.t','cc.c.x../.tt.t.d.','cc.cc.c./.TT.T.D.','c.cc.u../.tt.tt.t','......../.t.tt.j.','{bpm:0.85}{say:대장이 숨을 고른다…}K:q==.c.u.','cc.c.x../h==.t.j.','q==.c.x./tt.t.d..','cc.c.u../h==.t.d.','i.p.p.p./tt.t.j..','p.p...d.','{bpm:1.12}{fx:mirror}{say:대장이 폭주한다! 빨라진다!}S:c.x.c.x.','cc.c.x../t.d.t.d.','cc.cc.c./tt.t.d..','cccc.cc./tt.tt.t.','cc.cc.x./tttt.tt.','cc.x.cc./tt.tt.d.','q==.c.x./tt.d.tt.','cc.c.u../h==.t.d.','cc.c.u../tt.t.j..','......../TT.T.J..','cc.ctt.t','cc.cTT.T','{fx:-}S','E']},
 };
 
 /* bar tags: a bar may start with {..} tokens — {bpm:1.12} tempo from this bar (× the song's), {fx:tilt|sway|mirror|zoom|dark|-} screen effect from here,
@@ -2827,13 +2801,13 @@ const CHART_LV0_OLD={song:'c1',name:'첫 패링',rule:'불러주면 → 똑같�
     'cc..c...','tt..t...','c...cc..','t...tt..','{habit}c.cc.cc.','t.tt.tt.','c.c.c.c.','t.t.t.t.','c...c.c.','t...t.t.','c.cc.c..','t.tt.t..','S','S','E']};   // A/B: the previous stage-1 chart, selectable in the lobby
 /* a stun's 'attack notes' on the lane: 8ths for a mash, beats for an on-beat stun, one release mark (last beat) for a charge */
 function stunNotes(g){if(g.pn)return g.pn;const beat=60000/((SONGS[Music.cur]||SONGS.battle).bpm*(Music.rate||1)),nb=Math.max(1,Math.round((g.end-g.t)/beat)),bt=(g.end-g.t)/nb;g.pn=[];
-  if(g.mode==='charge')g.pn.push({t:g.end-bt,type:'rel'});else{const st=g.mode==='grid'?bt:bt/2;for(let i=0;g.t+i*st<g.end-20;i++)g.pn.push({t:g.t+i*st,type:'atk',off:g.mode!=='grid'&&i%2===1})}return g.pn}
+  if(g.mode==='charge')g.pn.push({t:g.t,type:'atk'},{t:g.end-bt,type:'rel'});/* press here, let go on the last beat */else{const st=g.mode==='grid'?bt:bt/2;for(let i=0;g.t+i*st<g.end-20;i++)g.pn.push({t:g.t+i*st,type:'atk',off:g.mode!=='grid'&&i%2===1})}return g.pn}
 function chartBarAt(C,t){const T=C.barT;let k=C._bk||0;if(k>=T.length-1||T[k]>t)k=0;while(k+1<T.length-1&&T[k+1]<=t)k++;C._bk=k;return k}
 function chartBuild(def,T0){const bar0=barMs(),segs=[],cues=[],says=[],fxs=[],fakes=[],barT=[],tmK=[],barKind=[];let total=0,pk=0,hidN=0,t=T0,tm=def.tempoAll||1;
   def.bars.forEach((raw,k)=>{let[b,tags]=chartTags(raw);
     for(const g of tags){const c=g.indexOf(':'),a=c<0?g:g.slice(0,c),v=c<0?'':g.slice(c+1);
       if(a==='bpm')tm=(def.tempoAll||1)*(+v);else if(a==='fx')fxs.push({t,kind:v});else if(a==='say')says.push({t,text:v});else if(a==='habit'&&def.habit)says.push({t,text:def.habit,habit:true})}
-    if(def.swing&&b.length===8){let o='';for(let m=0;m<8;m+=2)o+=b[m]+(b[m+1]==='='?'=':'.')+b[m+1];b=o}   // shuffle: 8th offbeats land on the triplet
+    if(def.swing){const sw=x=>{if(x.length!==8)return x;let o='';for(let m=0;m<8;m+=2)o+=x[m]+(x[m+1]==='='?'=':'.')+x[m+1];return o};b=/^[SGK]:/.test(b)?b.slice(0,2)+sw(b.slice(2)):b.split('/').map(sw).join('/')}   // shuffle: 8th offbeats land on the triplet
     const bar=bar0/tm;barT.push(t);tmK.push(tm);barKind.push(b==='R'||b==='E'?'rest':STUN_BAR[b[0]]&&(b.length===1||b[1]===':')?'stun':/[tThHdDjJ]/.test(b)?'hit':'call');
     if(b==='R'){if(k<1)for(let q=0;q<4;q++)cues.push({t:t+q*bar/4,type:'count',k:k*4+q});t+=bar;return}
     let sc='';if(/^[SGK]:/.test(b)){sc=b.slice(2);b=b[0]}   // 'S:calls' — the enemy calls the next phrase while it lies stunned, so the answer follows right after
@@ -2854,9 +2828,10 @@ function chartBuild(def,T0){const bar0=barMs(),segs=[],cues=[],says=[],fxs=[],fa
   const bounds=[0];let acc=0;for(const g of segs){if(g.type==='hit')acc+=g.notes.length;else if(g.type==='stun')bounds.push(acc)}bounds.push(total);
   return{segs,cues,says,fxs,fakes,barT,tmK,barKind,yi:0,ci:0,si:0,total,done:0,T0,end:t,bars:def.bars.length,def,bounds,hidN,hidOk:0}}
 /* hard mode: the same song a notch faster, and an answer to a call you've already heard is hidden */
-function hardChart(L){const seen=new Set(),bars=L.bars.slice();
-  for(let k=0;k+1<bars.length;k++){const a=chartTags(bars[k])[0].replace(/^[SGK]:/,''),r=chartTags(bars[k+1])[0];if(STUN_BAR[a]||a.length<4||!/[cqxuf]/.test(a)||/[tThHdDjJ]/.test(a))continue;
-    if(seen.has(a))bars[k+1]=bars[k+1].slice(0,bars[k+1].length-r.length)+r.replace(/[thdj]/g,c=>c.toUpperCase());seen.add(a)}
+function hardChart(L){const seen=new Set(),bars=L.bars.slice(),callOf=b=>{const x=chartTags(b)[0];return /^[SGK]:/.test(x)?x.slice(2):x.includes('/')?x.split('/')[0]:/[tThHdDjJ]/.test(x)?'':x},
+    up=r=>r.replace(/[thdj]/g,c=>c.toUpperCase());
+  for(let k=0;k+1<bars.length;k++){const a=callOf(bars[k]);if(a.length<4||!/[cqxuf]/.test(a))continue;
+    if(seen.has(a)){const nb=bars[k+1],x=chartTags(nb)[0],pre=nb.slice(0,nb.length-x.length);if(x.includes('/')){const[c0,h0]=x.split('/');bars[k+1]=pre+c0+'/'+up(h0)}else if(!/^[SGKRE]/.test(x))bars[k+1]=pre+up(x)}seen.add(a)}
   return Object.assign({},L,{bars,hard:true,tempoAll:1.1,name:L.name+' · 어려움',rule:'어려움: 더 빠르고, 반복되는 답은 숨겨져요'})}
 /* stage challenges (chart levels): no misses · fevers · one special per stage */
 function chartChal(idx){const L=CHART_LV[idx],C=B.chart;if(!L||!C||!C.built)return null;const fg=L.fvGoal||1,sp=L.chal||'perfect';
@@ -2920,7 +2895,7 @@ const chartFvReady=()=>!!(B.active&&B.chart&&B.chart.built&&!B.chart.fin&&!B.cha
 /* pressing FEVER fires it at once for the rest of this bar + 4 more. The hero cut-in only plays while no note is due (it would hide it); otherwise a flash and banner */
 function chartFeverArm(){if(!chartFvReady())return false;const C=B.chart,t=B.time,k=chartBarAt(C,t);C.fv=0;C.fvN=(C.fvN||0)+1;track('fever');
   let nx=Infinity;const a=B.atk;if(a&&a.chart&&!a.resolved)for(const n of a.notes)if(!n.res&&n.t>t)nx=Math.min(nx,n.t);for(let i=C.si;i<C.segs.length;i++){const g=C.segs[i];if(g.type==='hit'){nx=Math.min(nx,g.notes[0].t);break}if(g.type==='stun'&&g.t>t){nx=Math.min(nx,g.t);break}}
-  const cut=B.state==='GROGGY'?0:Math.min(1100,nx-t-180);C.fvFinT=C.barT[Math.min(C.barT.length-1,k+2)];C.fvEndT=C.fvFinT+60;C.fvBud=B.emax*.15;C.fvSpent=0;C.fvHits=0;C.fvLeap=false;C.fvFin=false;
+  const cut=B.state==='GROGGY'?0:Math.min(1100,nx-t-180);C.fvFinT=C.barT[Math.min(C.barT.length-1,k+2)];C.fvEndT=C.fvFinT+60;C.fvBud=B.emax*(C.def.boss?.1:.15);C.fvSpent=0;C.fvHits=0;C.fvLeap=false;C.fvFin=false;
   {let n=0,x=0;const span=C.fvFinT-beatMs()-t-150;while(x<span){x+=Math.max(55,115-n*4);n++}const w=n-Math.floor(n/5);C.fvPer=C.fvBud*.6/Math.max(1,w*1.45+Math.floor(n/5)*2.4)}sfx('fever');vib([30,30,30,30,80]);
   if(cut>=350){C.fvCut=true;C.fvCutEnd=t+cut;C.fvT0=t+cut;C.fvNext=C.fvT0+150;fvCutIn()}else{C.fvT0=t;C.fvNext=t+150;C.fvOn=true;banner('FEVER!!','자동 연속 공격 → FEVER FINISH!');flash('#ff5bb5',.55,260);zoom(1.15);feverHud()}
   fvMeter();return true}
@@ -3621,6 +3596,10 @@ function resolveShock(){
   B.atk.resolved=true;sfx('shock');B.shake=6;domShake(3);B.parts.push({ring:true,x:B.ex,y:B.gy-4,r:4,vr:.12,life:520,col:'#ff5b6b'});
   if(B.time<B.evadeUntil){ftAt('회피!',B.kx,B.gy-40,'info');sfx('evadeOk');witchBonus()}else hurt(B.st.atk*.9*(1-B.ar.dmgReduce),'충격파!');
 }
+/* time of the next unplayed note of a type AFTER the one this input is for — in this attack or, in chart levels, the bars that follow */
+function nextNoteOf(type){const a=B.atk,t=B.time,L=[];if(B.state==='WINDUP'&&a&&!a.resolved&&a.notes)a.notes.forEach((n,k)=>{if(k>=a.idx&&!n.res)L.push(n)});
+  const C=B.chart;if(C&&C.built)for(let i=C.si;i<C.segs.length&&i<C.si+3;i++){const g=C.segs[i];if(g.type==='hit')L.push(...g.notes)}
+  const own=L.filter(n=>n.type===type&&n.t>t-80).sort((x,y)=>x.t-y.t);return own.length>1?own[1].t:null}
 function onSwipe(dir){
   if(!B.active||B.paused||B.finalBlow)return;if(B.chart&&B.chart.fvOn&&!B.autoIn)return;
   if(B.state==='GROGGY'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='FEVER'||B.grab)return;
@@ -3628,8 +3607,7 @@ function onSwipe(dir){
   if(B.time<B.evadeCd||B.time<(B.stiffUntil||0))return;
   if(B.tutWait==='swipe')coachHide();
   B.evadeUntil=B.time+430;B.evadeCd=B.time+650+(B.hz==='mud'?150:0);
-  {const a=B.atk;if(B.state==='WINDUP'&&a&&!a.resolved){const nx=a.notes.find((n,k)=>k>a.idx&&!n.res&&n.type==='swipe');   // 연속 회피
-    if(nx&&nx.t-B.time<1100)B.evadeCd=Math.min(B.evadeCd,B.time+Math.max(150,nx.t-B.time-180))}}B.evadeT=B.time;B.evadeIT=inputTime();B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
+  {const nt=nextNoteOf('swipe');if(nt!=null&&nt-B.time<1100)B.evadeCd=Math.min(B.evadeCd,B.time+Math.max(150,nt-B.time-180))}/* 연속 회피 (다음 마디의 회피까지 봄) */B.evadeT=B.time;B.evadeIT=inputTime();B.evadeDir=dir;B.guard=false;setKPose('evade');sfx('dash');
 }
 function setGuard(on){if(!B.active)return;if(B.chart&&B.chart.fvOn&&!B.autoIn)return;if(on&&B.pendWhiff){B.pendWhiff=0}if(on&&(B.grab||B.state==='FEVER'||B.state==='GROGGY'||B.state==='EXEC'||B.disarm||B.time<(B.stiffUntil||0)||B.psh<=0||B.state==='VICTORY'||B.state==='DEFEAT'))on=false;
   if(on&&!B.guard){sfx('guard',0);vib(10)}B.guard=on}
@@ -4921,7 +4899,7 @@ function onSwipeUp(){
   if(!B.active||B.paused)return;if(B.chart&&B.chart.fvOn&&!B.autoIn)return;
   if(!(R&&R.v2)){if(B.finalBlow||B.grab||B.state==='GROGGY'||B.state==='VICTORY'||B.state==='DEFEAT'||B.state==='TRANSFORM')return;B.pendWhiff=0;
     if(B.time<(B.jumpCd||0)||B.time<(B.stiffUntil||0))return;
-    B.jumpUntil=B.time+430;B.jumpT=B.time;B.jumpIT=inputTime();B.jumpCd=B.time+560;{const a=B.atk;if(B.state==='WINDUP'&&a&&!a.resolved){const nx=a.notes.find((n,k)=>k>a.idx&&!n.res&&n.type==='jump');if(nx&&nx.t-B.time<1100)B.jumpCd=Math.min(B.jumpCd,B.time+Math.max(150,nx.t-B.time-180))}}B.guard=false;sfx('dash');
+    B.jumpUntil=B.time+430;B.jumpT=B.time;B.jumpIT=inputTime();B.jumpCd=B.time+560;{const nt=nextNoteOf('jump');if(nt!=null&&nt-B.time<1100)B.jumpCd=Math.min(B.jumpCd,B.time+Math.max(150,nt-B.time-180))}B.guard=false;sfx('dash');
     if(tech('bash')&&(B.state==='IDLE'||B.state==='RECOIL')&&!B.firstAtk&&B.time>=(B.bashCd||0)&&B.ehp>0){B.bashCd=B.time+2500;B.stun=Math.min(100,B.stun+7);setKPose('parry');B.ex=Math.min(B.ex+4,EX()+8);
       const[sx,sy]=shieldPos();addFx('pow',sx+6,sy,{r:12,dur:200});sfx('guard',S.shStage);vib(20);chip(B.wp.groggyTapDamage*1.2,'방패 강타')}
     return}
