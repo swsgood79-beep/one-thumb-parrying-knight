@@ -3811,13 +3811,16 @@ function drawLane(c,t){
   const jx=Math.round(B.kx0+10),y=B.gy+8,v=.07,lead=B.tune.lead*(B.blizOn?.55:B.hz==='rock'?.85:1);
   c.fillStyle='rgba(10,6,30,.6)';c.fillRect(jx-7,y-6,B.W-jx+7,13);
   {const bp=clamp(1-(t-(B.beatT||-1e9))/140,0,1);if(bp>0)pixCircle(c,jx,y,6+bp*2,B.beatDown?'rgba(255,225,77,.8)':'rgba(255,255,255,.5)')}
-  const a=B.atk;if(B.state!=='WINDUP'||!a||!a.notes){pixCircle(c,jx,y,4,'rgba(255,255,255,.6)');return}
-  const near=a.impact-t<120&&curNote().type==='tap';
+  const a=B.atk,cl=!!(B.chart&&B.chart.built),wu=B.state==='WINDUP'&&a&&a.notes;if(!wu&&!cl){pixCircle(c,jx,y,4,'rgba(255,255,255,.6)');return}
+  /* chart levels: upcoming bars' notes are already on the lane, so every note slides in from the edge at the same speed (no pop-in) */
+  const list=[];if(wu)for(let k=a.idx;k<a.notes.length;k++)list.push(a.notes[k]);
+  if(cl){const C=B.chart;for(let i=C.si;i<C.segs.length;i++){const g=C.segs[i];if(g.type!=='hit')continue;if(g.notes[0].t-t>lead)break;if(!(wu&&a.chart&&a.notes[0].t===g.notes[0].t))list.push(...g.notes)}}
+  const near=wu&&a.impact-t<120&&curNote().type==='tap';
   pixCircle(c,jx,y,4,near?'#ffe14d':'#ffffff');pixCircle(c,jx,y,5,'rgba(255,255,255,.35)');
-  if(a.row){const N=a.row+(a.freeze?1:0),gx=Math.round(B.W/2-N*4),gy2=y-14;for(let i=0;i<N;i++){const target=i===N-1,frz=a.freeze&&i===N-2,on=i<a.lit;
+  if(wu&&a.row){const N=a.row+(a.freeze?1:0),gx=Math.round(B.W/2-N*4),gy2=y-14;for(let i=0;i<N;i++){const target=i===N-1,frz=a.freeze&&i===N-2,on=i<a.lit;
       px(c,gx+i*8-1,gy2-1,7,7,K);px(c,gx+i*8,gy2,5,5,target?(on?'#ffffff':'#ff5b6b'):frz?'#7cd4ff':on?'#ffe14d':'#3b3277');if(target&&a.lit>=N-1&&Math.floor(t/80)%2)px(c,gx+i*8,gy2,5,5,'#ffffff')}}
-  for(let k=a.idx;k<a.notes.length;k++){const n=a.notes[k];if(n.res||n.hidden)continue;const dt=n.t-t;if(dt>lead)break;
-    const x=Math.round(jx+dt*v),hidden=(a.kind==='feint'||n.ghost)&&dt>320;
+  for(const n of list){if(n.res||n.hidden)continue;const dt=n.t-t;if(dt>lead||dt<-60)continue;
+    const x=Math.round(jx+dt*v),hidden=wu&&(a.kind==='feint'||n.ghost)&&dt>320;
     if(n.type==='hold'){const x2=Math.round(jx+(n.t+n.dur-t)*v);const xa=Math.max(jx,x);c.fillStyle=K;c.fillRect(xa-1,y-3,x2-xa+3,7);c.fillStyle='#4bb6ff';c.fillRect(xa,y-2,x2-xa+1,5);c.fillStyle='#bfe6ff';c.fillRect(xa,y-2,x2-xa+1,1);continue}
     if(x>B.W+4)continue;
     const col=hidden?'#8a7fb8':n.grab?'#ff9b2f':n.flip&&!n.flipped?'#ec4899':n.type==='swipe'?'#ff4d5e':n.type==='block'?'#4bb6ff':n.type==='jump'?'#5fd23a':'#ffe14d';
