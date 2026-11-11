@@ -2778,7 +2778,7 @@ const MOVE_ROT=[0,0,1,0,2,1];
    hits:  t tap · T hidden tap (play it from what you heard) · h hold start, '=' keeps holding
    whole bar:  R rest (the first one counts you in) · S reward stun bar · E finish */
 const CHART_LV={
-  0:{song:'c1',name:'첫 패링',rule:'들으면서 바로 앞 마디를 따라 쳐요 (한 마디 늦게)',habit:'슬라임의 버릇: 따닥!',chal:'perfect',bars:['R','c...c...','c...c.../t...t...','c.c.c.../t...t...','c...c.../t.t.t...','c.c.c.../t...t...','c...c.c./t.t.t...','c.c.c.../t...t.t.','c...c.../t.t.t...','......../t...t...','S','c.c.c.c.','c.c.c.../t.t.t.t.','c...c.c./t.t.t...','c.c.c.c./t...t.t.','c.c...c./t.t.t.t.','c.c.c.c./t.t...t.','c...c.c./t.t.t.t.','c.c.c.c./t...t.t.','......../t.t.t.t.','S','c.c.c.c.','cc..c.../t.t.t.t.','{habit}c.c.c.c./tt..t...','c...cc../t.t.t.t.','c.c.c.c./t...tt..','cc..c.c./t.t.t.t.','c.c.cc../tt..t.t.','......../t.t.tt..','S','E']},
+  0:{song:'c1',name:'첫 패링',rule:'들으면서 바로 앞 마디를 따라 쳐요 (한 마디 늦게)',habit:'슬라임의 버릇: 따닥!',chal:'perfect',bars:['R','c...c...','c...c.../t...t...','c.c.c.../t...t...','c...c.../t.t.t...','c.c.c.../t...t...','c...c.c./t.t.t...','c.c.c.../t...t.t.','c...c.../t.t.t...','......../t...t...','S:c.c.c.c.','c.c.c.../t.t.t.t.','c...c.c./t.t.t...','c.c.c.c./t...t.t.','c.c...c./t.t.t.t.','c.c.c.c./t.t...t.','c...c.c./t.t.t.t.','c.c.c.c./t...t.t.','......../t.t.t.t.','S:c.c.c.c.','cc..c.../t.t.t.t.','{habit}c.c.c.c./tt..t...','c...cc../t.t.t.t.','c.c.c.c./t...tt..','cc..c.c./t.t.t.t.','c.c.cc../tt..t.t.','......../t.t.tt..','S','E']},
   1:{song:'c2',name:'꾹 버티기',rule:'새 규칙: 길게 울리면 꾹!',habit:'슬라임의 버릇: 통통 튀기!',chal:'charge',bars:['R',
     'c...c...','t...t...','q===....','h===....','q===....','h===....','c.c.q===','t.t.h===','c.c.q===','t.t.h===','S','S',
     'q=..c.c.','h=..t.t.','q=..c.c.','h=..t.t.','{habit}c.cc.cc.','t.tt.tt.','q==.c.c.','h==.t.t.','{say:새 연타: 꾹 모아 베기}K','K','E']},
@@ -2825,15 +2825,20 @@ const STUN_BAR={S:'mash',G:'grid',K:'charge'};
 const CHART_LV0_OLD={song:'c1',name:'첫 패링',rule:'불러주면 → 똑같이 탭!',habit:'슬라임의 버릇: 통통 튀기!',chal:'perfect',bars:['R',
     'c...c...','t...t...','c...c...','t...t...','c.c.c...','t.t.t...','c.c.c...','t.t.t...','c...c.c.','t...t.t.','c.c.c.c.','t.t.t.t.','S','S',
     'cc..c...','tt..t...','c...cc..','t...tt..','{habit}c.cc.cc.','t.tt.tt.','c.c.c.c.','t.t.t.t.','c...c.c.','t...t.t.','c.cc.c..','t.tt.t..','S','S','E']};   // A/B: the previous stage-1 chart, selectable in the lobby
+/* a stun's 'attack notes' on the lane: 8ths for a mash, beats for an on-beat stun, one release mark (last beat) for a charge */
+function stunNotes(g){if(g.pn)return g.pn;const beat=60000/((SONGS[Music.cur]||SONGS.battle).bpm*(Music.rate||1)),nb=Math.max(1,Math.round((g.end-g.t)/beat)),bt=(g.end-g.t)/nb;g.pn=[];
+  if(g.mode==='charge')g.pn.push({t:g.end-bt,type:'rel'});else{const st=g.mode==='grid'?bt:bt/2;for(let i=0;g.t+i*st<g.end-20;i++)g.pn.push({t:g.t+i*st,type:'atk',off:g.mode!=='grid'&&i%2===1})}return g.pn}
 function chartBarAt(C,t){const T=C.barT;let k=C._bk||0;if(k>=T.length-1||T[k]>t)k=0;while(k+1<T.length-1&&T[k+1]<=t)k++;C._bk=k;return k}
 function chartBuild(def,T0){const bar0=barMs(),segs=[],cues=[],says=[],fxs=[],fakes=[],barT=[],tmK=[],barKind=[];let total=0,pk=0,hidN=0,t=T0,tm=def.tempoAll||1;
   def.bars.forEach((raw,k)=>{let[b,tags]=chartTags(raw);
     for(const g of tags){const c=g.indexOf(':'),a=c<0?g:g.slice(0,c),v=c<0?'':g.slice(c+1);
       if(a==='bpm')tm=(def.tempoAll||1)*(+v);else if(a==='fx')fxs.push({t,kind:v});else if(a==='say')says.push({t,text:v});else if(a==='habit'&&def.habit)says.push({t,text:def.habit,habit:true})}
     if(def.swing&&b.length===8){let o='';for(let m=0;m<8;m+=2)o+=b[m]+(b[m+1]==='='?'=':'.')+b[m+1];b=o}   // shuffle: 8th offbeats land on the triplet
-    const bar=bar0/tm;barT.push(t);tmK.push(tm);barKind.push(b==='R'||b==='E'?'rest':STUN_BAR[b]?'stun':/[tThHdDjJ]/.test(b)?'hit':'call');
+    const bar=bar0/tm;barT.push(t);tmK.push(tm);barKind.push(b==='R'||b==='E'?'rest':STUN_BAR[b[0]]&&(b.length===1||b[1]===':')?'stun':/[tThHdDjJ]/.test(b)?'hit':'call');
     if(b==='R'){if(k<1)for(let q=0;q<4;q++)cues.push({t:t+q*bar/4,type:'count',k:k*4+q});t+=bar;return}
-    if(STUN_BAR[b]){const mode=STUN_BAR[b],pv=segs[segs.length-1];if(pv&&pv.type==='stun'&&pv.mode===mode&&Math.abs(pv.end-t)<1)pv.end=t+bar;else segs.push({type:'stun',t,end:t+bar,mode});t+=bar;return}
+    let sc='';if(/^[SGK]:/.test(b)){sc=b.slice(2);b=b[0]}   // 'S:calls' — the enemy calls the next phrase while it lies stunned, so the answer follows right after
+    if(STUN_BAR[b]){const mode=STUN_BAR[b],pv=segs[segs.length-1];if(pv&&pv.type==='stun'&&pv.mode===mode&&Math.abs(pv.end-t)<1)pv.end=t+bar;else segs.push({type:'stun',t,end:t+bar,mode});
+      for(let i=0;i<sc.length;i++){const c=sc[i],tt=t+i*bar/sc.length;if(c==='c'||c==='q')cues.push({t:tt,type:c==='c'?'tap':'hold',k:0});else if(c==='x'||c==='u')cues.push({t:tt,type:c==='x'?'swipe':'jump',k:0})}t+=bar;return}
     if(b==='E'){segs.push({type:'end',t});t+=bar;return}
     const notes=[],whole=b;for(const b of whole.split('/')){const L=b.length,st=bar/L;   // 'calls/hits': the next call plays while you answer the last one
     for(let i=0;i<L;i++){const c=b[i],tt=t+i*st;
@@ -2850,7 +2855,7 @@ function chartBuild(def,T0){const bar0=barMs(),segs=[],cues=[],says=[],fxs=[],fa
   return{segs,cues,says,fxs,fakes,barT,tmK,barKind,yi:0,ci:0,si:0,total,done:0,T0,end:t,bars:def.bars.length,def,bounds,hidN,hidOk:0}}
 /* hard mode: the same song a notch faster, and an answer to a call you've already heard is hidden */
 function hardChart(L){const seen=new Set(),bars=L.bars.slice();
-  for(let k=0;k+1<bars.length;k++){const a=chartTags(bars[k])[0],r=chartTags(bars[k+1])[0];if(STUN_BAR[a]||a.length<4||!/[cqxuf]/.test(a)||/[tThHdDjJ]/.test(a))continue;
+  for(let k=0;k+1<bars.length;k++){const a=chartTags(bars[k])[0].replace(/^[SGK]:/,''),r=chartTags(bars[k+1])[0];if(STUN_BAR[a]||a.length<4||!/[cqxuf]/.test(a)||/[tThHdDjJ]/.test(a))continue;
     if(seen.has(a))bars[k+1]=bars[k+1].slice(0,bars[k+1].length-r.length)+r.replace(/[thdj]/g,c=>c.toUpperCase());seen.add(a)}
   return Object.assign({},L,{bars,hard:true,tempoAll:1.1,name:L.name+' · 어려움',rule:'어려움: 더 빠르고, 반복되는 답은 숨겨져요'})}
 /* stage challenges (chart levels): no misses · fevers · one special per stage */
@@ -2877,7 +2882,7 @@ function chartStart(){const C=B.chart;if(C.built)return;const lat=AC?(AC.outputL
   const tap=B.wp.groggyTapDamage,blocks=Math.max(1,C.bounds.length-2);B.emax=B.ehp=Math.max(60,Math.round(tap*60*(C.def.boss?1.5:1)));
   C.chip=.25*B.emax/Math.max(1,C.total);C.fv=0;C.fvNeed=10;C.blockBudget=.38*B.emax/blocks;C.finPer=.12*B.emax/blocks}   // ~75% from play; each FEVER adds ~18%
 /* the gate map in a chart level shows its sections (each ends with a reward stun), the crown is the finish */
-function chartMap(k){let n=1,prev=false;for(const raw of (B.chart&&B.chart.def.bars)||[]){const st=!!STUN_BAR[chartTags(raw)[0]];if(st&&!prev)n++;prev=st}
+function chartMap(k){let n=1,prev=false;for(const raw of (B.chart&&B.chart.def.bars)||[]){const st=/^[SGK](:|$)/.test(chartTags(raw)[0]);if(st&&!prev)n++;prev=st}
   $('#runMap').innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<k?'done':i===k?'cur':''} ${i===n-1?'boss':''}">${ic(i===n-1?'crown':'swords')}</i>`).join('<b></b>')}
 function chartBegin(){const C=B.chart,bar=barMs();chartStart();
   while(C.si<C.segs.length){const g=C.segs[C.si];
@@ -2892,7 +2897,7 @@ function chartBegin(){const C=B.chart,bar=barMs();chartStart();
     if(g.type==='stun'){const pv=C.segs[C.si-1],ln=pv&&pv.type==='hit'?pv.notes[pv.notes.length-1]:null,go=Math.min(g.t,ln?ln.t+(ln.dur||0)+150:g.t);   // the gauge is full once the block's last note lands: start the stun right then, not on the next bar
       if(B.time<go-20){setState('IDLE');B.idleDur=Math.max(16,go-B.time-10);return}C.si++;
       enterGroggy();B.phReward=true;B.phPerfect=false;B.phGrid=g.t;C.mashLeft=C.blockBudget;C.mashPer=C.blockBudget/Math.max(1,(g.end-B.time)/bar*8);B.groggyCap=1e15;B.groggyEnd=g.end;B.groggyDur=g.end-B.time;
-      C.smode=g.mode;B.kc=null;B.kDone=false;if(B.preMash&&B.time-B.preMash<450&&g.mode!=='grid'){B.lastBashT=-1e9;setTimeout(()=>{if(B.state==='GROGGY')groggyHit()},0)}B.preMash=0;const mtx={grid:'정박에만 연타!',charge:'꾹 모았다가 마지막 박에 떼기!'}[g.mode];if(mtx)atkCue(false);
+      C.smode=g.mode;C.curStun=g;B.kc=null;B.kDone=false;if(B.preMash&&B.time-B.preMash<450&&g.mode!=='grid'){B.lastBashT=-1e9;setTimeout(()=>{if(B.state==='GROGGY')groggyHit()},0)}B.preMash=0;const mtx={grid:'정박에만 연타!',charge:'꾹 모았다가 마지막 박에 떼기!'}[g.mode];if(mtx)atkCue(false);
       if(C.fvOn){C.mashLeft*=1.5;C.mashPer*=1.5;atkCue(false);ftAt(mtx||'FEVER 연타!',B.ex,B.gy-B.E.scale*22,'perfect')}
       else ftAt(mtx||'지금 연타!',B.ex,B.gy-B.E.scale*22,'perfect');return}
     if(g.type==='end'){if(B.time<g.t-20){setState('IDLE');B.idleDur=Math.max(16,g.t-B.time-10);return}C.si++;chartFinish();return}}
@@ -3576,7 +3581,8 @@ function groggyHit(){
   let gridHit=false;if(B.chart&&B.chart.smode==='grid'){const e=beatMs(),off=((inputTime()-B.phGrid)%e+e)%e;if(Math.min(off,e-off)>90){B.chart.gMiss=(B.chart.gMiss||0)+1;ftAt('박자!',B.kx+8,B.gy-46,'info');gridHit=-1}else gridHit=true}
   const crit=Math.random()<B.wp.critRate;const chartD=B.chart&&B.chart.mashPer!=null?Math.round(Math.min(B.chart.mashLeft,B.chart.mashPer*(gridHit===true?2:gridHit===-1?.4:onGrid()?1.25:.8)*(crit?1.5:1))):null;if(chartD!=null)B.chart.mashLeft-=chartD;
   const d=chartD!=null?chartD:Math.max(1,Math.round(B.wp.groggyTapDamage*(onGrid()?1.5:1)*(hasT('armored')?.7:1)*(feverOn()?1.3:1)*(B.finishBonus?1.25:1)*rnd(.9,1.12)*(crit?2:1)*(B.fx.lowHpBash&&B.php<B.pmax*.3?1+B.fx.lowHpBash/100:1)));
-  (B.chart&&B.chart.fvOn?RK.fever:RK.groggy)(B.gHitK=(B.gHitK||0)+1);if(B.chart&&B.chart.fvOn)fvSlash(16+rnd(0,10),rnd(-1.3,1.3),3,FV_COLS[B.gHitK%FV_COLS.length]);B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
+  (B.chart&&B.chart.fvOn?RK.fever:RK.groggy)(B.gHitK=(B.gHitK||0)+1);if(B.chart&&B.chart.curStun){const it=inputTime(),pn=stunNotes(B.chart.curStun).find(n=>!n.res&&Math.abs(n.t-it)<=90);if(pn)pn.res=true}   // the attack note you hit leaves the lane
+  if(B.chart&&B.chart.fvOn)fvSlash(16+rnd(0,10),rnd(-1.3,1.3),3,FV_COLS[B.gHitK%FV_COLS.length]);B.ehp-=d;B.groggyDmg=(B.groggyDmg||0)+d;B.swing=!B.swing;B.swingT=B.time;B.eHitT=B.time;setKPose('attack');B.eFlash=70;
   if(B.st.label==='보스'&&B.phase2&&!B.despUsed&&B.ehp<=B.emax*.1&&!(R&&(R.rhythm||R.prologue||R.vault||R.trial))){B.ehp=Math.max(1,B.ehp);B.stun=0;Music.hype=false;setState('IDLE');B.idleDur=450;ftAt(String(d),B.ex,B.gy-30,'dmg');flash('#ff2b3b',.4,300);return}
   {const now=performance.now();if(now>=(B.hsReady||0)){B.hitstop=crit?80:30;B.hsReady=now+(crit?220:140)}}B.shake=crit?4.5:1.8;zoom(crit?1.09:1.025);
   const hx=B.ex-B.E.scale*4,hy=B.gy-B.E.scale*10,wi=S.shStage;
@@ -3835,7 +3841,11 @@ function drawLane(c,t){
   pixCircle(c,jx,y,4,near?'#ffe14d':'#ffffff');pixCircle(c,jx,y,5,'rgba(255,255,255,.35)');
   if(wu&&a.row){const N=a.row+(a.freeze?1:0),gx=Math.round(B.W/2-N*4),gy2=y-14;for(let i=0;i<N;i++){const target=i===N-1,frz=a.freeze&&i===N-2,on=i<a.lit;
       px(c,gx+i*8-1,gy2-1,7,7,K);px(c,gx+i*8,gy2,5,5,target?(on?'#ffffff':'#ff5b6b'):frz?'#7cd4ff':on?'#ffe14d':'#3b3277');if(target&&a.lit>=N-1&&Math.floor(t/80)%2)px(c,gx+i*8,gy2,5,5,'#ffffff')}}
-  for(const n of list){if(n.res||n.hidden)continue;const dt=n.t-t;if(dt>lead||dt<-60)continue;
+  if(cl){const C=B.chart;if(B.state==='GROGGY'&&C.curStun)list.push(...stunNotes(C.curStun));for(let i=C.si;i<C.segs.length;i++){const g=C.segs[i];if(g.t-t>lead)break;if(g.type==='stun')list.push(...stunNotes(g))}list.sort((x,y)=>x.t-y.t)}
+  for(const n of list){if(n.res||n.hidden)continue;
+    if(n.type==='atk'||n.type==='rel'){const dt=n.t-t;if(dt>lead||dt<-60)continue;const x=Math.round(jx+dt*v);if(x>B.W+4)continue;
+      if(n.type==='rel'){if(B.kc!=null){c.fillStyle='rgba(124,240,255,.55)';c.fillRect(jx,y-2,Math.max(0,x-jx),5)}px(c,x-5,y-5,11,11,K);px(c,x-4,y-4,9,9,'#7cf0ff');LANE_GLYPH.H.forEach((r,j)=>{for(let i=0;i<5;i++)if(r[i]==='#')px(c,x-2+i,y-2+j,1,1,'#ffffff')});continue}
+      const s=n.off?2:3,col=n.hit?'#ffffff':'#ff9b2f';px(c,x-s-1,y-s-1,2*s+3,2*s+3,K);px(c,x-s,y-s,2*s+1,2*s+1,col);px(c,x-s+1,y-s+1,2*s-1,1,'rgba(255,255,255,.6)');continue}const dt=n.t-t;if(dt>lead||dt<-60)continue;
     const x=Math.round(jx+dt*v),hidden=wu&&(a.kind==='feint'||n.ghost)&&dt>320;
     if(n.type==='hold'){const x2=Math.round(jx+(n.t+n.dur-t)*v);const xa=Math.max(jx,x);c.fillStyle=K;c.fillRect(xa-1,y-3,x2-xa+3,7);c.fillStyle='#4bb6ff';c.fillRect(xa,y-2,x2-xa+1,5);c.fillStyle='#bfe6ff';c.fillRect(xa,y-2,x2-xa+1,1);continue}
     if(x>B.W+4)continue;
