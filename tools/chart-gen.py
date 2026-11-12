@@ -36,33 +36,41 @@ def ok_spacing(bars):
         for i,ch in enumerate(h):
             if ch in 'tThHdDjJ': seq.append((bi*8+i,ch))
     return all(not((a[1] in 'dDjJ' or b[1] in 'dDjJ') and b[0]-a[0]<2) for a,b in zip(seq,seq[1:]))
-def thin(k,blocks):
-    """nudge tap calls (remove or add one 'c', equal patterns together) until the stage sits on its planned density"""
+# ===== musical fitting: whole tap patterns are swapped for idioms from a rhythm vocabulary (never single notes punched out) =====
+VOCAB8={2:['c...c...','c.....c.'],
+        3:['c.c.c...','c...c.c.','c.c...c.','cc..c...','c...cc..','c..c..c.'],
+        4:['c.c.c.c.','cc..c.c.','c.cc.c..','c.c.cc..','cc..cc..','c..c.cc.'],
+        5:['cc.cc.c.','c.cc.cc.','cc.c.cc.','c.c.cc.c'],
+        6:['cc.cc.cc','cccc.cc.']}
+VOCAB12={2:['c.....c.....'],3:['c..c..c.....','c.....c..c..','c.cc..c.....'],4:['c..c..c..c..','c.cc..c..c..','c..c..c.cc..'],
+         5:['c.cc..c.cc..','ccc...c..c..'],6:['c.cc.cc..c..','ccc...ccc...']}
+def taponly(p): return set(p)<= set('c.')
+def npos(p): return {i for i,ch in enumerate(p) if ch=='c'}
+def down(p):
+    """the vocabulary idiom with one note fewer that keeps the most of p's rhythm (and its downbeat)"""
+    V=VOCAB12 if len(p)==12 else VOCAB8;n=p.count('c')
+    cands=[q for q in V.get(n-1,[]) if q[0]=='c']
+    if not cands: return None
+    P=npos(p);return max(cands,key=lambda q:(len(P&npos(q)),-abs(len(P)-len(npos(q)))))
+def fit(k,blocks):
+    """bring a stage onto its planned density by simplifying its EARLIEST tap phrases first (later ones keep their richness)"""
     tgt=target(k)
-    def edits(p):
-        L=len(p);out=[]
-        for i,ch in enumerate(p):
-            notes=sum(c2 in 'cxu' for c2 in p)+p.count('q')
-            if ch=='c' and i>0 and notes>2: out.append(p[:i]+'.'+p[i+1:])
-            if ch in 'xu' and i>0 and sum(c2 in 'xu' for c2 in p)>=2 and notes>2: out.append(p[:i]+'.'+p[i+1:])
-            if ch=='.' and (L==8 and i%2==0 or L==12 and i%3==0) and i>0:
-                nb=p[max(0,i-1):i+2]
-                if not any(x in nb for x in 'xuq=f') and (i+1>=L or p[i+1]!='=') and p.count('c')<(5 if L==8 else 6): out.append(p[:i]+'c'+p[i+1:])
-        return out
-    for _ in range(200):
+    for _ in range(120):
         bars=build(blocks);d=density(bars,BPM[k])
-        if abs(d-tgt)<=.015: return bars
+        if d<=tgt+.015: return bars
+        order=[]
+        for st,items in blocks:
+            for kind,pat,o in items:
+                if kind=='c' and taponly(pat) and 'ans' not in o and 'habit' not in o.get('tag','') and pat not in order and down(pat): order.append(pat)
         best=None
-        pats={pat for _,items in blocks for kind,pat,o in items if kind=='c' and 'ans' not in o and 'habit' not in o.get('tag','')}
-        for p in pats:
-            for q in edits(p):
-                nb=[(st,[(kind,(q if (kind=='c' and pat==p) else pat),o) for kind,pat,o in items]) for st,items in blocks]
-                bb=build(nb)
-                if not ok_spacing(bb): continue
-                e=abs(density(bb,BPM[k])-tgt)
-                if e<abs(d-tgt)-1e-9 and (best is None or e<best[0]): best=(e,nb)
-        if not best: return bars
-        blocks=best[1]
+        for p in order:
+            q=down(p);nb=[(st,[(kind,(q if (kind=='c' and pat==p) else pat),o) for kind,pat,o in items]) for st,items in blocks]
+            bb=build(nb)
+            if not ok_spacing(bb): continue
+            dd=density(bb,BPM[k])
+            if dd>=tgt-.03: best=nb;break
+        if best is None: return bars
+        blocks=best
     return build(blocks)
 def C(p,**o): return ('c',p,o)
 def SELF(b,**o): return ('s',b,o)
@@ -93,42 +101,42 @@ def build(blocks):
 def three(p,**o): return [C(p,**o),C(p,**o),C(p,hide=True,**o)]
 S={}
 # 2: holds (slime) — 1.2/s
-S[1]=thin(1,[( 'S',[C('c.c.c...'),C('q==.c...'),C('c.c.c...'),C('q==.c.c.'),C('c.c.c.c.'),C('c.c.q==.'),C('q==.c.c.'),C('c.c.c...')]),
+S[1]=fit(1,[( 'S',[C('c.c.c...'),C('q==.c...'),C('c.c.c...'),C('q==.c.c.'),C('c.c.c.c.'),C('c.c.q==.'),C('q==.c.c.'),C('c.c.c...')]),
             ( 'K',[C('c.c.c.c.'),C('q==.c.c.'),C('{habit}c.cc.cc.',tag='{habit}') if False else C('c.cc.cc.',tag='{habit}'),C('c.c.q==.'),C('q==.c.c.'),C('c.c.c.c.'),C('q==.c.c.')]),
             ( 'S',[C('c.c.q==.'),C('c.c.c.c.'),C('q==.c.c.'),C('c.cc.c..'),C('c.c.q==.'),C('q==.c.c.')])])
 # 3: swing, 12-grid (bee) — 1.25/s
-S[2]=thin(2,[( 'S',[C('c.....c.....'),C('c..c..c.....'),C('c.....c..c..'),C('c..c..c..c..'),C('c.....c..c..'),C('c..c..c.....'),C('c..c..c..c..')]),
+S[2]=fit(2,[( 'S',[C('c.....c.....'),C('c..c..c.....'),C('c.....c..c..'),C('c..c..c..c..'),C('c.....c..c..'),C('c..c..c.....'),C('c..c..c..c..')]),
             ( {'m':'G','tag':'{say:새 연타: 정박에만!}'},[C('ccc...c.....',tag='{habit}'),C('c..c.cc.....'),C('c.c..c..c...'),C('c..c..c..c..'),C('c..c..c..c..'),C('c..c..c..c..'),C('c..c.cc.....')]),
             ( 'S',[C('c.c..c..c...'),C('c..c.cc..c..'),C('c..c..c..c..'),C('c..c..c.....'),C('ccc...c.....'),C('c..c..c..c..')])])
 # 4: 7-count (goblin) — 1.3/s ; pulse phrases close a block
-S[3]=thin(3,[( 'S',[C('c.c.c...'),C('c.c.c.c.'),C('c.cc.c..'),C('c.c.c.c.'),C('cc.c.c..'),SELF('p.p.p.p.'),SELF('p.p.t...')]),
+S[3]=fit(3,[( 'S',[C('c.c.c...'),C('c.c.c.c.'),C('c.cc.c..'),C('c.c.c.c.'),C('cc.c.c..'),SELF('p.p.p.p.'),SELF('p.p.t...')]),
             ( 'G',[C('c.c.c.c.'),C('c..c..c.',tag='{habit}'),C('c.c.c.c.'),C('c.cc.c..'),C('cc.c.cc.'),SELF('i.p.p.p.'),SELF('p.p...t.')]),
             ( 'S',[C('c.c.c.c.'),C('c.cc.cc.'),C('c..c..c.'),C('cc.cc.c.'),C('c.c.cc..'),SELF('p.p.p.p.'),SELF('p.p.t...')])])
 # 5: King Slime boss — threes, third hidden — 1.45/s
-S[4]=thin(4,[( 'S',three('c.c.c...')+three('c.c.c.c.')),
+S[4]=fit(4,[( 'S',three('c.c.c...')+three('c.c.c.c.')),
             ( {'m':'K','tag':'{fx:-}'},[C('c..c..c.',tag='{fx:sway}')]+[C('c..c..c.'),C('c..c..c.',hide=True)]+three('q==.c.c.')),
             ( 'G',three('c.....c..c..')+three('c..c..c..c..')),
             ( 'S',[C('c.c.c.c.'),C('c.cc.cc.'),C('cc.c.cc.'),SELF('i.p.p.p.'),SELF('p.p...t.')]),
             ( {'m':'S','tag':'{fx:-}'},[C('cc.cc.c.',tag='{bpm:1.12}{fx:sway}{say:왕 슬라임이 화났다! 빨라진다!}'),C('cc.cc.c.'),C('cc.cc.c.',hide=True),C('cccc.ccc'),C('q==.cc.c'),C('q==.cc.c'),C('q==.cc.c',hide=True)])])
 # 6: dodge (old goblin) — 1.4/s
-S[5]=thin(5,[( 'S',[C('x...x.c.'),C('c.c.x.c.'),C('x.c.c.c.'),C('c.c.c.x.'),C('x...x.c.'),C('c.x.c.x.'),C('c.c.x.c.')]),
-            ( 'G',[C('x.c.c.x.'),C('q===c...',tag='{habit}'),C('c.x.c.x.'),C('x...c.c.'),C('c.c.x.c.'),C('x.c.x.c.'),C('c.x.c.c.')]),
-            ( 'S',[C('c.x.c.x.'),C('x.c.c.x.'),C('c.c.x.c.'),C('x.x.c.c.'),C('c.x.x.c.'),C('c.c.c.x.'),C('cc.c.x..')])])
+S[5]=fit(5,[( 'S',[C('x...x.c.'),C('c.c.x...'),C('x...c.c.'),C('c.c.x...'),C('x.c.c...'),C('c.x.c...'),C('c.c.x.c.')]),
+            ( 'G',[C('x...c.c.'),C('q===c...',tag='{habit}'),C('c.x.c...'),C('x...c.c.'),C('c.c.x...'),C('x.c.c...'),C('c.c.x.c.')]),
+            ( 'S',[C('c.x.c.x.'),C('x.c.c.x.'),C('c.c.x.c.'),C('x...c.c.'),C('c.x.c.x.'),C('c.c.c.x.'),C('x.c.c.c.')])])
 # 7: jump, shuffle (giant goblin) — 1.45/s
-S[6]=thin(6,[( 'K',[C('u...u.c.'),C('c.c.u.c.'),C('u.c.x.c.'),C('c.u.c.x.'),C('u.c.c.c.'),C('c.c.u.c.'),C('x.c.u.c.')]),
-            ( 'S',[C('c..c..c.',tag='{habit}'),C('q=..u.c.'),C('c.x.u.c.'),C('u.c.c.u.'),C('c.u.x.c.'),C('u.c.c.c.'),C('c.c.x.u.')]),
-            ( 'S',[C('c.u.c.x.'),C('u.c.x.c.'),C('c.c.u.c.'),C('x.u.c.c.'),C('u.c.u.c.'),C('c.x.u.c.'),C('cc.c.u..')])])
+S[6]=fit(6,[( 'K',[C('u...u...'),C('c.c.u...'),C('u...c.c.'),C('c.u.c...'),C('u...c.c.'),C('c.c.u...'),C('x...u.c.')]),
+            ( 'S',[C('c..c..c.',tag='{habit}'),C('q=..u...'),C('c.x.u.c.'),C('u.c.c.c.'),C('c.u.c.c.'),C('u...c.c.'),C('c.c.u...')]),
+            ( 'S',[C('c.u.c.x.'),C('u.c.x.c.'),C('c.c.u.c.'),C('x.u.c...'),C('u.c.u.c.'),C('c.x.u.c.'),C('c.c.u.c.')])])
 # 8: offbeat answers + fakes (wild slime) — 1.5/s
 O=dict(shift=1)
-S[7]=thin(7,[( 'G',[C('c.cc.c..',**O),C('c.f.c.f.',tag='{say:가짜 부르기! 따라 치지 말고 참기}',**O),C('cc.cc.c.',**O),C('c.cc.cc.',tag='{habit}',**O),C('c.cc.cc.',**O),C('c.c.c.c.',**O),C('x.c.cc..',**O)]),
+S[7]=fit(7,[( 'G',[C('c.cc.c..',**O),C('c.f.c.f.',tag='{say:가짜 부르기! 따라 치지 말고 참기}',**O),C('cc.cc.c.',**O),C('c.cc.cc.',tag='{habit}',**O),C('c.cc.cc.',**O),C('c.c.c.c.',**O),C('x.c.cc..',**O)]),
             ( 'S',[C('c.c.u...',**O),C('cc.cc.c.',**O),C('c.c.x.f.',**O),C('c.f.u.c.',**O),C('c.cc.cc.',**O),C('x.c.cc..',**O),C('c.cc.cc.',**O)]),
             ( 'S',[C('c.c.u.c.',**O),C('cc.cc.c.',**O),C('c.f.cc.c',**O),C('x.c.cc..',**O),C('c.cc.cc.',**O),C('u.c.cc..',**O),C('cc.cc.c.',**O)])])
 # 9: everything mixed (shaman) — 1.6/s
-S[8]=thin(8,[( 'S',[C('c.x.u.c.'),C('q==.c.x.'),C('u.c.c.x.'),C('c.c.u.x.'),C('cc.cc.c.',tag='{habit}',ans='TT.tt.T.'),C('c.f.u.x.'),C('x.cc.u..')]),
-            ( 'K',[C('c.x.c.x.',tag='{bpm:1.08}{say:주문이 빨라진다!}'),C('u.c.u.c.'),C('c.c.x.u.'),C('q==.c.x.'),C('x.u.cc..'),C('c.u.x.c.'),C('cc.c.u..')]),
-            ( 'S',[C('cc.x.u..'),C('x.cc.u..'),C('cc.c.x..'),C('u.cc.x..'),C('cc.cc.x.'),SELF('p.p.p.p.'),SELF('p.p.j...')])])
+S[8]=fit(8,[( 'S',[C('c.x.u...'),C('q==.c.x.'),C('u.c.c...'),C('c...u.x.'),C('c.c.c.c.',tag='{habit}',ans='T.t.T.t.'),C('c.f.u.x.'),C('x...u.c.')]),
+            ( 'K',[C('c.x.c...',tag='{bpm:1.08}{say:주문이 빨라진다!}'),C('u.c.u...'),C('c.c.x.u.'),C('q==.c.x.'),C('x.u.c.c.'),C('c.u.x.c.'),C('c.c.u.c.')]),
+            ( 'S',[C('c.x.u.c.'),C('x.c.c.u.'),C('c.c.x.c.'),C('u.c.x.c.'),C('c.c.c.x.'),SELF('p.p.p.p.'),SELF('p.p.j...')])])
 # 10: Goblin Chief boss — half-bar exchange, all of chapter 2 — 1.75/s
-S[9]=thin(9,[( 'S',[SELF('cc.ctt.t'),SELF('cc.ctt.t'),SELF('cc.xtt.d'),SELF('cc.xtt.d'),SELF('cc.utt.j'),SELF('cc.uTT.J')]),
+S[9]=fit(9,[( 'S',[SELF('cc.ctt.t'),SELF('cc.ctt.t'),SELF('cc.xtt.d'),SELF('cc.xtt.d'),SELF('cc.utt.j'),SELF('cc.uTT.J')]),
             ( {'m':'G','tag':'{fx:-}'},[C('x.x.c.c.',tag='{fx:mirror}'),C('x.x.c.c.'),C('x.x.c.c.',hide=True),C('cc.x.cc.'),C('cc.x.cc.'),C('cc.x.cc.',hide=True)]),
             ( 'K',[C('cc.cc...',shift=1),C('c.f.u.c.',shift=1),C('cc.c.x..',shift=1),C('cc.c.x..',shift=1,hide=True),C('cc.cc.c.',shift=1),C('c.cc.u..',shift=1)]),
             ( 'S',[C('q==.c.u.',tag='{bpm:0.85}{say:대장이 숨을 고른다…}'),C('cc.c.x..'),C('q==.c.x.'),C('cc.c.u..'),SELF('i.p.p.p.'),SELF('p.p...d.')]),
