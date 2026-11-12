@@ -3827,7 +3827,7 @@ function drawLane(c,t){
   for(const n of list){if(n.res||n.hidden)continue;
     if(n.type==='atk'||n.type==='rel'){const dt=n.t-t;if(dt>lead||dt<-60)continue;const x=Math.round(jx+dt*v);if(x>B.W+4)continue;
       if(n.type==='rel'){if(B.kc!=null){c.fillStyle='rgba(124,240,255,.55)';c.fillRect(jx,y-2,Math.max(0,x-jx),5)}px(c,x-5,y-5,11,11,K);px(c,x-4,y-4,9,9,'#7cf0ff');LANE_GLYPH.H.forEach((r,j)=>{for(let i=0;i<5;i++)if(r[i]==='#')px(c,x-2+i,y-2+j,1,1,'#ffffff')});continue}
-      const s=n.off?2:3,col=n.hit?'#ffffff':'#ff9b2f';px(c,x-s-1,y-s-1,2*s+3,2*s+3,K);px(c,x-s,y-s,2*s+1,2*s+1,col);px(c,x-s+1,y-s+1,2*s-1,1,'rgba(255,255,255,.6)');continue}const dt=n.t-t;if(dt>lead||dt<-60)continue;
+      const s=n.off?2:3,col=n.hit?'#ffffff':'#ff9b2f';px(c,x-s-1,y-s-1,2*s+3,2*s+3,K);px(c,x-s,y-s,2*s+1,2*s+1,col);px(c,x-s+1,y-s+1,2*s-1,1,'rgba(255,255,255,.6)');continue}const dt=n.t-t;if(dt>lead||n.t+(n.dur||0)-t<-60)continue;   /* a hold stays on the lane until its END has passed */
     const x=Math.round(jx+dt*v),hidden=wu&&(a.kind==='feint'||n.ghost)&&dt>320;
     if(n.type==='hold'){const x2=Math.round(jx+(n.t+n.dur-t)*v);const xa=Math.max(jx,x);c.fillStyle=K;c.fillRect(xa-1,y-3,x2-xa+3,7);c.fillStyle='#4bb6ff';c.fillRect(xa,y-2,x2-xa+1,5);c.fillStyle='#bfe6ff';c.fillRect(xa,y-2,x2-xa+1,1);continue}
     if(x>B.W+4)continue;
