@@ -3810,12 +3810,14 @@ function drawHoldMark(c,x,y,t){const s=Math.floor(t/60)%2;px(c,x-6,y-1,13,7,K);p
 const LANE_GLYPH={L:['..#..','.##..','#####','.##..','..#..'],R:['..#..','..##.','#####','..##.','..#..'],S:['#...#','##.##','#####','##.##','#...#'],
   J:['..#..','.###.','#.#.#','..#..','..#..'],B:['#####','#####','#####','.###.','..#..'],H:['#.#.#','#.#.#','#####','#####','.###.']};
 function drawLane(c,t){
-  const cl0=!!(B.chart&&B.chart.built&&!B.chart.fin),live=B.state==='WINDUP'||B.state==='IDLE'||B.state==='RECOIL'||B.state==='STRIKE'||(cl0&&!['VICTORY','DEFEAT','DONE','TRANSFORM'].includes(B.state));   // chart levels: the lane never disappears (stun, fever, wall slam...)
+  const cl0=!!(B.chart&&B.chart.built&&!B.chart.fin),live=B.state==='WINDUP'||B.state==='IDLE'||B.state==='RECOIL'||B.state==='STRIKE'||!['VICTORY','DEFEAT','DONE','TRANSFORM','BOSSIN','WALK','INTRO','EXEC','OPEN'].includes(B.state);   /* the lane stays through stuns, fever and a boss's wake-up counter */void cl0;
   if(!live||(R&&R.prologue&&B.state!=='WINDUP'))return;
   const jx=Math.round(B.kx0+10),y=B.gy+8,v=.07,lead=B.tune.lead*(B.blizOn?.55:B.hz==='rock'?.85:1);
   c.fillStyle='rgba(10,6,30,.6)';c.fillRect(jx-7,y-6,B.W-jx+7,13);
   {const bp=clamp(1-(t-(B.beatT||-1e9))/140,0,1);if(bp>0)pixCircle(c,jx,y,6+bp*2,B.beatDown?'rgba(255,225,77,.8)':'rgba(255,255,255,.5)')}
-  const a=B.atk,cl=!!(B.chart&&B.chart.built),wu=B.state==='WINDUP'&&a&&a.notes;if(!wu&&!cl){pixCircle(c,jx,y,4,'rgba(255,255,255,.6)');return}
+  const a=B.atk,cl=!!(B.chart&&B.chart.built),wu=B.state==='WINDUP'&&a&&a.notes;if(!wu&&!cl){pixCircle(c,jx,y,4,'rgba(255,255,255,.6)');
+    if(B.state==='WAKE'&&a&&a.shock&&!a.resolved){const dt=a.impact-t,x=Math.round(jx+Math.max(0,dt)*v);if(x<=B.W+4){px(c,x-5,y-5,11,11,K);px(c,x-4,y-4,9,9,'#ff4d5e');LANE_GLYPH.S.forEach((r,j)=>{for(let i=0;i<5;i++)if(r[i]==='#')px(c,x-2+i,y-2+j,1,1,'#ffffff')})}}   // the boss's wake-up shockwave: swipe!
+    return}
   /* chart levels: upcoming bars' notes are already on the lane, so every note slides in from the edge at the same speed (no pop-in) */
   const list=[];if(wu)for(let k=a.idx;k<a.notes.length;k++)list.push(a.notes[k]);
   if(cl){const C=B.chart;for(let i=C.si;i<C.segs.length;i++){const g=C.segs[i];if(g.type!=='hit')continue;if(g.notes[0].t-t>lead)break;if(!(wu&&a.chart&&a.notes[0].t===g.notes[0].t))list.push(...g.notes)}}
